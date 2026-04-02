@@ -9,9 +9,19 @@ export default defineNuxtConfig({
   ],
   supabase: {
     types: '~/types/database.types.ts',
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/login', '/confirm'],
+      saveRedirectToCookie: true,
+    },
   },
   i18n: {
     defaultLocale: 'nl',
-    locales: ['nl', 'en'],
+    locales: [
+      { code: 'nl', language: 'nl-NL', file: 'nl.ts' },
+      { code: 'en', language: 'en-US', file: 'en.ts' },
+    ],
+    langDir: 'locales/',
   },
 })

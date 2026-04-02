@@ -1,5 +1,17 @@
 # De Twaalf — Claude Guidelines
 
+## Security
+
+Security is a first-class concern on every feature, not an afterthought.
+
+- Always consider the security implications before building anything: auth, RLS policies, input validation, XSS, injection
+- If a requested feature is ambiguous and could be implemented in a secure or insecure way, **ask before building**
+- Never expose the Supabase service role key on the frontend — anon key only
+- Never trust client-supplied data for anything security-sensitive; enforce rules in RLS policies and DB functions
+- When in doubt: confirm with the user first, then build
+
+---
+
 ## Reference docs
 
 Always consult the Nuxt 4 docs first when looking anything up: https://nuxt.com/docs/4.x/getting-started/introduction
