@@ -1,11 +1,11 @@
-# De Twaalf — Project Brief
-**detwaalf.run**
+# Twaalf Provincies — Project Brief
+**twaalfprovincies.run**
 
 ---
 
 ## What is it?
 
-De Twaalf is a web application that lets runners track their progress toward completing a running event in each of the 12 Dutch provinces. It is inspired by the ProRun 12 Provincies challenge but goes significantly further: where ProRun only records completed runs, De Twaalf covers the full event lifecycle from discovery through to finishing.
+Twaalf Provincies is a web application that lets runners track their progress toward completing a running event in each of the 12 Dutch provinces. It is inspired by the ProRun 12 Provincies challenge but goes significantly further: where ProRun only records completed runs, Twaalf Provincies covers the full event lifecycle from discovery through to finishing.
 
 Users can mark events as interested, signed up, or completed, and log detailed finish data when done. The app derives a medal tier from the actual distance run, not just the event category.
 
@@ -55,7 +55,7 @@ Initially the app will be used by a small, invitation-only group of runners. The
 | Data layer | TanStack Query (`@tanstack/vue-query`) + Pinia (UI state only) |
 | Backend | Supabase (PostgreSQL, Auth, Storage) — EU Frankfurt region |
 | Hosting | Clever Cloud (France) — GDPR-native, Node.js runtime |
-| Domain | detwaalf.run |
+| Domain | twaalfprovincies.run |
 | Language | Dutch (primary), English (i18n via `@nuxtjs/i18n`) |
 
 ---

@@ -2,11 +2,12 @@
 definePageMeta({ layout: 'auth' })
 
 const { t } = useI18n()
+useHead(() => ({ title: t('page.login') }))
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
 watchEffect(() => {
-  if (user.value) navigateTo('/')
+  if (user.value) navigateTo('/dashboard')
 })
 
 const email = ref('')
@@ -56,7 +57,7 @@ async function login() {
           type="email"
           autocomplete="email"
           required
-          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
         >
       </div>
 
@@ -70,7 +71,7 @@ async function login() {
           type="password"
           autocomplete="current-password"
           required
-          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
         >
       </div>
 
@@ -81,7 +82,7 @@ async function login() {
       <button
         type="submit"
         :disabled="!canSubmit"
-        class="mt-2 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        class="mt-2 w-full rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {{ loading ? t('auth.login.loading') : t('auth.login.submit') }}
       </button>

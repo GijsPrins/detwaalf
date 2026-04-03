@@ -1,5 +1,5 @@
-# De Twaalf — Database Schema
-**detwaalf.run**
+# Twaalf Provincies — Database Schema
+**twaalfprovincies.run**
 
 ```mermaid
 erDiagram

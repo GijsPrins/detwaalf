@@ -1,5 +1,5 @@
-# De Twaalf — Ideas & Backlog
-**detwaalf.run**
+# Twaalf Provincies — Ideas & Backlog
+**twaalfprovincies.run**
 
 Priority labels: **Must** = required before public release, **Should** = high value, **Could** = nice to have.
 

@@ -2,11 +2,12 @@
 definePageMeta({ layout: 'auth' })
 
 const { t } = useI18n()
+useHead(() => ({ title: t('page.login') }))
 const user = useSupabaseUser()
 const error = ref(false)
 
 watchEffect(() => {
-  if (user.value) navigateTo('/')
+  if (user.value) navigateTo('/dashboard')
 })
 
 // If the user is not resolved within 5 seconds, show an error
