@@ -33,7 +33,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
-      exclude: ['/', '/login', '/confirm'],
+      exclude: ['/', '/login', '/confirm', '/events'],
       saveRedirectToCookie: true,
     },
   },
@@ -41,7 +41,6 @@ export default defineNuxtConfig({
     defaultLocale: 'nl',
     locales: [
       { code: 'nl', language: 'nl-NL', file: 'nl.ts' },
-      { code: 'en', language: 'en-US', file: 'en.ts' },
     ],
     langDir: 'locales/',
   },

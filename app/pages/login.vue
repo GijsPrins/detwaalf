@@ -41,7 +41,7 @@ async function login() {
 </script>
 
 <template>
-  <div class="w-full max-w-sm px-6 py-8 bg-white rounded-2xl shadow-sm">
+  <div class="w-full max-w-sm px-6 py-8 bg-white rounded-xl border border-gray-100">
     <h1 class="text-2xl font-semibold text-gray-900 mb-6">
       {{ t('auth.login.title') }}
     </h1>

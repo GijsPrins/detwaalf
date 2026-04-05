@@ -51,6 +51,7 @@ All require multi-user to be stable and tested first.
 |---|---|---|
 | Upcoming events view | Calendar or list view of upcoming events the user has not yet participated in | **Should** |
 | Per-province suggestions | Show upcoming events per province as suggestions (external links) | **Could** |
+| GPX route display | Add `gpx_path` field (Supabase Storage) to `events` table. On the event detail page, parse the GPX file and render the route on a Leaflet + OSM-tiles map. Province auto-fill via Nominatim already planned. | **Could** |
 
 ---
 
@@ -77,4 +78,4 @@ These require significant architectural decisions and are not planned for the ne
 
 | Feature | Notes |
 |---|---|
-| i18n (NL/EN) | Implemented via `@nuxtjs/i18n`. Auto-detect browser language, persistent via localStorage |
+| i18n (NL) | Implemented via `@nuxtjs/i18n`. Dutch only for now; English will be added in one pass once the app is feature-complete |
