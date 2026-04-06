@@ -79,7 +79,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["participation_status"]
           timing_url?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string
         }
         Update: {
           actual_distance_km?: number | null
@@ -124,6 +124,7 @@ export type Database = {
           province_id: number
           registration_deadline: string | null
           registration_opens: string | null
+          registration_url: string | null
           timing_url: string | null
           updated_at: string
         }
@@ -139,6 +140,7 @@ export type Database = {
           province_id: number
           registration_deadline?: string | null
           registration_opens?: string | null
+          registration_url?: string | null
           timing_url?: string | null
           updated_at?: string
         }
@@ -154,6 +156,7 @@ export type Database = {
           province_id?: number
           registration_deadline?: string | null
           registration_opens?: string | null
+          registration_url?: string | null
           timing_url?: string | null
           updated_at?: string
         }

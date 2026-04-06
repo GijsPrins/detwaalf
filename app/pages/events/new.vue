@@ -16,6 +16,7 @@ const form = reactive({
   location: '',
   provinceId: null as number | null,
   eventUrl: '',
+  registrationUrl: '',
   registrationOpens: '',
   registrationDeadline: '',
 })
@@ -68,6 +69,7 @@ function submit() {
     province_id: form.provinceId!,
     location: form.location.trim() || null,
     event_url: form.eventUrl.trim() || null,
+    registration_url: form.registrationUrl.trim() || null,
     registration_opens: form.registrationOpens || null,
     registration_deadline: form.registrationDeadline || null,
   })
@@ -75,7 +77,7 @@ function submit() {
 </script>
 
 <template>
-  <div class="max-w-lg">
+  <div class="max-w-lg mx-auto">
     <h1 class="text-2xl font-bold text-gray-900 tracking-tight mb-6">
       {{ t('eventForm.titleAdd') }}
     </h1>
@@ -177,6 +179,21 @@ function submit() {
           v-model="form.eventUrl"
           type="url"
           :placeholder="t('eventForm.fields.eventUrlPlaceholder')"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+        >
+      </div>
+
+      <!-- Inschrijflink -->
+      <div class="flex flex-col gap-1.5">
+        <label for="registrationUrl" class="text-sm font-medium text-gray-700">
+          {{ t('eventForm.fields.registrationUrl') }}
+          <span class="text-gray-400 font-normal">{{ t('eventForm.fields.optional') }}</span>
+        </label>
+        <input
+          id="registrationUrl"
+          v-model="form.registrationUrl"
+          type="url"
+          :placeholder="t('eventForm.fields.registrationUrlPlaceholder')"
           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
         >
       </div>

@@ -10,6 +10,7 @@ export interface EventViewModel {
   eventDate: string
   location: string | null
   eventUrl: string | null
+  registrationUrl: string | null
   registrationOpens: string | null
   registrationDeadline: string | null
   createdBy: string
@@ -27,6 +28,7 @@ export function mapEvent(event: EventRow, participation: ParticipationRow | unde
     eventDate: event.event_date,
     location: event.location,
     eventUrl: event.event_url,
+    registrationUrl: event.registration_url,
     registrationOpens: event.registration_opens,
     registrationDeadline: event.registration_deadline,
     createdBy: event.created_by,

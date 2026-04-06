@@ -114,6 +114,18 @@ export async function insertEvent(
   return data
 }
 
+export async function deleteParticipation(
+  supabase: SupabaseClient<Database>,
+  eventId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from('event_participations')
+    .delete()
+    .eq('event_id', eventId)
+
+  if (error) throw error
+}
+
 export async function insertParticipation(
   supabase: SupabaseClient<Database>,
   participation: TablesInsert<'event_participations'>,

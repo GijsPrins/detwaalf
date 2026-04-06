@@ -5,14 +5,12 @@ import { upsertParticipation } from '~/queries/events'
 
 export function useSetParticipation(eventId: MaybeRef<string>) {
   const supabase = useSupabaseClient<Database>()
-  const user = useSupabaseUser()
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (status: Enums<'participation_status'>) =>
       upsertParticipation(supabase, {
         event_id: toValue(eventId),
-        user_id: user.value!.id,
         status,
       }),
     onSuccess: () => {
