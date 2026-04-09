@@ -1,47 +1,43 @@
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2026-04-02',
+  compatibilityDate: "2026-04-02",
   devtools: { enabled: true },
-  css: ['~/assets/css/main.css'],
+  css: ["~/assets/css/main.css"],
   app: {
     head: {
-      titleTemplate: '%s · Twaalf Provincies',
+      titleTemplate: "%s · Twaalf Provincies",
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
-        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
-        { rel: 'manifest', href: '/site.webmanifest' },
+        { rel: "icon", type: "image/png", href: "/favicon.png" },
+        {
+          rel: "apple-touch-icon",
+          sizes: "180x180",
+          href: "/apple-touch-icon.png",
+        },
+        { rel: "manifest", href: "/site.webmanifest" },
       ],
     },
   },
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
-      include: ['@svg-maps/netherlands'],
+      include: ["@svg-maps/netherlands"],
     },
   },
-  modules: [
-    '@nuxtjs/supabase',
-    '@nuxtjs/i18n',
-    '@pinia/nuxt',
-  ],
+  modules: ["@nuxtjs/supabase", "@nuxtjs/i18n", "@pinia/nuxt"],
   supabase: {
-    types: '~/types/database.types.ts',
+    types: "~/types/database.types.ts",
     redirectOptions: {
-      login: '/login',
-      callback: '/confirm',
-      exclude: ['/', '/login', '/confirm', '/events'],
+      login: "/login",
+      callback: "/confirm",
+      exclude: ["/", "/login", "/confirm", "/events"],
       saveRedirectToCookie: true,
     },
   },
   i18n: {
-    defaultLocale: 'nl',
-    locales: [
-      { code: 'nl', language: 'nl-NL', file: 'nl.ts' },
-    ],
-    langDir: 'locales/',
+    defaultLocale: "nl",
+    locales: [{ code: "nl", language: "nl-NL", file: "nl.ts" }],
+    langDir: "locales/",
   },
-})
+});
