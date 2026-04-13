@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -54,10 +55,43 @@ export type Database = {
         }
         Relationships: []
       }
+      event_distances: {
+        Row: {
+          created_at: string
+          distance_category: Database["public"]["Enums"]["distance_category"]
+          event_id: string
+          id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          distance_category: Database["public"]["Enums"]["distance_category"]
+          event_id: string
+          id?: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          distance_category?: Database["public"]["Enums"]["distance_category"]
+          event_id?: string
+          id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_distances_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_participations: {
         Row: {
           actual_distance_km: number | null
           created_at: string
+          event_distance_id: string | null
           event_id: string
           finish_time_seconds: number | null
           id: string
@@ -71,6 +105,7 @@ export type Database = {
         Insert: {
           actual_distance_km?: number | null
           created_at?: string
+          event_distance_id?: string | null
           event_id: string
           finish_time_seconds?: number | null
           id?: string
@@ -84,6 +119,7 @@ export type Database = {
         Update: {
           actual_distance_km?: number | null
           created_at?: string
+          event_distance_id?: string | null
           event_id?: string
           finish_time_seconds?: number | null
           id?: string
@@ -95,6 +131,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "event_participations_event_distance_id_fkey"
+            columns: ["event_distance_id"]
+            isOneToOne: false
+            referencedRelation: "event_distances"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "event_participations_event_id_fkey"
             columns: ["event_id"]
@@ -115,7 +158,6 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
-          distance_category: Database["public"]["Enums"]["distance_category"]
           event_date: string
           event_url: string | null
           id: string
@@ -131,7 +173,6 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
-          distance_category: Database["public"]["Enums"]["distance_category"]
           event_date: string
           event_url?: string | null
           id?: string
@@ -147,7 +188,6 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
-          distance_category?: Database["public"]["Enums"]["distance_category"]
           event_date?: string
           event_url?: string | null
           id?: string

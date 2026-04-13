@@ -1,12 +1,18 @@
 import type { Tables, Enums } from '~/types/database.types'
-import type { EventRow, ParticipationRow } from '~/queries/events'
+import type { EventRow, EventDistanceRow, ParticipationRow } from '~/queries/events'
+
+export interface EventDistanceViewModel {
+  id: string
+  distanceCategory: Enums<'distance_category'>
+  sortOrder: number
+}
 
 export interface EventViewModel {
   id: string
   name: string
   provinceName: string
   provinceId: number
-  distanceCategory: Enums<'distance_category'>
+  distances: EventDistanceViewModel[]
   eventDate: string
   location: string | null
   eventUrl: string | null
@@ -18,13 +24,23 @@ export interface EventViewModel {
   participationStatus: Enums<'participation_status'> | null
 }
 
+function mapEventDistance(row: EventDistanceRow): EventDistanceViewModel {
+  return {
+    id: row.id,
+    distanceCategory: row.distance_category,
+    sortOrder: row.sort_order,
+  }
+}
+
 export function mapEvent(event: EventRow, participation: ParticipationRow | undefined): EventViewModel {
   return {
     id: event.id,
     name: event.name,
     provinceName: event.province?.name ?? '',
     provinceId: event.province_id,
-    distanceCategory: event.distance_category,
+    distances: [...event.event_distances]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map(mapEventDistance),
     eventDate: event.event_date,
     location: event.location,
     eventUrl: event.event_url,

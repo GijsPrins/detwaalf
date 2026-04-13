@@ -9,7 +9,7 @@ export function useEvent(id: MaybeRef<string>) {
   const user = useSupabaseUser()
 
   return useQuery({
-    queryKey: computed(() => ['events', toValue(id)]),
+    queryKey: computed(() => ['events', toValue(id), user.value?.id]),
     queryFn: async () => {
       const eventId = toValue(id)
       const userId = user.value?.id
@@ -19,6 +19,7 @@ export function useEvent(id: MaybeRef<string>) {
           ? fetchEventParticipation(supabase, eventId, userId)
           : Promise.resolve(null),
       ])
+      console.log('[useEvent] Fetched participation from DB:', participation)
       return mapEvent(event, participation ?? undefined)
     },
   })

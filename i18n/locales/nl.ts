@@ -16,6 +16,7 @@ export default {
       description:
         "Volg je voortgang, verdien medailles en ontdek hardloopevenementen door heel Nederland.",
       cta: "Inloggen",
+      onboarding: "Hoe werkt het?",
     },
     features: {
       provinces: {
@@ -39,6 +40,34 @@ export default {
     home: "Home",
     dashboard: "Dashboard",
     login: "Inloggen",
+    register: "Registreren",
+    onboarding: "Hoe werkt het?",
+  },
+  onboarding: {
+    title: "Hoe het werkt",
+    subtitle: "De uitdaging: loop één evenement in alle 12 provincies van Nederland.",
+    step1: {
+      title: "1. Zoek een evenement",
+      desc: "Vind een hardloopevenement. Elk evenement in Nederland telt, zolang het een officiële wedstrijd is."
+    },
+    step2: {
+      title: "2. Loop een afstand",
+      desc: "De afstand die je loopt bepaalt je medaille voor die provincie:"
+    },
+    step3: {
+      title: "3. Voltooi en verzamel",
+      desc: "Upload je finishtijd of bewijs en zie je medaillekaart volstromen."
+    },
+    medals: {
+      bronze: "Brons",
+      bronzeDesc: "10 km tot 21,1 km",
+      silver: "Zilver",
+      silverDesc: "Halve marathon (21,1 km tot 42,2 km)",
+      gold: "Goud",
+      goldDesc: "Marathon (42,2 km of meer)"
+    },
+    cta: "Ga de uitdaging aan",
+    back: "Terug naar home"
   },
   dashboard: {
     subtitle: "Voortgang per medailletrack",
@@ -120,8 +149,7 @@ export default {
     fields: {
       name: "Naam evenement",
       date: "Datum",
-      distanceCategory: "Telt mee voor",
-      distancePlaceholder: "Kies medailletrack",
+      distances: "Aangeboden afstanden",
       location: "Locatie (startplaats)",
       locationPlaceholder: "bijv. Tilburg, Centrum",
       province: "Provincie",
@@ -149,9 +177,24 @@ export default {
       password: "Wachtwoord",
       submit: "Inloggen",
       loading: "Bezig met inloggen…",
+      noAccount: "Nog geen account? Registreer hier.",
       errors: {
         invalidCredentials: "E-mailadres of wachtwoord is onjuist.",
         emailNotConfirmed: "Bevestig je e-mailadres voordat je inlogt.",
+        generic: "Er is iets misgegaan. Probeer het opnieuw.",
+      },
+    },
+    register: {
+      title: "Account aanmaken",
+      name: "Naam",
+      email: "E-mailadres",
+      password: "Wachtwoord",
+      submit: "Account aanmaken",
+      loading: "Bezig met aanmaken…",
+      hasAccount: "Heb je al een account? Log in.",
+      success: "Account aangemaakt! Check je e-mail om je adres te bevestigen.",
+      errors: {
+        alreadyExists: "Er bestaat al een account met dit e-mailadres.",
         generic: "Er is iets misgegaan. Probeer het opnieuw.",
       },
     },

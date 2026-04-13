@@ -31,7 +31,7 @@ const hasDetails = computed(() =>
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto">
+  <div class="max-w-2xl mx-auto pb-12">
     <!-- Back + edit -->
     <div class="flex items-center justify-between mb-8">
       <NuxtLink
@@ -64,37 +64,37 @@ const hasDetails = computed(() =>
           </h1>
           <p class="text-sm text-gray-500 mt-2">
             {{ event.provinceName }}
-            · {{ t(`distance.${event.distanceCategory}`) }}
+            · {{ event.distances.map(d => t(`distance.${d.distanceCategory}`)).join(' · ') }}
             · {{ formatEventDate(event.eventDate) }}
           </p>
         </div>
-        <div class="shrink-0 w-40 h-40">
+        <div class="shrink-0 w-24 h-24 sm:w-32 sm:h-32">
           <ProvinceShape :province-id="event.provinceId" />
         </div>
       </div>
 
       <!-- Details -->
-      <div v-if="hasDetails" class="flex flex-col gap-2.5 mb-8">
-        <div v-if="event.location" class="flex gap-4">
-          <span class="text-xs text-gray-400 w-36 shrink-0 pt-0.5 uppercase tracking-wide">
+      <div v-if="hasDetails" class="flex flex-col gap-3 mb-10">
+        <div v-if="event.location" class="flex flex-col sm:flex-row sm:gap-4">
+          <span class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide">
             {{ t('eventDetail.location') }}
           </span>
-          <span class="text-sm text-gray-700">{{ event.location }}</span>
+          <span class="text-sm text-gray-700 mt-1 sm:mt-0">{{ event.location }}</span>
         </div>
-        <div v-if="event.registrationOpens" class="flex gap-4">
-          <span class="text-xs text-gray-400 w-36 shrink-0 pt-0.5 uppercase tracking-wide">
+        <div v-if="event.registrationOpens" class="flex flex-col sm:flex-row sm:gap-4">
+          <span class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide">
             {{ t('eventDetail.registrationOpens') }}
           </span>
-          <span class="text-sm text-gray-700">{{ formatEventDate(event.registrationOpens) }}</span>
+          <span class="text-sm text-gray-700 mt-1 sm:mt-0">{{ formatEventDate(event.registrationOpens) }}</span>
         </div>
-        <div v-if="event.registrationDeadline" class="flex gap-4">
-          <span class="text-xs text-gray-400 w-36 shrink-0 pt-0.5 uppercase tracking-wide">
+        <div v-if="event.registrationDeadline" class="flex flex-col sm:flex-row sm:gap-4">
+          <span class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide">
             {{ t('eventDetail.registrationDeadline') }}
           </span>
-          <span class="text-sm text-gray-700">{{ formatEventDate(event.registrationDeadline) }}</span>
+          <span class="text-sm text-gray-700 mt-1 sm:mt-0">{{ formatEventDate(event.registrationDeadline) }}</span>
         </div>
-        <div v-if="event.eventUrl || event.registrationUrl" class="flex gap-4 mt-1">
-          <span class="w-36 shrink-0" />
+        <div v-if="event.eventUrl || event.registrationUrl" class="flex flex-col sm:flex-row sm:gap-4 mt-3">
+          <span class="sm:w-36 shrink-0 hidden sm:block" />
           <div class="flex flex-wrap gap-2">
             <a
               v-if="event.registrationUrl"
@@ -119,23 +119,23 @@ const hasDetails = computed(() =>
       </div>
 
       <!-- Participation -->
-      <div class="border-t border-gray-100 pt-6">
-        <p class="text-sm font-semibold text-gray-900 mb-3">
+      <div class="border-t border-gray-100 pt-8">
+        <p class="text-sm font-semibold text-gray-900 mb-4">
           {{ t('eventDetail.participation.title') }}
         </p>
 
         <template v-if="user">
           <!-- Current status -->
-          <div v-if="event.participationStatus" class="mb-3">
+          <div v-if="event.participationStatus" class="mb-4">
             <span
-              class="text-xs font-medium px-2 py-0.5 rounded-full"
+              class="text-xs font-medium px-2 py-1.5 rounded-full"
               :class="PARTICIPATION_STATUS_BADGE_CLASS[event.participationStatus]"
             >
               {{ t(`events.status.${event.participationStatus}`) }}
             </span>
           </div>
 
-          <p class="text-xs text-gray-400 mb-3">
+          <p class="text-[13px] text-gray-500 mb-4">
             {{ t('eventDetail.participation.set') }}
           </p>
 
@@ -144,10 +144,10 @@ const hasDetails = computed(() =>
               v-for="option in statusOptions"
               :key="option.value"
               :disabled="isSettingStatus || isClearingStatus"
-              class="px-3 py-1 rounded-full text-xs font-medium transition-colors disabled:opacity-50"
+              class="px-3.5 py-1.5 border rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
               :class="event.participationStatus === option.value
-                ? PARTICIPATION_STATUS_BADGE_CLASS[option.value]
-                : 'text-gray-500 hover:text-gray-900'"
+                ? 'border-orange-500 bg-orange-50 text-orange-700'
+                : 'border-gray-200 text-gray-600 hover:bg-gray-50'"
               @click="setStatus(option.value)"
             >
               {{ option.label }}
@@ -155,7 +155,7 @@ const hasDetails = computed(() =>
             <button
               v-if="event.participationStatus"
               :disabled="isSettingStatus || isClearingStatus"
-              class="px-3 py-1 rounded-full text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+              class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
               @click="clearStatus()"
             >
               {{ t('eventDetail.participation.clear') }}
@@ -163,8 +163,8 @@ const hasDetails = computed(() =>
           </div>
         </template>
 
-        <p v-else class="text-sm text-gray-500">
-          <NuxtLink to="/login" class="text-orange-600 hover:text-orange-700 transition-colors">
+        <p v-else class="text-[13px] text-gray-500">
+          <NuxtLink to="/login" class="text-orange-600 font-medium hover:text-orange-700 transition-colors">
             {{ t('eventDetail.participation.loginLink') }}
           </NuxtLink>
           {{ t('eventDetail.participation.loginSuffix') }}

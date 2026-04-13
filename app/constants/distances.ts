@@ -3,6 +3,8 @@ import type { Enums } from "~/types/database.types";
 export type DistanceCategory = Enums<"distance_category">;
 export type ActiveDistance = "all" | DistanceCategory;
 
+export const DISTANCE_ORDER: DistanceCategory[] = ["10k", "half", "marathon"];
+
 export const DISTANCE_COLORS: Record<DistanceCategory, string> = {
   "10k": "#cd7f32",
   half: "#9ca3af",

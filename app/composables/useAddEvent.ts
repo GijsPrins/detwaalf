@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
-import type { Database, TablesInsert } from '~/types/database.types'
-import { insertEvent, insertParticipation } from '~/queries/events'
+import type { Database, Enums, TablesInsert } from '~/types/database.types'
+import { insertEvent, insertParticipation, replaceEventDistances } from '~/queries/events'
 
-type EventInput = Omit<TablesInsert<'events'>, 'created_by'>
+type EventInput = Omit<TablesInsert<'events'>, 'created_by'> & {
+  distances: Enums<'distance_category'>[]
+}
 
 export function useAddEvent() {
   const supabase = useSupabaseClient<Database>()
@@ -11,10 +13,13 @@ export function useAddEvent() {
 
   return useMutation({
     mutationFn: async (input: EventInput) => {
+      const { distances, ...eventData } = input
       const event = await insertEvent(supabase, {
-        ...input,
+        ...eventData,
         created_by: user.value!.id,
       })
+
+      await replaceEventDistances(supabase, event.id, distances)
 
       await insertParticipation(supabase, {
         event_id: event.id,

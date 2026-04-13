@@ -141,7 +141,7 @@ const filteredEvents = computed(() => {
           <p class="text-sm font-medium text-gray-900">{{ event.name }}</p>
           <p class="text-xs text-gray-400 mt-0.5">
             {{ event.provinceName }}
-            · {{ t(`distance.${event.distanceCategory}`) }}
+            · {{ event.distances.map(d => t(`distance.${d.distanceCategory}`)).join(' · ') }}
             <template v-if="event.location"> · {{ event.location }}</template>
           </p>
         </div>

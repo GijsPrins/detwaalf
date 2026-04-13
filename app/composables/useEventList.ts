@@ -8,7 +8,7 @@ export function useEventList() {
   const user = useSupabaseUser()
 
   return useQuery({
-    queryKey: ['events'],
+    queryKey: computed(() => ['events', 'list', user.value?.id]),
     queryFn: async () => {
       const userId = user.value?.id
       const [events, participations] = await Promise.all([

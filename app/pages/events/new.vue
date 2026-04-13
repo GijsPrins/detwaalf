@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Enums } from '~/types/database.types'
+import { DISTANCE_ORDER } from '~/constants/distances'
 
 definePageMeta({ layout: 'default' })
 
@@ -9,10 +10,15 @@ useHead(() => ({ title: t('eventForm.titleAdd') }))
 const { data: provinces } = useProvinces()
 const { mutate, isPending, isError } = useAddEvent()
 
+const distanceOptions: { value: Enums<'distance_category'>; label: string }[] = DISTANCE_ORDER.map(cat => ({
+  value: cat,
+  label: t(`distance.${cat}`),
+}))
+
 const form = reactive({
   name: '',
   eventDate: '',
-  distanceCategory: '' as Enums<'distance_category'> | '',
+  distances: [] as Enums<'distance_category'>[],
   location: '',
   provinceId: null as number | null,
   eventUrl: '',
@@ -25,7 +31,7 @@ const provinceAutoFilled = ref(false)
 const nominatimLoading = ref(false)
 
 const canSubmit = computed(
-  () => form.name.trim() && form.eventDate && form.distanceCategory && form.provinceId !== null && !isPending.value,
+  () => form.name.trim() && form.eventDate && form.distances.length > 0 && form.provinceId !== null && !isPending.value,
 )
 
 async function lookupProvince() {
@@ -65,7 +71,7 @@ function submit() {
   mutate({
     name: form.name.trim(),
     event_date: form.eventDate,
-    distance_category: form.distanceCategory as Enums<'distance_category'>,
+    distances: form.distances,
     province_id: form.provinceId!,
     location: form.location.trim() || null,
     event_url: form.eventUrl.trim() || null,
@@ -97,36 +103,37 @@ function submit() {
         >
       </div>
 
-      <!-- Datum + Medailletrack -->
-      <div class="grid grid-cols-2 gap-4">
-        <div class="flex flex-col gap-1.5">
-          <label for="eventDate" class="text-sm font-medium text-gray-700">
-            {{ t('eventForm.fields.date') }}
-          </label>
-          <input
-            id="eventDate"
-            v-model="form.eventDate"
-            type="date"
-            required
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-          >
-        </div>
+      <!-- Datum -->
+      <div class="flex flex-col gap-1.5">
+        <label for="eventDate" class="text-sm font-medium text-gray-700">
+          {{ t('eventForm.fields.date') }}
+        </label>
+        <input
+          id="eventDate"
+          v-model="form.eventDate"
+          type="date"
+          required
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+        >
+      </div>
 
-        <div class="flex flex-col gap-1.5">
-          <label for="distanceCategory" class="text-sm font-medium text-gray-700">
-            {{ t('eventForm.fields.distanceCategory') }}
-          </label>
-          <select
-            id="distanceCategory"
-            v-model="form.distanceCategory"
-            required
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 bg-white"
+      <!-- Afstanden -->
+      <div class="flex flex-col gap-1.5">
+        <span class="text-sm font-medium text-gray-700">{{ t('eventForm.fields.distances') }}</span>
+        <div class="flex gap-5">
+          <label
+            v-for="option in distanceOptions"
+            :key="option.value"
+            class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
           >
-            <option value="" disabled>{{ t('eventForm.fields.distancePlaceholder') }}</option>
-            <option value="10k">{{ t('distance.10k') }}</option>
-            <option value="half">{{ t('distance.half') }}</option>
-            <option value="marathon">{{ t('distance.marathon') }}</option>
-          </select>
+            <input
+              v-model="form.distances"
+              type="checkbox"
+              :value="option.value"
+              class="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+            >
+            {{ option.label }}
+          </label>
         </div>
       </div>
 
