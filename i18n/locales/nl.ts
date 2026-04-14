@@ -45,18 +45,19 @@ export default {
   },
   onboarding: {
     title: "Hoe het werkt",
-    subtitle: "De uitdaging: loop één evenement in alle 12 provincies van Nederland.",
+    subtitle:
+      "De uitdaging: loop één evenement in alle 12 provincies van Nederland.",
     step1: {
       title: "1. Zoek een evenement",
-      desc: "Vind een hardloopevenement. Elk evenement in Nederland telt, zolang het een officiële wedstrijd is."
+      desc: "Vind een hardloopevenement. Elk evenement in Nederland telt, zolang het een officiële wedstrijd is.",
     },
     step2: {
       title: "2. Loop een afstand",
-      desc: "De afstand die je loopt bepaalt je medaille voor die provincie:"
+      desc: "De afstand die je loopt bepaalt je medaille voor die provincie:",
     },
     step3: {
       title: "3. Voltooi en verzamel",
-      desc: "Upload je finishtijd of bewijs en zie je medaillekaart volstromen."
+      desc: "Upload je finishtijd of bewijs en zie je medaillekaart volstromen.",
     },
     medals: {
       bronze: "Brons",
@@ -64,10 +65,10 @@ export default {
       silver: "Zilver",
       silverDesc: "Halve marathon (21,1 km tot 42,2 km)",
       gold: "Goud",
-      goldDesc: "Marathon (42,2 km of meer)"
+      goldDesc: "Marathon (42,2 km of meer)",
     },
     cta: "Ga de uitdaging aan",
-    back: "Terug naar home"
+    back: "Terug naar home",
   },
   dashboard: {
     subtitle: "Voortgang per medailletrack",
@@ -97,11 +98,20 @@ export default {
     half: "Halve marathon",
     marathon: "Marathon",
   },
+  eventDistance: {
+    "10k": "10 km",
+    "15k": "15 km",
+    "10_miles": "10 miles",
+    half_marathon: "Halve marathon",
+    "30k": "30 km",
+    marathon: "Marathon",
+  },
   events: {
     title: "Evenementen",
     subtitle: "Alle aankomende en gelopen evenementen",
     new: "Nieuw evenement",
     empty: "Geen evenementen gevonden.",
+    distanceWithCategory: "{distance} · telt voor {category}",
     sort: {
       label: "Sorteren op",
       date: "Datum",
@@ -130,14 +140,36 @@ export default {
     edit: "Bewerken",
     backToEvent: "Terug naar evenement",
     notFound: "Evenement niet gevonden.",
+    challengeTitle: "Voor je challenge",
+    challengeHint:
+      "Per afstand zie je direct voor welke medailletrack deze telt.",
     location: "Locatie",
     registrationOpens: "Inschrijving opent",
     registrationDeadline: "Inschrijfdeadline",
     website: "Website evenement",
     register: "Inschrijven",
+    registrationStatus: {
+      open: "Inschrijving is open",
+      openUntil: "Inschrijving open tot {date}",
+      opensOn: "Inschrijving opent op {date}",
+      closed: "Inschrijving gesloten",
+      unknown: "Inschrijfstatus onbekend",
+    },
     participation: {
       title: "Mijn status",
+      empty: "Nog geen status gekozen.",
       set: "Geef aan hoe je bij dit evenement betrokken bent.",
+      setWithDistance: "Kies eerst een afstand en geef daarna je status door.",
+      singleDistanceHint: "Dit evenement heeft één afstand voor je status.",
+      stepDistance: "1. Afstand",
+      stepStatus: "2. Status",
+      distanceLabel: "Voor welke afstand?",
+      distancePlaceholder: "Kies afstand",
+      distanceRequired:
+        "Kies eerst een afstand voor Geïnteresseerd of Ingeschreven.",
+      summary: "Je bent {status}.",
+      summaryWithDistance: "Je bent {status} voor {distance}.",
+      forDistance: "Voor afstand: {distance}",
       clear: "Geen status",
       loginLink: "Log in",
       loginSuffix: "om je status bij te houden.",
@@ -146,10 +178,16 @@ export default {
   eventForm: {
     titleAdd: "Evenement toevoegen",
     titleEdit: "Evenement bewerken",
+    addDistance: "Afstand toevoegen",
+    removeDistance: "Verwijderen",
+    distanceHelp:
+      "Kies de afstand; we tonen automatisch voor welke medailletrack die telt.",
     fields: {
       name: "Naam evenement",
       date: "Datum",
       distances: "Aangeboden afstanden",
+      distanceOption: "Afstand",
+      countsTowards: "Telt voor",
       location: "Locatie (startplaats)",
       locationPlaceholder: "bijv. Tilburg, Centrum",
       province: "Provincie",
@@ -168,6 +206,7 @@ export default {
     cancel: "Annuleren",
     errors: {
       generic: "Er is iets misgegaan. Probeer het opnieuw.",
+      duplicateDistances: "Elke afstand mag maar één keer voorkomen.",
     },
   },
   auth: {

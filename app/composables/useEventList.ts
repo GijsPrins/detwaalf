@@ -1,23 +1,22 @@
-import { useQuery } from '@tanstack/vue-query'
-import type { Database } from '~/types/database.types'
-import { fetchEvents, fetchUserParticipations } from '~/queries/events'
-import { mapEvents } from '~/mappers/events'
+import { useQuery } from "@tanstack/vue-query";
+import type { Database } from "~/types/database.types";
+import { fetchEvents, fetchUserParticipations } from "~/queries/events";
+import { mapEvents } from "~/mappers/events";
 
 export function useEventList() {
-  const supabase = useSupabaseClient<Database>()
-  const user = useSupabaseUser()
+  const supabase = useSupabaseClient<Database>();
+  const user = useSupabaseUser();
 
   return useQuery({
-    queryKey: computed(() => ['events', 'list', user.value?.id]),
+    queryKey: computed(() => ["events", "list", user.value?.id]),
     queryFn: async () => {
-      const userId = user.value?.id
       const [events, participations] = await Promise.all([
         fetchEvents(supabase),
-        userId
-          ? fetchUserParticipations(supabase, userId)
+        user.value?.id
+          ? fetchUserParticipations(supabase)
           : Promise.resolve([]),
-      ])
-      return mapEvents(events, participations)
+      ]);
+      return mapEvents(events, participations);
     },
-  })
+  });
 }

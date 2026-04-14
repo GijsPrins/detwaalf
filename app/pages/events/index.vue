@@ -2,6 +2,7 @@
 import type { Enums } from "~/types/database.types";
 import { formatEventDate } from "~/mappers/events";
 import { PARTICIPATION_STATUS_BADGE_CLASS } from "~/constants/participation";
+import { formatEventDistanceLabel } from "~/utils/eventDistances";
 
 definePageMeta({ auth: false });
 
@@ -28,6 +29,13 @@ const statusFilters: { key: StatusFilter; label: string }[] = [
 ];
 
 const statusBadgeClass = PARTICIPATION_STATUS_BADGE_CLASS;
+
+function renderDistance(distance: {
+  distance: Enums<"event_distance">;
+  distanceCategory: Enums<"distance_category">;
+}) {
+  return formatEventDistanceLabel(distance, t);
+}
 
 const filteredEvents = computed(() => {
   let list = events.value ?? [];
@@ -141,7 +149,7 @@ const filteredEvents = computed(() => {
           <p class="text-sm font-medium text-gray-900">{{ event.name }}</p>
           <p class="text-xs text-gray-400 mt-0.5">
             {{ event.provinceName }}
-            · {{ event.distances.map(d => t(`distance.${d.distanceCategory}`)).join(' · ') }}
+            · {{ event.distances.map(renderDistance).join(" · ") }}
             <template v-if="event.location"> · {{ event.location }}</template>
           </p>
         </div>

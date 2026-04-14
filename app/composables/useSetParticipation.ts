@@ -1,41 +1,42 @@
-import { useMutation, useQueryClient } from '@tanstack/vue-query'
-import type { MaybeRef } from 'vue'
-import type { Database, Enums } from '~/types/database.types'
-import { upsertParticipation } from '~/queries/events'
-import type { EventViewModel } from '~/mappers/events'
+import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import type { MaybeRef } from "vue";
+import type { Database, Enums } from "~/types/database.types";
+import { saveParticipation } from "~/queries/events";
+
+interface SetParticipationInput {
+  status: Enums<"participation_status">;
+  eventDistanceId?: string | null;
+}
 
 export function useSetParticipation(eventId: MaybeRef<string>) {
-  const supabase = useSupabaseClient<Database>()
-  const user = useSupabaseUser()
-  const queryClient = useQueryClient()
+  const supabase = useSupabaseClient<Database>();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (status: Enums<'participation_status'>) => {
-      if (!user.value) throw new Error('Not authenticated')
-      return upsertParticipation(supabase, {
+    mutationFn: ({ status, eventDistanceId }: SetParticipationInput) => {
+      return saveParticipation(supabase, {
         event_id: toValue(eventId),
-        user_id: user.value.id,
         status,
-      })
+        event_distance_id: eventDistanceId ?? null,
+      });
     },
-    onSuccess: (data, status) => {
-      // Optimistically update the detail cache to guarantee UI highlight instantly
+    onSuccess: (data, variables) => {
       const evId = toValue(eventId);
-      const uid = user.value?.id;
-      queryClient.setQueryData(
-        ['events', evId, uid],
-        (old: EventViewModel | undefined) => {
-          if (!old) return old;
-          return {
-            ...old,
-            participationStatus: status,
-            participationId: data.id,
-          };
-        }
+      const participationKeyPrefix = ["eventParticipation", evId];
+
+      queryClient.setQueriesData(
+        { queryKey: participationKeyPrefix },
+        {
+          id: data.id,
+          event_id: data.event_id,
+          event_distance_id: data.event_distance_id,
+          status: variables.status,
+        },
       );
-      
-      // Still invalidate to ensure lists and other components fetch the truth
-      queryClient.invalidateQueries({ queryKey: ['events'] })
+
+      queryClient.refetchQueries({ queryKey: participationKeyPrefix });
+
+      queryClient.invalidateQueries({ queryKey: ["events", "list"] });
     },
-  })
+  });
 }
