@@ -39,10 +39,12 @@ export async function fetchEvents(supabase: Client): Promise<EventRow[]> {
 
 export async function fetchUserParticipations(
   supabase: Client,
+  userId: string
 ): Promise<ParticipationRow[]> {
   const { data, error } = await supabase
     .from("event_participations")
-    .select("id, event_id, event_distance_id, status");
+    .select("id, event_id, event_distance_id, status")
+    .eq("user_id", userId);
 
   if (error) throw error;
   return data ?? [];

@@ -135,6 +135,19 @@ export default {
       dns: "Niet gestart",
       dnf: "Niet gefinisht",
     },
+    tabs: {
+      catalog: "Alle evenementen",
+      participations: "Mijn deelnames",
+    },
+    archive: {
+      show: "Toon {count} eerdere evenementen in het archief →",
+      title: "Archief ({count} evenementen)",
+      hide: "Verberg archief",
+    },
+    cta: {
+      signupOpen: "Inschrijven open",
+      signupFuture: "Inschrijven vanaf {date}",
+    },
   },
   eventDetail: {
     edit: "Bewerken",

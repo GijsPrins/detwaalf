@@ -5,6 +5,7 @@ import type {
   ParticipationRow,
 } from "~/queries/events";
 import type { EventDistanceInput } from "~/types/events";
+import { EVENT_DISTANCE_ORDER } from "~/constants/distances";
 
 export interface EventDistanceViewModel extends EventDistanceInput {
   id: string;
@@ -48,8 +49,12 @@ export function mapEvent(
     provinceName: event.province?.name ?? "",
     provinceId: event.province_id,
     distances: [...event.event_distances]
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map(mapEventDistance),
+      .map(mapEventDistance)
+      .sort(
+        (a, b) =>
+          EVENT_DISTANCE_ORDER.indexOf(a.distance) -
+          EVENT_DISTANCE_ORDER.indexOf(b.distance)
+      ),
     eventDate: event.event_date,
     location: event.location,
     eventUrl: event.event_url,

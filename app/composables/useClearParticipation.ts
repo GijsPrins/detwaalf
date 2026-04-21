@@ -19,7 +19,7 @@ export function useClearParticipation(eventId: MaybeRef<string>) {
 
       queryClient.refetchQueries({ queryKey: participationKeyPrefix });
 
-      queryClient.invalidateQueries({ queryKey: ["events", "list"] });
+      queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
     },
   });
 }
