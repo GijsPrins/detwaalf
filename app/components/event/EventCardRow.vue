@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import type { Enums } from "~/types/database.types";
 import type { EventViewModel, EventDistanceViewModel } from "~/mappers/events";
 import { formatEventDistanceLabel } from "~/utils/eventDistances";
 import { PARTICIPATION_STATUS_BADGE_CLASS } from "~/constants/participation";
@@ -11,6 +12,14 @@ const props = defineProps<{
 }>();
 
 const statusBadgeClass = PARTICIPATION_STATUS_BADGE_CLASS;
+
+const DISTANCE_STATUS_CLASS: Record<Enums<"participation_status">, string> = {
+  interested: "bg-orange-50 border-orange-200 text-orange-700",
+  signed_up: "bg-blue-50 border-blue-200 text-blue-700",
+  completed: "bg-green-50 border-green-200 text-green-700",
+  dns: "bg-gray-100 border-gray-200 text-gray-500",
+  dnf: "bg-gray-100 border-gray-200 text-gray-500",
+};
 
 function renderDistance(distance: EventDistanceViewModel) {
   return formatEventDistanceLabel(distance, t);
@@ -77,7 +86,7 @@ const futureRegistrationDate = computed(() => {
         </h3>
 
         <span
-          v-if="event.participationStatus"
+          v-if="event.participationStatus && !event.participationDistanceId"
           class="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full tracking-wide"
           :class="statusBadgeClass[event.participationStatus]"
         >
@@ -111,7 +120,12 @@ const futureRegistrationDate = computed(() => {
         <span
           v-for="dist in event.distances"
           :key="dist.id"
-          class="px-2 py-0.5 bg-white border border-gray-100 text-gray-500 rounded text-[11px] font-medium transition-colors group-hover:border-orange-100"
+          class="px-2 py-0.5 border rounded text-[11px] font-medium transition-colors"
+          :class="
+            dist.id === event.participationDistanceId && event.participationStatus
+              ? DISTANCE_STATUS_CLASS[event.participationStatus]
+              : 'bg-white border-gray-100 text-gray-500 group-hover:border-orange-100'
+          "
         >
           {{ renderDistance(dist) }}
         </span>

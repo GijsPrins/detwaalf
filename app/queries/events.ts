@@ -25,6 +25,14 @@ export type ParticipationRow = Pick<
   "id" | "event_id" | "event_distance_id" | "status"
 >;
 
+export type UserParticipationRow = ParticipationRow & {
+  finish_time_seconds: number | null;
+  event_distance: Pick<
+    Tables<"event_distances">,
+    "distance" | "distance_category"
+  > | null;
+};
+
 export async function fetchEvents(supabase: Client): Promise<EventRow[]> {
   const { data, error } = await supabase
     .from("events")
@@ -39,15 +47,17 @@ export async function fetchEvents(supabase: Client): Promise<EventRow[]> {
 
 export async function fetchUserParticipations(
   supabase: Client,
-  userId: string
-): Promise<ParticipationRow[]> {
+  userId: string,
+): Promise<UserParticipationRow[]> {
   const { data, error } = await supabase
     .from("event_participations")
-    .select("id, event_id, event_distance_id, status")
+    .select(
+      "id, event_id, event_distance_id, status, finish_time_seconds, event_distance:event_distances(distance, distance_category)",
+    )
     .eq("user_id", userId);
 
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as UserParticipationRow[];
 }
 
 export async function fetchProvinces(
@@ -105,19 +115,25 @@ export async function replaceEventDistances(
   if (insError) throw insError;
 }
 
+export type DetailParticipationRow = ParticipationRow & {
+  finish_time_seconds: number | null;
+  timing_url: string | null;
+  notes: string | null;
+};
+
 export async function fetchEventParticipation(
   supabase: Client,
   eventId: string,
-): Promise<ParticipationRow | null> {
+): Promise<DetailParticipationRow | null> {
   const { data, error } = await supabase
     .from("event_participations")
-    .select("id, event_id, event_distance_id, status")
+    .select("id, event_id, event_distance_id, status, finish_time_seconds, timing_url, notes")
     .eq("event_id", eventId)
     .order("updated_at", { ascending: false })
     .limit(1);
 
   if (error) throw error;
-  return data?.[0] ?? null;
+  return (data?.[0] ?? null) as DetailParticipationRow | null;
 }
 
 export async function updateEvent(
@@ -141,11 +157,18 @@ export async function saveParticipation(
   participation: Pick<
     TablesInsert<"event_participations">,
     "event_id" | "status" | "event_distance_id"
-  >,
+  > & {
+    finish_time_seconds?: number | null;
+    timing_url?: string | null;
+    notes?: string | null;
+  },
 ): Promise<Tables<"event_participations">> {
   const updatePayload = {
     status: participation.status,
     event_distance_id: participation.event_distance_id ?? null,
+    finish_time_seconds: participation.finish_time_seconds ?? null,
+    timing_url: participation.timing_url ?? null,
+    notes: participation.notes ?? null,
   };
 
   const { data: updatedRows, error: updateError } = await supabase

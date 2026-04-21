@@ -1,17 +1,11 @@
 <script setup lang="ts">
 const { t } = useI18n()
-const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-
-async function logout() {
-  await supabase.auth.signOut()
-  navigateTo('/')
-}
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col">
-    <nav class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+    <nav class="bg-white border-b border-gray-200 px-8 py-3 flex items-center justify-between">
       <NuxtLink
         :to="user ? '/dashboard' : '/'"
         class="text-sm font-semibold text-gray-900"
@@ -32,12 +26,7 @@ async function logout() {
           >
             {{ t('nav.events') }}
           </NuxtLink>
-          <button
-            class="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-            @click="logout"
-          >
-            {{ t('nav.logout') }}
-          </button>
+          <UserMenu />
         </template>
         <template v-else>
           <NuxtLink

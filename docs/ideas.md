@@ -79,3 +79,5 @@ These require significant architectural decisions and are not planned for the ne
 | Feature | Notes |
 |---|---|
 | i18n (NL) | Implemented via `@nuxtjs/i18n`. Dutch only for now; English will be added in one pass once the app is feature-complete |
+| Onboarding page | Step-by-step explanation of the challenge rules, distances, and medal tiers |
+| Profile page | Display name and public/private toggle. Further improvements planned (see User features) |

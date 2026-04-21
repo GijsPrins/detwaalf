@@ -98,6 +98,15 @@ function getDistanceLabel(distance: { distance: Enums<"event_distance"> }) {
   return getEventDistanceLabel(distance.distance, t);
 }
 
+function formatFinishTime(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const mm = String(m).padStart(2, "0");
+  const ss = String(s).padStart(2, "0");
+  return h > 0 ? `${h}:${mm}:${ss}` : `${m}:${ss}`;
+}
+
 function getDistanceCategoryBadgeClass(distance: {
   distanceCategory: Enums<"distance_category">;
 }) {
@@ -157,6 +166,14 @@ const singleParticipationDistanceLabel = computed(() => {
   }
 
   return getDistanceLabel(event.value.distances[0]!);
+});
+
+const hasRecordedDetails = computed(() => {
+  const p = participation.value;
+  if (!p) return false;
+  if (p.status === "completed") return p.finish_time_seconds != null || !!p.timing_url;
+  if (p.status === "dns" || p.status === "dnf") return !!p.notes;
+  return false;
 });
 
 const participationDistanceError = ref(false);
@@ -443,6 +460,37 @@ const registrationStatus = computed(() => {
             <p v-else class="text-sm text-gray-500">
               {{ t("eventDetail.participation.empty") }}
             </p>
+          </div>
+
+          <!-- Recorded result details -->
+          <div v-if="hasRecordedDetails" class="flex flex-col gap-3 mb-6 py-4 border-t border-b border-gray-100">
+            <div v-if="participation?.finish_time_seconds != null" class="flex flex-col sm:flex-row sm:gap-4">
+              <span class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide">
+                {{ t("eventDetail.participation.finishTime") }}
+              </span>
+              <span class="text-sm text-gray-700 mt-1 sm:mt-0 font-medium">
+                {{ formatFinishTime(participation.finish_time_seconds) }}
+              </span>
+            </div>
+            <div v-if="participation?.timing_url" class="flex flex-col sm:flex-row sm:gap-4">
+              <span class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide">
+                {{ t("eventDetail.participation.timingUrl") }}
+              </span>
+              <a
+                :href="participation.timing_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-sm text-orange-600 hover:text-orange-700 transition-colors mt-1 sm:mt-0"
+              >
+                {{ t("eventDetail.participation.timingUrlLink") }}
+              </a>
+            </div>
+            <div v-if="participation?.notes" class="flex flex-col sm:flex-row sm:gap-4">
+              <span class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide">
+                {{ t("eventDetail.participation.notes") }}
+              </span>
+              <span class="text-sm text-gray-700 mt-1 sm:mt-0">{{ participation.notes }}</span>
+            </div>
           </div>
 
           <div class="flex flex-col gap-5">
