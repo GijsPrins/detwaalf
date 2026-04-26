@@ -18,6 +18,7 @@ const { mutateAsync, isPending, isError } = useSubmitContactMessage();
 const messageLength = computed(() => message.value.length);
 const canSubmit = computed(
   () =>
+    !!user.value &&
     message.value.trim().length > 0 &&
     (!needsEmail.value || emailOverride.value.trim().length > 0) &&
     !isPending.value,

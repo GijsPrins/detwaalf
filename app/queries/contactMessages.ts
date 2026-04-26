@@ -18,9 +18,26 @@ export async function fetchContactMessages(
   return data ?? [];
 }
 
+export async function fetchUnreadContactMessagesCount(
+  supabase: Client,
+): Promise<number> {
+  const { count, error } = await supabase
+    .from("contact_messages")
+    .select("id", { count: "exact", head: true })
+    .is("read_at", null);
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function insertContactMessage(
   supabase: Client,
-  payload: { userId: string; email: string; type: ContactMessageType; message: string },
+  payload: {
+    userId: string;
+    email: string;
+    type: ContactMessageType;
+    message: string;
+  },
 ): Promise<void> {
   const { error } = await supabase.from("contact_messages").insert({
     user_id: payload.userId,
