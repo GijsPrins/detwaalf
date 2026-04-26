@@ -14,8 +14,12 @@ const { data: rawEvents, isPending: isEventsPending } = useEventList();
 const { data: participations, isPending: isPartPending } = useParticipations();
 const { data: provinces } = useProvinces();
 
-const isPending = computed(() => isEventsPending.value || (!!user.value && isPartPending.value));
-const events = computed(() => mapEvents(rawEvents.value ?? [], participations.value ?? []));
+const isPending = computed(
+  () => isEventsPending.value || (!!user.value && isPartPending.value),
+);
+const events = computed(() =>
+  mapEvents(rawEvents.value ?? [], participations.value ?? []),
+);
 
 type StatusFilter = "all" | Enums<"participation_status">;
 type Tab = "catalog" | "participations";
@@ -56,7 +60,10 @@ const filteredEvents = computed(() => {
   } else {
     // Chronological flowing. But specifically reverse the flow for 'Trophy Case' / completed events so newest medals are at the top.
     list = [...list].sort((a, b) => {
-      if (activeTab.value === 'participations' && statusFilter.value === 'completed') {
+      if (
+        activeTab.value === "participations" &&
+        statusFilter.value === "completed"
+      ) {
         return b.eventDate.localeCompare(a.eventDate);
       }
       return a.eventDate.localeCompare(b.eventDate);
@@ -68,14 +75,17 @@ const filteredEvents = computed(() => {
 
 function groupEventList(list: typeof filteredEvents.value) {
   const groups: { label: string; events: typeof list }[] = [];
-  
+
   if (sortBy.value === "date") {
     const map = new Map<string, typeof list>();
     for (const e of list) {
       const date = new Date(e.eventDate);
-      const label = date.toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
+      const label = date.toLocaleDateString("nl-NL", {
+        month: "long",
+        year: "numeric",
+      });
       const capitalizedLabel = label.charAt(0).toUpperCase() + label.slice(1);
-      
+
       if (!map.has(capitalizedLabel)) map.set(capitalizedLabel, []);
       map.get(capitalizedLabel)!.push(e);
     }
@@ -89,22 +99,28 @@ function groupEventList(list: typeof filteredEvents.value) {
       if (!map.has(label)) map.set(label, []);
       map.get(label)!.push(e);
     }
-    const sortedKeys = Array.from(map.keys()).sort((a,b) => a.localeCompare(b, "nl"));
+    const sortedKeys = Array.from(map.keys()).sort((a, b) =>
+      a.localeCompare(b, "nl"),
+    );
     for (const label of sortedKeys) {
       groups.push({ label, events: map.get(label)! });
     }
   }
-  
+
   return groups;
 }
 
-const upcomingGroups = computed(() => groupEventList(filteredEvents.value.filter(e => e.eventDate >= todayStr)));
-const pastEvents = computed(() => filteredEvents.value.filter(e => e.eventDate < todayStr));
+const upcomingGroups = computed(() =>
+  groupEventList(filteredEvents.value.filter((e) => e.eventDate >= todayStr)),
+);
+const pastEvents = computed(() =>
+  filteredEvents.value.filter((e) => e.eventDate < todayStr),
+);
 const pastGroups = computed(() => groupEventList(pastEvents.value));
 </script>
 
 <template>
-  <div>
+  <div class="page-list-container">
     <!-- Header -->
     <div class="flex items-start justify-between mb-6">
       <div>
@@ -115,7 +131,7 @@ const pastGroups = computed(() => groupEventList(pastEvents.value));
           {{ t("events.subtitle") }}
         </p>
       </div>
-      
+
       <!-- CTA only on catalog tab -->
       <NuxtLink
         v-if="user && activeTab === 'catalog'"
@@ -127,17 +143,32 @@ const pastGroups = computed(() => groupEventList(pastEvents.value));
     </div>
 
     <!-- Tabs -->
-    <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg w-max mb-6" v-if="user">
-      <button 
+    <div
+      class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg w-max mb-6"
+      v-if="user"
+    >
+      <button
         class="px-4 py-1.5 text-sm font-medium rounded-md transition-colors"
-        :class="activeTab === 'catalog' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-        @click="activeTab = 'catalog'; statusFilter = 'all'; showPastArchive = false"
+        :class="
+          activeTab === 'catalog'
+            ? 'bg-white text-gray-900 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700'
+        "
+        @click="
+          activeTab = 'catalog';
+          statusFilter = 'all';
+          showPastArchive = false;
+        "
       >
         {{ t("events.tabs.catalog") }}
       </button>
-      <button 
+      <button
         class="px-4 py-1.5 text-sm font-medium rounded-md transition-colors"
-        :class="activeTab === 'participations' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+        :class="
+          activeTab === 'participations'
+            ? 'bg-white text-gray-900 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700'
+        "
         @click="activeTab = 'participations'"
       >
         {{ t("events.tabs.participations") }}
@@ -147,7 +178,10 @@ const pastGroups = computed(() => groupEventList(pastEvents.value));
     <!-- Filters -->
     <div class="flex flex-wrap items-center gap-3 mb-5">
       <!-- Status pills (only when logged in AND on participations tab) -->
-      <div v-if="user && activeTab === 'participations'" class="flex items-center gap-1">
+      <div
+        v-if="user && activeTab === 'participations'"
+        class="flex items-center gap-1"
+      >
         <button
           v-for="filter in statusFilters"
           :key="filter.key"
@@ -164,7 +198,14 @@ const pastGroups = computed(() => groupEventList(pastEvents.value));
       </div>
 
       <!-- Padding spacer if status filters are hidden -->
-      <div class="flex flex-wrap items-center gap-2 w-full" :class="user && activeTab === 'participations' ? 'sm:w-auto ml-auto' : 'w-full'">
+      <div
+        class="flex flex-wrap items-center gap-2 w-full"
+        :class="
+          user && activeTab === 'participations'
+            ? 'sm:w-auto ml-auto'
+            : 'w-full'
+        "
+      >
         <!-- Province filter -->
         <select
           v-model="provinceFilter"
@@ -205,23 +246,30 @@ const pastGroups = computed(() => groupEventList(pastEvents.value));
 
     <!-- List -->
     <div v-else class="space-y-10">
-      
       <!-- Upcoming Events (Primary View) -->
       <div v-for="group in upcomingGroups" :key="group.label">
-        <h2 class="text-sm font-semibold text-gray-900 mb-4 sticky top-0 bg-gray-50 py-2 z-10 border-b border-gray-200">
+        <h2
+          class="text-sm font-semibold text-gray-900 mb-4 sticky top-0 bg-gray-50 py-2 z-10 border-b border-gray-200"
+        >
           {{ group.label }}
         </h2>
         <div class="space-y-3">
-          <EventCardRow v-for="event in group.events" :key="event.id" :event="event" />
+          <EventCardRow
+            v-for="event in group.events"
+            :key="event.id"
+            :event="event"
+          />
         </div>
       </div>
 
       <!-- Past Events Archive Toggle (Only visible if there are past events) -->
-      <div v-if="pastEvents.length > 0" class="mt-12 text-center border-t border-gray-100 pt-8">
-        
-        <button 
-          v-if="!showPastArchive" 
-          @click="showPastArchive = true" 
+      <div
+        v-if="pastEvents.length > 0"
+        class="mt-12 text-center border-t border-gray-100 pt-8"
+      >
+        <button
+          v-if="!showPastArchive"
+          @click="showPastArchive = true"
           class="text-sm text-gray-500 hover:text-orange-600 font-medium transition-colors"
         >
           {{ t("events.archive.show", { count: pastEvents.length }) }}
@@ -229,24 +277,33 @@ const pastGroups = computed(() => groupEventList(pastEvents.value));
 
         <div v-else class="text-left mt-8 space-y-10">
           <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-semibold text-gray-900">{{ t("events.archive.title", { count: pastEvents.length }) }}</h3>
-            <button @click="showPastArchive = false" class="text-xs text-gray-500 hover:text-gray-900">{{ t("events.archive.hide") }}</button>
+            <h3 class="text-lg font-semibold text-gray-900">
+              {{ t("events.archive.title", { count: pastEvents.length }) }}
+            </h3>
+            <button
+              @click="showPastArchive = false"
+              class="text-xs text-gray-500 hover:text-gray-900"
+            >
+              {{ t("events.archive.hide") }}
+            </button>
           </div>
-          
+
           <div v-for="group in pastGroups" :key="group.label">
-            <h2 class="text-sm font-semibold text-gray-900 mb-4 sticky top-0 bg-gray-50 py-2 z-10 border-b border-gray-200">
+            <h2
+              class="text-sm font-semibold text-gray-900 mb-4 sticky top-0 bg-gray-50 py-2 z-10 border-b border-gray-200"
+            >
               {{ group.label }}
             </h2>
             <div class="space-y-3">
-              <EventCardRow v-for="event in group.events" :key="event.id" :event="event" />
+              <EventCardRow
+                v-for="event in group.events"
+                :key="event.id"
+                :event="event"
+              />
             </div>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
- 
-  
- 

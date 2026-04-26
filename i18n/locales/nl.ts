@@ -3,6 +3,7 @@ export default {
     brand: "Twaalf Provincies",
     overview: "Overzicht",
     events: "Evenementen",
+    privacy: "Privacy",
     logout: "Uitloggen",
     login: "Inloggen",
     profile: "Mijn profiel",
@@ -11,6 +12,8 @@ export default {
   },
   landing: {
     nav: {
+      events: "Evenementen",
+      privacy: "Privacy",
       login: "Inloggen",
     },
     hero: {
@@ -47,6 +50,7 @@ export default {
     onboarding: "Hoe werkt het?",
     profile: "Mijn profiel",
     contact: "Contact",
+    privacy: "Privacybeleid",
     adminMessages: "Berichten",
   },
   profile: {
@@ -345,5 +349,35 @@ export default {
       markRead: "Markeer als gelezen",
       readOn: "Gelezen op {date}",
     },
+  },
+  privacy: {
+    title: "Privacybeleid",
+    subtitle: "Hoe we omgaan met je gegevens binnen Twaalf Provincies.",
+    updated: "Laatst bijgewerkt: 26 april 2026",
+    intro:
+      "We verzamelen alleen gegevens die nodig zijn om je voortgang in de challenge bij te houden en om je account te beheren.",
+    sections: {
+      collected: {
+        title: "Welke gegevens we verzamelen",
+        body: "Profielgegevens (zoals je naam en e-mailadres), je deelnamegegevens aan evenementen en informatie die je zelf invult via formulieren.",
+      },
+      purpose: {
+        title: "Waarom we deze gegevens gebruiken",
+        body: "Om je account te laten werken, je voortgang en medailles te tonen, en om op berichten of verzoeken te reageren.",
+      },
+      retention: {
+        title: "Hoe lang we gegevens bewaren",
+        body: "We bewaren gegevens zolang je account actief is of zolang dat nodig is om aan wettelijke verplichtingen te voldoen.",
+      },
+      rights: {
+        title: "Jouw rechten",
+        body: "Je kunt via de contactpagina een verzoek doen om je gegevens in te zien, te corrigeren of je account te laten verwijderen.",
+      },
+      contact: {
+        title: "Vragen over privacy",
+        body: "Heb je vragen? Gebruik de contactpagina en kies het onderwerp dat past bij je verzoek.",
+      },
+    },
+    cta: "Naar contact",
   },
 };

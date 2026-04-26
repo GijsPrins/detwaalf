@@ -45,21 +45,24 @@ const isDirty = computed(() => {
 </script>
 
 <template>
-  <div class="profile-page max-w-lg mx-auto">
-    <div class="profile-page__header">
-      <h1 class="profile-page__title">{{ t("profile.title") }}</h1>
-      <p class="profile-page__subtitle">{{ t("profile.subtitle") }}</p>
+  <div class="page-data-container">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900 mb-1">
+        {{ t("profile.title") }}
+      </h1>
+      <p class="text-sm text-gray-500">{{ t("profile.subtitle") }}</p>
     </div>
 
-    <div v-if="isLoading" class="profile-page__loading">
+    <div v-if="isLoading" class="text-sm text-gray-400">
       {{ t("profile.loading") }}
     </div>
 
-    <form v-else class="profile-page__form" @submit.prevent="save">
-      <!-- Avatar placeholder -->
-      <div class="profile-form-section">
-        <div class="profile-avatar">
-          <span class="profile-avatar__initials">
+    <form v-else class="flex flex-col gap-6" @submit.prevent="save">
+      <div class="flex items-center gap-4 pb-6 border-b border-gray-100">
+        <div
+          class="flex items-center justify-center w-14 h-14 rounded-full bg-gray-900 shrink-0"
+        >
+          <span class="text-white text-xl font-bold">
             {{
               (displayName || user?.email || "?")
                 .split(/[\s@]+/)
@@ -69,77 +72,84 @@ const isDirty = computed(() => {
             }}
           </span>
         </div>
-        <div class="profile-avatar__info">
-          <span class="profile-avatar__name">{{
+        <div class="min-w-0 flex flex-col gap-0.5">
+          <span class="text-sm font-semibold text-gray-900 truncate">{{
             displayName || user?.email
           }}</span>
-          <span class="profile-avatar__email">{{ user?.email }}</span>
+          <span class="text-xs text-gray-400 truncate">{{ user?.email }}</span>
         </div>
       </div>
 
-      <div class="profile-form-section">
-        <h2 class="profile-form-section__title">
+      <div class="flex flex-col gap-5">
+        <h2 class="text-sm font-semibold text-gray-900">
           {{ t("profile.sectionGeneral") }}
         </h2>
 
-        <div class="profile-field">
-          <label for="display-name" class="profile-field__label">
+        <div class="flex flex-col gap-1.5">
+          <label for="display-name" class="text-sm font-medium text-gray-700">
             {{ t("profile.displayName") }}
           </label>
           <input
             id="display-name"
             v-model="displayName"
             type="text"
-            class="profile-field__input"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
             :placeholder="t('profile.displayNamePlaceholder')"
             maxlength="60"
           />
-          <p class="profile-field__hint">{{ t("profile.displayNameHint") }}</p>
+          <p class="text-xs text-gray-400">
+            {{ t("profile.displayNameHint") }}
+          </p>
         </div>
 
-        <div class="profile-field">
-          <label class="profile-toggle" for="is-public">
-            <div class="profile-toggle__info">
-              <span class="profile-toggle__label">{{
-                t("profile.publicProfile")
-              }}</span>
-              <span class="profile-toggle__hint">{{
-                t("profile.publicProfileHint")
-              }}</span>
-            </div>
-            <div class="profile-toggle__control">
-              <input
-                id="is-public"
-                v-model="isPublic"
-                type="checkbox"
-                class="profile-toggle__checkbox"
-              />
-              <span class="profile-toggle__track">
-                <span class="profile-toggle__thumb" />
-              </span>
-            </div>
+        <div
+          class="flex items-center justify-between gap-4 border-t border-gray-100 pt-5"
+        >
+          <div class="min-w-0">
+            <span class="block text-sm font-medium text-gray-700">{{
+              t("profile.publicProfile")
+            }}</span>
+            <span class="block text-xs text-gray-400 mt-0.5">{{
+              t("profile.publicProfileHint")
+            }}</span>
+          </div>
+          <label
+            for="is-public"
+            class="relative inline-flex items-center cursor-pointer shrink-0"
+          >
+            <input
+              id="is-public"
+              v-model="isPublic"
+              type="checkbox"
+              class="sr-only peer"
+            />
+            <span
+              class="w-10 h-6 rounded-full bg-gray-200 peer-checked:bg-gray-900 transition-colors"
+            />
+            <span
+              class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4"
+            />
           </label>
         </div>
       </div>
 
-      <Transition name="fade">
-        <p
-          v-if="successMessage"
-          class="profile-feedback profile-feedback--success"
-        >
-          {{ successMessage }}
-        </p>
-      </Transition>
-      <Transition name="fade">
-        <p v-if="errorMessage" class="profile-feedback profile-feedback--error">
-          {{ errorMessage }}
-        </p>
-      </Transition>
+      <p
+        v-if="successMessage"
+        class="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2"
+      >
+        {{ successMessage }}
+      </p>
+      <p
+        v-if="errorMessage"
+        class="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
+      >
+        {{ errorMessage }}
+      </p>
 
-      <div class="profile-actions">
+      <div class="flex justify-end">
         <button
           type="submit"
-          class="profile-actions__save"
+          class="inline-flex items-center rounded-lg bg-orange-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="isSaving || !isDirty"
         >
           <span v-if="isSaving">{{ t("profile.saving") }}</span>
@@ -149,259 +159,3 @@ const isDirty = computed(() => {
     </form>
   </div>
 </template>
-
-<style scoped>
-.profile-page__header {
-  margin-bottom: 32px;
-}
-
-.profile-page__title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 6px;
-}
-
-.profile-page__subtitle {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 0;
-}
-
-.profile-page__loading {
-  font-size: 14px;
-  color: #9ca3af;
-}
-
-/* Form sections */
-.profile-form-section {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.profile-form-section:first-of-type {
-  flex-direction: row;
-  align-items: center;
-  gap: 16px;
-}
-
-.profile-form-section__title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* Avatar */
-.profile-avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 9999px;
-  background: #111827;
-  flex-shrink: 0;
-}
-
-.profile-avatar__initials {
-  color: #fff;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.profile-avatar__info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.profile-avatar__name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #111827;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.profile-avatar__email {
-  font-size: 13px;
-  color: #9ca3af;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Fields */
-.profile-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.profile-field__label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #374151;
-}
-
-.profile-field__input {
-  height: 38px;
-  padding: 0 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  color: #111827;
-  outline: none;
-  transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
-  background: #fff;
-}
-
-.profile-field__input:focus {
-  border-color: #374151;
-  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.06);
-}
-
-.profile-field__hint {
-  font-size: 12px;
-  color: #9ca3af;
-  margin: 0;
-}
-
-/* Toggle */
-.profile-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  cursor: pointer;
-}
-
-.profile-toggle__info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.profile-toggle__label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #374151;
-}
-
-.profile-toggle__hint {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-.profile-toggle__control {
-  flex-shrink: 0;
-}
-
-.profile-toggle__checkbox {
-  display: none;
-}
-
-.profile-toggle__track {
-  display: flex;
-  align-items: center;
-  width: 40px;
-  height: 24px;
-  border-radius: 9999px;
-  background: #e5e7eb;
-  padding: 2px;
-  transition: background 0.2s;
-  cursor: pointer;
-}
-
-.profile-toggle__checkbox:checked + .profile-toggle__track {
-  background: #111827;
-}
-
-.profile-toggle__thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 9999px;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s;
-}
-
-.profile-toggle__checkbox:checked
-  + .profile-toggle__track
-  .profile-toggle__thumb {
-  transform: translateX(16px);
-}
-
-/* Feedback */
-.profile-feedback {
-  font-size: 13px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  margin: 0 0 8px;
-}
-
-.profile-feedback--success {
-  background: #f0fdf4;
-  color: #166534;
-  border: 1px solid #bbf7d0;
-}
-
-.profile-feedback--error {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-/* Actions */
-.profile-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.profile-actions__save {
-  height: 38px;
-  padding: 0 20px;
-  background: #111827;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    opacity 0.15s;
-}
-
-.profile-actions__save:hover:not(:disabled) {
-  background: #1f2937;
-}
-
-.profile-actions__save:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* Fade transition */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.25s;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

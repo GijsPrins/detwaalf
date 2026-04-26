@@ -97,7 +97,7 @@ function submit() {
 </script>
 
 <template>
-  <div class="max-w-lg mx-auto">
+  <div class="page-data-container">
     <h1 class="text-2xl font-bold text-gray-900 tracking-tight mb-6">
       {{ t("eventForm.titleAdd") }}
     </h1>

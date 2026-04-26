@@ -27,7 +27,7 @@ function formatDate(dateStr: string) {
 </script>
 
 <template>
-  <div>
+  <div class="page-list-container">
     <div v-if="!canManage" class="text-sm text-gray-400">
       {{ t("admin.notAuthorized") }}
     </div>

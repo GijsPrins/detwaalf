@@ -1,46 +1,46 @@
 <script setup lang="ts">
-const { t } = useI18n()
-const supabase = useSupabaseClient()
-const user = useSupabaseUser()
-const { profile } = useProfile()
+const { t } = useI18n();
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
+const { profile } = useProfile();
 
-const isOpen = ref(false)
-const menuRef = ref<HTMLElement | null>(null)
+const isOpen = ref(false);
+const menuRef = ref<HTMLElement | null>(null);
 
 const displayName = computed(
-  () => profile.value?.display_name ?? user.value?.email ?? '?',
-)
+  () => profile.value?.display_name ?? user.value?.email ?? "?",
+);
 
 const initials = computed(() => {
-  const name = profile.value?.display_name ?? user.value?.email ?? ''
+  const name = profile.value?.display_name ?? user.value?.email ?? "";
   return name
     .split(/[\s@]+/)
     .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? '')
-    .join('')
-})
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
+});
 
 function toggle() {
-  isOpen.value = !isOpen.value
+  isOpen.value = !isOpen.value;
 }
 
 async function logout() {
-  isOpen.value = false
-  await supabase.auth.signOut()
-  navigateTo('/')
+  isOpen.value = false;
+  await supabase.auth.signOut();
+  navigateTo("/");
 }
 
 // Close on outside click
 onMounted(() => {
-  document.addEventListener('mousedown', handleOutsideClick)
-})
+  document.addEventListener("mousedown", handleOutsideClick);
+});
 onBeforeUnmount(() => {
-  document.removeEventListener('mousedown', handleOutsideClick)
-})
+  document.removeEventListener("mousedown", handleOutsideClick);
+});
 
 function handleOutsideClick(event: MouseEvent) {
   if (menuRef.value && !menuRef.value.contains(event.target as Node)) {
-    isOpen.value = false
+    isOpen.value = false;
   }
 }
 </script>
@@ -65,7 +65,13 @@ function handleOutsideClick(event: MouseEvent) {
         fill="none"
         aria-hidden="true"
       >
-        <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path
+          d="M2 4l4 4 4-4"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
     </button>
 
@@ -92,10 +98,21 @@ function handleOutsideClick(event: MouseEvent) {
           role="menuitem"
           @click="isOpen = false"
         >
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-            <path d="M7.5 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2 13c0-2.761 2.462-5 5.5-5S13 10.239 13 13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 15 15"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M7.5 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2 13c0-2.761 2.462-5 5.5-5S13 10.239 13 13"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+            />
           </svg>
-          {{ t('nav.profile') }}
+          {{ t("nav.profile") }}
         </NuxtLink>
 
         <NuxtLink
@@ -104,10 +121,46 @@ function handleOutsideClick(event: MouseEvent) {
           role="menuitem"
           @click="isOpen = false"
         >
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-            <path d="M1 3a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3Zm1 0 5.5 3.5L13 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 15 15"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M1 3a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3Zm1 0 5.5 3.5L13 3"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
-          {{ t('nav.contact') }}
+          {{ t("nav.contact") }}
+        </NuxtLink>
+
+        <NuxtLink
+          to="/privacy"
+          class="user-menu__item"
+          role="menuitem"
+          @click="isOpen = false"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 15 15"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M7.5 1.5 12 3.3v3.9c0 2.8-1.8 5.2-4.5 6.3C4.8 12.4 3 10 3 7.2V3.3l4.5-1.8Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          {{ t("nav.privacy") }}
         </NuxtLink>
 
         <div class="user-menu__divider" />
@@ -117,10 +170,22 @@ function handleOutsideClick(event: MouseEvent) {
           role="menuitem"
           @click="logout"
         >
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-            <path d="M5 1H2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h3M10 11l4-4-4-4M14 7.5H5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 15 15"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M5 1H2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h3M10 11l4-4-4-4M14 7.5H5"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
-          {{ t('nav.logout') }}
+          {{ t("nav.logout") }}
         </button>
       </div>
     </Transition>
@@ -141,13 +206,15 @@ function handleOutsideClick(event: MouseEvent) {
   border-radius: 9999px;
   background: #fff;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
   color: #374151;
 }
 
 .user-menu__trigger:hover {
   border-color: #d1d5db;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .user-menu__avatar {
@@ -194,7 +261,9 @@ function handleOutsideClick(event: MouseEvent) {
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    0 2px 6px rgba(0, 0, 0, 0.06);
   z-index: 50;
   overflow: hidden;
   padding: 6px;
@@ -264,7 +333,9 @@ function handleOutsideClick(event: MouseEvent) {
   background: none;
   border: none;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s;
   text-align: left;
 }
 
@@ -285,7 +356,9 @@ function handleOutsideClick(event: MouseEvent) {
 /* Transition */
 .menu-fade-enter-active,
 .menu-fade-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .menu-fade-enter-from,

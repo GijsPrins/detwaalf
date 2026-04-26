@@ -34,7 +34,7 @@ async function submit() {
 </script>
 
 <template>
-  <div class="max-w-lg mx-auto">
+  <div class="page-data-container">
     <h1 class="text-2xl font-bold text-gray-900 mb-1">
       {{ t("contact.title") }}
     </h1>
@@ -42,21 +42,14 @@ async function submit() {
       {{ t("contact.subtitle") }}
     </p>
 
-    <div
-      v-if="submitted"
-      class="bg-white rounded-xl border border-gray-100 p-6"
-    >
+    <div v-if="submitted" class="space-y-2 border-t border-gray-100 pt-6">
       <p class="text-sm font-medium text-gray-900 mb-1">
         {{ t("contact.successTitle") }}
       </p>
       <p class="text-sm text-gray-500">{{ t("contact.successBody") }}</p>
     </div>
 
-    <form
-      v-else
-      class="bg-white rounded-xl border border-gray-100 p-6 flex flex-col gap-5"
-      @submit.prevent="submit"
-    >
+    <form v-else class="flex flex-col gap-5" @submit.prevent="submit">
       <!-- Type -->
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-gray-900">{{
@@ -64,7 +57,7 @@ async function submit() {
         }}</label>
         <select
           v-model="type"
-          class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
         >
           <option value="general">{{ t("contact.type.general") }}</option>
           <option value="data_request">
@@ -86,7 +79,7 @@ async function submit() {
           type="email"
           :placeholder="t('contact.email.placeholder')"
           required
-          class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
         />
       </div>
 
@@ -103,7 +96,7 @@ async function submit() {
           :placeholder="t('contact.message.placeholder')"
           maxlength="2000"
           rows="5"
-          class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400 resize-none"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 resize-none"
         />
       </div>
 

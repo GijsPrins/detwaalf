@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+/* Shared page containers */
+.page-list-container {
+  width: 100%;
+}
+
+.page-data-container {
+  width: 100%;
+  max-width: 32rem;
+  margin-inline: auto;
+}
+
+/* Form controls should stay visually distinct from page background */
+:where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
+      [type="file"]
+    ):not([type="color"]),
+  textarea,
+  select
+) {
+  background-color: #fff;
+}

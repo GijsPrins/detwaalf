@@ -126,7 +126,7 @@ function submit() {
 </script>
 
 <template>
-  <div class="max-w-lg mx-auto">
+  <div class="page-data-container">
     <div class="mb-6">
       <NuxtLink
         :to="`/events/${eventId}`"

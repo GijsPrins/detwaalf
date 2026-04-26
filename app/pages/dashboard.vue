@@ -7,7 +7,10 @@ import {
   DISTANCE_BADGE_CLASS,
 } from "~/constants/distances";
 import { PROVINCE_COUNT } from "~/constants/provinces";
-import type { CompleteModalEvent, CompleteModalResult } from "~/components/participation/CompleteModal.vue";
+import type {
+  CompleteModalEvent,
+  CompleteModalResult,
+} from "~/components/participation/CompleteModal.vue";
 
 const { t } = useI18n();
 useHead(() => ({ title: t("page.dashboard") }));
@@ -30,7 +33,9 @@ const eventMap = computed(() => {
 
 // When event_distance_id is null, fall back to the event's distances.
 // Only resolves a category if all distances on the event share one category.
-function inferCategory(event: NonNullable<typeof events.value>[number]): DistanceCategory | null {
+function inferCategory(
+  event: NonNullable<typeof events.value>[number],
+): DistanceCategory | null {
   const cats = new Set(event.event_distances.map((d) => d.distance_category));
   return cats.size === 1 ? ([...cats][0] as DistanceCategory) : null;
 }
@@ -225,10 +230,30 @@ const medalTracks = computed<MedalTrack[]>(() => [
 ]);
 
 const filters = computed(() => [
-  { key: "all" as const, label: t("dashboard.filters.all"), activeClass: "bg-orange-100 text-orange-700", inactiveClass: "text-gray-500 hover:text-gray-900" },
-  { key: "10k" as const, label: t("dashboard.medals.10k"), activeClass: "bg-orange-200 text-orange-800", inactiveClass: "text-orange-400 hover:text-orange-600" },
-  { key: "half" as const, label: t("dashboard.medals.half"), activeClass: "bg-gray-200 text-gray-700", inactiveClass: "text-gray-400 hover:text-gray-600" },
-  { key: "marathon" as const, label: t("dashboard.medals.marathon"), activeClass: "bg-yellow-100 text-yellow-700", inactiveClass: "text-yellow-500 hover:text-yellow-700" },
+  {
+    key: "all" as const,
+    label: t("dashboard.filters.all"),
+    activeClass: "bg-orange-100 text-orange-700",
+    inactiveClass: "text-gray-500 hover:text-gray-900",
+  },
+  {
+    key: "10k" as const,
+    label: t("dashboard.medals.10k"),
+    activeClass: "bg-orange-200 text-orange-800",
+    inactiveClass: "text-orange-400 hover:text-orange-600",
+  },
+  {
+    key: "half" as const,
+    label: t("dashboard.medals.half"),
+    activeClass: "bg-gray-200 text-gray-700",
+    inactiveClass: "text-gray-400 hover:text-gray-600",
+  },
+  {
+    key: "marathon" as const,
+    label: t("dashboard.medals.marathon"),
+    activeClass: "bg-yellow-100 text-yellow-700",
+    inactiveClass: "text-yellow-500 hover:text-yellow-700",
+  },
 ]);
 
 // ---- Complete-a-run flow ----
@@ -298,9 +323,7 @@ async function handleConfirm(result: CompleteModalResult) {
   const isNewMedal =
     result.status === "completed" &&
     pending?.distanceCategory != null &&
-    !completedProvinces.value[pending.distanceCategory].has(
-      pending.provinceId,
-    );
+    !completedProvinces.value[pending.distanceCategory].has(pending.provinceId);
 
   await completeParticipation({
     eventId: modalEvent.value.eventId,
@@ -321,7 +344,7 @@ async function handleConfirm(result: CompleteModalResult) {
 </script>
 
 <template>
-  <div>
+  <div class="page-list-container">
     <ParticipationCompletePrompt
       :events="pendingEvents"
       @complete="openModal"
@@ -342,7 +365,13 @@ async function handleConfirm(result: CompleteModalResult) {
         :event-id="selectedProvinceEvents[track.key]?.eventId ?? null"
         :event-name="selectedProvinceEvents[track.key]?.eventName ?? null"
         :event-date="selectedProvinceEvents[track.key]?.date ?? null"
-        :finish-time="selectedProvinceEvents[track.key]?.finishTimeSeconds != null ? formatFinishTime(selectedProvinceEvents[track.key]!.finishTimeSeconds!) : null"
+        :finish-time="
+          selectedProvinceEvents[track.key]?.finishTimeSeconds != null
+            ? formatFinishTime(
+                selectedProvinceEvents[track.key]!.finishTimeSeconds!,
+              )
+            : null
+        "
         compact
       />
     </div>
@@ -359,7 +388,11 @@ async function handleConfirm(result: CompleteModalResult) {
               v-for="filter in filters"
               :key="filter.key"
               class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
-              :class="activeDistance === filter.key ? filter.activeClass : filter.inactiveClass"
+              :class="
+                activeDistance === filter.key
+                  ? filter.activeClass
+                  : filter.inactiveClass
+              "
               @click="activeDistance = filter.key"
             >
               {{ filter.label }}
@@ -379,7 +412,10 @@ async function handleConfirm(result: CompleteModalResult) {
       <div class="flex flex-col gap-4">
         <!-- Province context label — always rendered to reserve height -->
         <div class="h-6 flex items-center px-1">
-          <span v-if="selectedProvinceName" class="text-sm font-medium text-gray-700">
+          <span
+            v-if="selectedProvinceName"
+            class="text-sm font-medium text-gray-700"
+          >
             {{ selectedProvinceName }}
           </span>
           <span v-else class="text-xs text-gray-400">
@@ -402,7 +438,13 @@ async function handleConfirm(result: CompleteModalResult) {
           :event-id="selectedProvinceEvents[track.key]?.eventId ?? null"
           :event-name="selectedProvinceEvents[track.key]?.eventName ?? null"
           :event-date="selectedProvinceEvents[track.key]?.date ?? null"
-          :finish-time="selectedProvinceEvents[track.key]?.finishTimeSeconds != null ? formatFinishTime(selectedProvinceEvents[track.key]!.finishTimeSeconds!) : null"
+          :finish-time="
+            selectedProvinceEvents[track.key]?.finishTimeSeconds != null
+              ? formatFinishTime(
+                  selectedProvinceEvents[track.key]!.finishTimeSeconds!,
+                )
+              : null
+          "
         />
 
         <!-- Upcoming events -->

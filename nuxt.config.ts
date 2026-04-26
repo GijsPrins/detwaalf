@@ -31,7 +31,15 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: "/login",
       callback: "/confirm",
-      exclude: ["/", "/login", "/register", "/confirm", "/events", "/onboarding"],
+      exclude: [
+        "/",
+        "/login",
+        "/register",
+        "/confirm",
+        "/events",
+        "/onboarding",
+        "/privacy",
+      ],
       saveRedirectToCookie: true,
     },
   },
