@@ -5,24 +5,21 @@ type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 
 export function useProfile() {
   const supabase = useSupabaseClient<Database>()
-  const user = useSupabaseUser()
   const queryClient = useQueryClient()
 
-  const userId = computed(() => user.value?.id ?? null)
-
   const query = useQuery({
-    queryKey: computed(() => ['profile', userId.value]),
+    queryKey: ['profile', 'self'],
     queryFn: async () => {
-      if (!userId.value) return null
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return null
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId.value)
+        .eq('id', user.id)
         .maybeSingle()
       if (error) throw error
       return data
     },
-    enabled: computed(() => !!userId.value),
   })
 
   const mutation = useMutation({
@@ -38,7 +35,7 @@ export function useProfile() {
       return data
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['profile', userId.value], data)
+      queryClient.setQueryData(['profile', 'self'], data)
     },
   })
 

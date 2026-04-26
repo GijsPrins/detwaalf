@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # De Twaalf — Claude Guidelines
 
 ## Security
@@ -34,14 +38,14 @@ npx supabase gen types typescript --linked > app/types/database.types.ts  # rege
 | Layer | Choice |
 |---|---|
 | Framework | Nuxt 4 |
-| Styling | Tailwind CSS (`@nuxtjs/tailwindcss`) |
+| Styling | Tailwind CSS v4 (`@tailwindcss/vite` — loaded as a Vite plugin, not a Nuxt module) |
 | Data fetching | TanStack Query (`@tanstack/vue-query`) |
 | Global UI state | Pinia (`@pinia/nuxt`) — UI state only, not server data |
 | Backend | Supabase (PostgreSQL + Auth + Storage) via `@nuxtjs/supabase` |
 | i18n | `@nuxtjs/i18n` — Dutch only (`nl`) for now; English will be added in one pass later |
 | Types | Generated from Supabase schema at `app/types/database.types.ts` |
 
-In Nuxt 4, `~`/`@` resolve to `app/`. All source files live under `app/`.
+In Nuxt 4, `~`/`@` resolve to `app/`. All source files live under `app/`. Exception: i18n locale files live at `i18n/locales/nl.ts` (outside `app/`).
 
 ---
 
@@ -84,12 +88,59 @@ app/
     event/
     participation/
   composables/      # useX hooks — data + behaviour
+  constants/        # enums & lookup tables (distances, participation, provinces)
   mappers/          # raw → view-model transforms
   pages/            # route entry points, thin wrappers
   queries/          # Supabase calls, typed
-  stores/           # Pinia — UI state only
+  stores/           # Pinia — UI state only (empty; not yet needed)
   types/            # TS types; database.types.ts is generated, do not edit
+  utils/            # pure utility functions (e.g. distance categorisation)
+i18n/
+  locales/nl.ts     # Dutch translations (only locale maintained for now)
+supabase/
+  migrations/       # sequential SQL migrations; add new files here for schema changes
 ```
+
+Currently `app/queries/` and `app/mappers/` each contain a single `events.ts` file that covers all domains. Add a new file per domain as the app grows — don't extend the single file indefinitely.
+
+### Domain model: distances and medals
+
+The app uses two separate enums that must not be confused:
+
+- **`event_distance`** — the actual distance an event offers: `10k | 15k | 10_miles | half_marathon | 30k | marathon`
+- **`distance_category`** — the medal bracket derived from an event distance: `10k | half | marathon`
+
+Mapping (defined in `app/utils/eventDistances.ts`):
+```
+10k / 15k / 10_miles  →  10k   (bronze)
+half_marathon / 30k   →  half  (silver)
+marathon              →  marathon (gold)
+```
+
+Always use `event_distance` when storing or displaying a specific event's distances. Use `distance_category` only when determining medal eligibility or filtering by medal type.
+
+### TanStack Query cache keys
+
+Conventions used across all composables — follow them when adding new ones:
+
+| Resource | Query key |
+|---|---|
+| Events list | `["events", "list"]` |
+| Event detail | `["events", "detail", id]` |
+| User participations | `["eventParticipations", userId]` |
+| Event participation | `["eventParticipation", eventId]` |
+| Provinces | `["provinces"]` |
+| Profile | `["profile", userId]` |
+
+Participation detail uses `staleTime: 0` (always refetch on mount). Provinces use `staleTime: Infinity` (static data, load once).
+
+### Role-based access
+
+Admin/event-manager gating is done via a Supabase RPC call `has_role(role_name)`, wrapped in `useCanManageEvents()`. Use this composable to conditionally show management UI; enforce the same check server-side in RLS or DB functions — never rely on the frontend check alone.
+
+### No test setup
+
+There is no test runner configured (no Vitest, no Jest). Do not add test infrastructure unless explicitly asked.
 
 ---
 
