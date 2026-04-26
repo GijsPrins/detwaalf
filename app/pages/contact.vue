@@ -34,7 +34,7 @@ async function submit() {
 </script>
 
 <template>
-  <div class="max-w-xl mx-auto">
+  <div class="max-w-lg mx-auto">
     <h1 class="text-2xl font-bold text-gray-900 mb-1">
       {{ t("contact.title") }}
     </h1>

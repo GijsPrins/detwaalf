@@ -1,58 +1,58 @@
 <script setup lang="ts">
-const { t } = useI18n()
-const user = useSupabaseUser()
-const { profile, isLoading, updateProfile, isSaving } = useProfile()
+const { t } = useI18n();
+const user = useSupabaseUser();
+const { profile, isLoading, updateProfile, isSaving } = useProfile();
 
-useHead({ title: computed(() => t('page.profile')) })
+useHead({ title: computed(() => t("page.profile")) });
 
-const displayName = ref('')
-const isPublic = ref(false)
-const successMessage = ref('')
-const errorMessage = ref('')
+const displayName = ref("");
+const isPublic = ref(false);
+const successMessage = ref("");
+const errorMessage = ref("");
 
 // Populate form when profile loads
 watch(
   profile,
   (val) => {
     if (val) {
-      displayName.value = val.display_name ?? ''
-      isPublic.value = val.is_public
+      displayName.value = val.display_name ?? "";
+      isPublic.value = val.is_public;
     }
   },
   { immediate: true },
-)
+);
 
 async function save() {
-  successMessage.value = ''
-  errorMessage.value = ''
+  successMessage.value = "";
+  errorMessage.value = "";
   try {
     await updateProfile({
       display_name: displayName.value.trim() || null,
       is_public: isPublic.value,
-    })
-    successMessage.value = t('profile.saveSuccess')
+    });
+    successMessage.value = t("profile.saveSuccess");
   } catch (err) {
-    console.error('[profile] save error:', err)
-    errorMessage.value = t('profile.saveError')
+    console.error("[profile] save error:", err);
+    errorMessage.value = t("profile.saveError");
   }
 }
 
 const isDirty = computed(() => {
-  const currentName = profile.value?.display_name ?? ''
-  const currentPublic = profile.value?.is_public ?? false
-  return displayName.value !== currentName || isPublic.value !== currentPublic
-})
+  const currentName = profile.value?.display_name ?? "";
+  const currentPublic = profile.value?.is_public ?? false;
+  return displayName.value !== currentName || isPublic.value !== currentPublic;
+});
 </script>
 
 <template>
-  <div class="profile-page">
+  <div class="profile-page max-w-lg mx-auto">
     <div class="profile-page__header">
-      <h1 class="profile-page__title">{{ t('profile.title') }}</h1>
-      <p class="profile-page__subtitle">{{ t('profile.subtitle') }}</p>
+      <h1 class="profile-page__title">{{ t("profile.title") }}</h1>
+      <p class="profile-page__subtitle">{{ t("profile.subtitle") }}</p>
     </div>
 
     <div v-if="isLoading" class="profile-page__loading">
-      {{ t('profile.loading') }}
+      {{ t("profile.loading") }}
     </div>
 
     <form v-else class="profile-page__form" @submit.prevent="save">
@@ -61,26 +61,30 @@ const isDirty = computed(() => {
         <div class="profile-avatar">
           <span class="profile-avatar__initials">
             {{
-              (displayName || user?.email || '?')
+              (displayName || user?.email || "?")
                 .split(/[\s@]+/)
                 .slice(0, 2)
-                .map((p) => p[0]?.toUpperCase() ?? '')
-                .join('')
+                .map((p) => p[0]?.toUpperCase() ?? "")
+                .join("")
             }}
           </span>
         </div>
         <div class="profile-avatar__info">
-          <span class="profile-avatar__name">{{ displayName || user?.email }}</span>
+          <span class="profile-avatar__name">{{
+            displayName || user?.email
+          }}</span>
           <span class="profile-avatar__email">{{ user?.email }}</span>
         </div>
       </div>
 
       <div class="profile-form-section">
-        <h2 class="profile-form-section__title">{{ t('profile.sectionGeneral') }}</h2>
+        <h2 class="profile-form-section__title">
+          {{ t("profile.sectionGeneral") }}
+        </h2>
 
         <div class="profile-field">
           <label for="display-name" class="profile-field__label">
-            {{ t('profile.displayName') }}
+            {{ t("profile.displayName") }}
           </label>
           <input
             id="display-name"
@@ -90,14 +94,18 @@ const isDirty = computed(() => {
             :placeholder="t('profile.displayNamePlaceholder')"
             maxlength="60"
           />
-          <p class="profile-field__hint">{{ t('profile.displayNameHint') }}</p>
+          <p class="profile-field__hint">{{ t("profile.displayNameHint") }}</p>
         </div>
 
         <div class="profile-field">
           <label class="profile-toggle" for="is-public">
             <div class="profile-toggle__info">
-              <span class="profile-toggle__label">{{ t('profile.publicProfile') }}</span>
-              <span class="profile-toggle__hint">{{ t('profile.publicProfileHint') }}</span>
+              <span class="profile-toggle__label">{{
+                t("profile.publicProfile")
+              }}</span>
+              <span class="profile-toggle__hint">{{
+                t("profile.publicProfileHint")
+              }}</span>
             </div>
             <div class="profile-toggle__control">
               <input
@@ -115,7 +123,10 @@ const isDirty = computed(() => {
       </div>
 
       <Transition name="fade">
-        <p v-if="successMessage" class="profile-feedback profile-feedback--success">
+        <p
+          v-if="successMessage"
+          class="profile-feedback profile-feedback--success"
+        >
           {{ successMessage }}
         </p>
       </Transition>
@@ -131,8 +142,8 @@ const isDirty = computed(() => {
           class="profile-actions__save"
           :disabled="isSaving || !isDirty"
         >
-          <span v-if="isSaving">{{ t('profile.saving') }}</span>
-          <span v-else>{{ t('profile.save') }}</span>
+          <span v-if="isSaving">{{ t("profile.saving") }}</span>
+          <span v-else>{{ t("profile.save") }}</span>
         </button>
       </div>
     </form>
@@ -140,10 +151,6 @@ const isDirty = computed(() => {
 </template>
 
 <style scoped>
-.profile-page {
-  max-width: 540px;
-}
-
 .profile-page__header {
   margin-bottom: 32px;
 }
@@ -256,13 +263,15 @@ const isDirty = computed(() => {
   font-size: 14px;
   color: #111827;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
   background: #fff;
 }
 
 .profile-field__input:focus {
   border-color: #374151;
-  box-shadow: 0 0 0 3px rgba(17,24,39,0.06);
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.06);
 }
 
 .profile-field__hint {
@@ -326,11 +335,13 @@ const isDirty = computed(() => {
   height: 20px;
   border-radius: 9999px;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s;
 }
 
-.profile-toggle__checkbox:checked + .profile-toggle__track .profile-toggle__thumb {
+.profile-toggle__checkbox:checked
+  + .profile-toggle__track
+  .profile-toggle__thumb {
   transform: translateX(16px);
 }
 
@@ -370,7 +381,9 @@ const isDirty = computed(() => {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, opacity 0.15s;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
 }
 
 .profile-actions__save:hover:not(:disabled) {
