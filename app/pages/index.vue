@@ -7,9 +7,9 @@ useHead(() => ({ title: t("page.home") }));
 
 <template>
   <div class="flex-1 relative flex flex-col bg-gray-50">
-    <section class="flex-1 relative overflow-hidden pt-12">
+    <section class="flex-1 relative overflow-hidden pt-3 sm:pt-6 lg:pt-12">
       <div
-        class="max-w-6xl mx-auto w-full px-8 py-24 grid grid-cols-1 lg:grid-cols-2 items-center gap-12"
+        class="max-w-6xl mx-auto w-full px-4 sm:px-8 py-10 sm:py-14 lg:py-24 grid grid-cols-1 lg:grid-cols-2 items-center gap-10 lg:gap-12"
       >
         <!-- Hero text -->
         <div class="relative z-10 text-center lg:text-left animate-fade-in-up">
@@ -37,7 +37,7 @@ useHead(() => ({ title: t("page.home") }));
           </div>
 
           <!-- Map shown inline on mobile -->
-          <div class="lg:hidden mt-12 flex justify-center">
+          <div class="lg:hidden mt-8 flex justify-center">
             <ProvinceLandingMap class="w-40 sm:w-52 h-auto" />
           </div>
         </div>
