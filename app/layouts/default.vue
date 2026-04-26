@@ -7,6 +7,8 @@ const route = useRoute()
 const mobileMenuOpen = ref(false)
 watch(() => route.fullPath, () => { mobileMenuOpen.value = false })
 
+const { data: canManage } = useCanManageEvents()
+
 async function logout() {
   mobileMenuOpen.value = false
   await supabase.auth.signOut()
@@ -38,6 +40,13 @@ async function logout() {
             class="text-sm text-gray-500 hover:text-gray-900 transition-colors"
           >
             {{ t('nav.events') }}
+          </NuxtLink>
+          <NuxtLink
+            v-if="canManage"
+            to="/admin/messages"
+            class="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            {{ t('nav.admin') }}
           </NuxtLink>
           <UserMenu />
         </template>
@@ -100,6 +109,19 @@ async function logout() {
             class="flex items-center py-3 text-sm text-gray-700 hover:text-gray-900 border-b border-gray-50 transition-colors"
           >
             {{ t('nav.profile') }}
+          </NuxtLink>
+          <NuxtLink
+            to="/contact"
+            class="flex items-center py-3 text-sm text-gray-700 hover:text-gray-900 border-b border-gray-50 transition-colors"
+          >
+            {{ t('nav.contact') }}
+          </NuxtLink>
+          <NuxtLink
+            v-if="canManage"
+            to="/admin/messages"
+            class="flex items-center py-3 text-sm text-gray-700 hover:text-gray-900 border-b border-gray-50 transition-colors"
+          >
+            {{ t('nav.admin') }}
           </NuxtLink>
           <button
             class="flex w-full items-center py-3 text-sm text-red-600 hover:text-red-700 transition-colors"

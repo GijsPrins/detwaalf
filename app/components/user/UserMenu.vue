@@ -98,6 +98,18 @@ function handleOutsideClick(event: MouseEvent) {
           {{ t('nav.profile') }}
         </NuxtLink>
 
+        <NuxtLink
+          to="/contact"
+          class="user-menu__item"
+          role="menuitem"
+          @click="isOpen = false"
+        >
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path d="M1 3a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3Zm1 0 5.5 3.5L13 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          {{ t('nav.contact') }}
+        </NuxtLink>
+
         <div class="user-menu__divider" />
 
         <button

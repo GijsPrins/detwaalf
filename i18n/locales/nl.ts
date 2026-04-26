@@ -6,6 +6,8 @@ export default {
     logout: "Uitloggen",
     login: "Inloggen",
     profile: "Mijn profiel",
+    contact: "Contact",
+    admin: "Berichten",
   },
   landing: {
     nav: {
@@ -44,6 +46,8 @@ export default {
     register: "Registreren",
     onboarding: "Hoe werkt het?",
     profile: "Mijn profiel",
+    contact: "Contact",
+    adminMessages: "Berichten",
   },
   profile: {
     title: "Mijn profiel",
@@ -303,6 +307,43 @@ export default {
     confirm: {
       loading: "Bezig met inloggen…",
       error: "De link is ongeldig of verlopen. Probeer opnieuw in te loggen.",
+    },
+  },
+  contact: {
+    title: "Contact",
+    subtitle:
+      "Stuur een bericht voor vragen, of om je gegevens op te vragen of je account te verwijderen.",
+    type: {
+      label: "Onderwerp",
+      general: "Algemene vraag",
+      data_request: "Mijn gegevens opvragen",
+      delete_account: "Account verwijderen",
+    },
+    email: {
+      label: "E-mailadres",
+      placeholder: "jouw{'@'}email.nl",
+    },
+    message: {
+      label: "Bericht",
+      placeholder: "Schrijf hier je bericht…",
+    },
+    submit: "Versturen",
+    submitting: "Versturen…",
+    successTitle: "Bericht ontvangen",
+    successBody: "We nemen zo snel mogelijk contact met je op.",
+    error: "Er is iets misgegaan. Probeer het opnieuw.",
+  },
+  admin: {
+    notAuthorized: "Je hebt geen toegang tot deze pagina.",
+    messages: {
+      title: "Berichten",
+      unread: "{count} ongelezen",
+      allRead: "Alles gelezen",
+      loading: "Berichten laden…",
+      empty: "Nog geen berichten.",
+      error: "Kon berichten niet laden. Probeer de pagina te vernieuwen.",
+      markRead: "Markeer als gelezen",
+      readOn: "Gelezen op {date}",
     },
   },
 };
