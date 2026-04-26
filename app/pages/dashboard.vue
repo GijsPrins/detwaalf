@@ -225,10 +225,10 @@ const medalTracks = computed<MedalTrack[]>(() => [
 ]);
 
 const filters = computed(() => [
-  { key: "all" as const, label: t("dashboard.filters.all") },
-  { key: "10k" as const, label: t("dashboard.filters.10k") },
-  { key: "half" as const, label: t("dashboard.filters.half") },
-  { key: "marathon" as const, label: t("dashboard.filters.marathon") },
+  { key: "all" as const, label: t("dashboard.filters.all"), activeClass: "bg-orange-100 text-orange-700", inactiveClass: "text-gray-500 hover:text-gray-900" },
+  { key: "10k" as const, label: t("dashboard.medals.10k"), activeClass: "bg-orange-200 text-orange-800", inactiveClass: "text-orange-400 hover:text-orange-600" },
+  { key: "half" as const, label: t("dashboard.medals.half"), activeClass: "bg-gray-200 text-gray-700", inactiveClass: "text-gray-400 hover:text-gray-600" },
+  { key: "marathon" as const, label: t("dashboard.medals.marathon"), activeClass: "bg-yellow-100 text-yellow-700", inactiveClass: "text-yellow-500 hover:text-yellow-700" },
 ]);
 
 // ---- Complete-a-run flow ----
@@ -327,6 +327,26 @@ async function handleConfirm(result: CompleteModalResult) {
       @complete="openModal"
     />
 
+    <!-- Compact mobile medal summary (always visible on mobile) -->
+    <div class="grid grid-cols-3 gap-3 mb-4 lg:hidden">
+      <DashboardMedalCard
+        v-for="track in medalTracks"
+        :key="track.key"
+        :medal="track.medal"
+        :label="track.label"
+        :count="track.count"
+        :total="PROVINCE_COUNT"
+        :color="track.color"
+        :badge-class="track.badgeClass"
+        :province-selected="selectedProvinceId != null"
+        :event-id="selectedProvinceEvents[track.key]?.eventId ?? null"
+        :event-name="selectedProvinceEvents[track.key]?.eventName ?? null"
+        :event-date="selectedProvinceEvents[track.key]?.date ?? null"
+        :finish-time="selectedProvinceEvents[track.key]?.finishTimeSeconds != null ? formatFinishTime(selectedProvinceEvents[track.key]!.finishTimeSeconds!) : null"
+        compact
+      />
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-5">
       <!-- Map -->
       <div class="bg-white rounded-xl border border-gray-100 p-6">
@@ -339,11 +359,7 @@ async function handleConfirm(result: CompleteModalResult) {
               v-for="filter in filters"
               :key="filter.key"
               class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
-              :class="
-                activeDistance === filter.key
-                  ? 'bg-orange-100 text-orange-700'
-                  : 'text-gray-500 hover:text-gray-900'
-              "
+              :class="activeDistance === filter.key ? filter.activeClass : filter.inactiveClass"
               @click="activeDistance = filter.key"
             >
               {{ filter.label }}
@@ -371,67 +387,23 @@ async function handleConfirm(result: CompleteModalResult) {
           </span>
         </div>
 
-        <!-- Medal progress cards -->
-        <div
+        <!-- Medal progress cards (desktop only) -->
+        <DashboardMedalCard
           v-for="track in medalTracks"
           :key="track.key"
-          class="bg-white rounded-xl border border-gray-100 p-5"
-        >
-          <div class="flex items-start justify-between mb-2">
-            <span class="text-sm text-gray-700">{{ track.label }}</span>
-            <span
-              class="text-xs font-medium px-2 py-0.5 rounded-full"
-              :class="track.badgeClass"
-            >
-              {{ track.medal }}
-            </span>
-          </div>
-
-          <!-- Fixed-height content area so the card doesn't resize on toggle -->
-          <div class="min-h-14">
-          <!-- Province-focused view -->
-          <template v-if="selectedProvinceId != null">
-            <NuxtLink
-              v-if="selectedProvinceEvents[track.key]"
-              :to="`/events/${selectedProvinceEvents[track.key]!.eventId}`"
-              class="text-sm font-medium text-gray-900 hover:text-orange-700 transition-colors"
-            >
-              {{ selectedProvinceEvents[track.key]!.eventName }}
-            </NuxtLink>
-            <p v-else class="text-sm text-gray-400">
-              {{ t("dashboard.noMedalForProvince") }}
-            </p>
-            <p
-              v-if="selectedProvinceEvents[track.key]"
-              class="text-xs text-gray-400 mt-0.5"
-            >
-              {{ selectedProvinceEvents[track.key]!.date
-              }}<template v-if="selectedProvinceEvents[track.key]!.finishTimeSeconds != null">
-                · {{ formatFinishTime(selectedProvinceEvents[track.key]!.finishTimeSeconds!) }}
-              </template>
-            </p>
-          </template>
-
-          <!-- Default: count + progress bar -->
-          <template v-else>
-            <div class="text-2xl font-bold text-gray-900">
-              {{ track.count
-              }}<span class="text-sm font-normal text-gray-400"
-                >/{{ PROVINCE_COUNT }}</span
-              >
-            </div>
-            <div class="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                class="h-full rounded-full transition-all"
-                :style="{
-                  width: `${(track.count / PROVINCE_COUNT) * 100}%`,
-                  background: track.color,
-                }"
-              />
-            </div>
-          </template>
-          </div>
-        </div>
+          class="hidden lg:block"
+          :medal="track.medal"
+          :label="track.label"
+          :count="track.count"
+          :total="PROVINCE_COUNT"
+          :color="track.color"
+          :badge-class="track.badgeClass"
+          :province-selected="selectedProvinceId != null"
+          :event-id="selectedProvinceEvents[track.key]?.eventId ?? null"
+          :event-name="selectedProvinceEvents[track.key]?.eventName ?? null"
+          :event-date="selectedProvinceEvents[track.key]?.date ?? null"
+          :finish-time="selectedProvinceEvents[track.key]?.finishTimeSeconds != null ? formatFinishTime(selectedProvinceEvents[track.key]!.finishTimeSeconds!) : null"
+        />
 
         <!-- Upcoming events -->
         <div class="bg-white rounded-xl border border-gray-100 p-5">
