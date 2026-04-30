@@ -52,6 +52,17 @@ export default {
     contact: "Contact",
     privacy: "Privacybeleid",
     adminMessages: "Berichten",
+    verifyEmail: "Bevestig je e-mail",
+  },
+  verifyEmail: {
+    title: "Bevestig je e-mailadres",
+    subtitle: "We hebben een bevestigingslink gestuurd naar ",
+    resend: "Link opnieuw versturen",
+    resending: "Versturen…",
+    resendSuccess: "E-mail opnieuw verstuurd. Check je inbox.",
+    resendError: "Er is iets misgegaan. Probeer het opnieuw.",
+    resendCooldown: "Probeer het over {seconds} seconden opnieuw.",
+    logout: "Uitloggen",
   },
   profile: {
     title: "Mijn profiel",

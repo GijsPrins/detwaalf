@@ -13,9 +13,9 @@ These must be completed before the app is opened to the public.
 |---|---|---|
 | Security review | Audit RLS policies, auth flows, exposed secrets, input validation, XSS/injection risks | **Must** |
 | GDPR compliance | Privacy policy, right to erasure (account + all data), cookie notice if needed | **Must** |
-| Email verification | Require email verification before a user can log any data | **Must** |
+| ~~Email verification~~ | ~~Require email verification before a user can log any data~~ | Done — global middleware redirects unverified users to `/verify-email` |
 | Onboarding page | Explain the challenge rules, distances, medal tiers, how the app works | **Must** |
-| Error monitoring | Set up Sentry or similar for frontend errors; review Supabase rate limits | **Should** |
+| ~~Error monitoring~~ | ~~Set up Sentry or similar for frontend errors; review Supabase rate limits~~ | ~~Should~~ — skipped; small invite-only audience, prefer not to add a paid service |
 | Unit + E2E tests | Vitest for logic/composables, Playwright for critical flows (login, add event, map view) | **Should** |
 
 ---
@@ -81,3 +81,6 @@ These require significant architectural decisions and are not planned for the ne
 | i18n (NL) | Implemented via `@nuxtjs/i18n`. Dutch only for now; English will be added in one pass once the app is feature-complete |
 | Onboarding page | Step-by-step explanation of the challenge rules, distances, and medal tiers |
 | Profile page | Display name and public/private toggle. Further improvements planned (see User features) |
+| Public registration | `/register` page is live and functional |
+| Upcoming events view | Events list groups upcoming events by date, separated from past events |
+| GDPR compliance — right to erasure | Handled via the contact form; users can request deletion manually |
