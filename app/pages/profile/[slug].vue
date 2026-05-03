@@ -28,12 +28,6 @@ const selectedProvinceName = computed(() =>
     : null,
 )
 
-function distanceCategory(km: number): DistanceCategory {
-  if (km >= 42.195) return 'marathon'
-  if (km >= 21.097) return 'half'
-  return '10k'
-}
-
 function formatEventDate(dateStr: string): string {
   return new Intl.DateTimeFormat('nl-NL', {
     day: 'numeric',
@@ -57,7 +51,8 @@ const selectedProvinceEvents = computed<Record<DistanceCategory, ProvinceEventIn
 
   for (const p of participations.value ?? []) {
     if (p.province_id !== selectedProvinceId.value) continue
-    const cat = distanceCategory(p.actual_distance_km)
+    const cat = p.distance_category as DistanceCategory
+    if (!(cat in result)) continue
     const existing = result[cat]
     if (!existing || p.event_date > existing.eventDate) {
       result[cat] = {

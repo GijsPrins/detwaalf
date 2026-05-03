@@ -7,12 +7,6 @@ import {
   type PublicParticipationRow,
 } from '~/queries/profiles'
 
-function distanceCategory(km: number): DistanceCategory {
-  if (km >= 42.195) return 'marathon'
-  if (km >= 21.097) return 'half'
-  return '10k'
-}
-
 export function usePublicProfile(slugOrId: MaybeRef<string>) {
   const supabase = useSupabaseClient<Database>()
 
@@ -37,7 +31,8 @@ export function usePublicProfile(slugOrId: MaybeRef<string>) {
       marathon: new Set(),
     }
     for (const p of participationsQuery.data.value ?? []) {
-      result[distanceCategory(p.actual_distance_km)].add(p.province_id)
+      const cat = p.distance_category as DistanceCategory
+      if (cat in result) result[cat].add(p.province_id)
     }
     return result
   })
