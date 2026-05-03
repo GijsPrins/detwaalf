@@ -49,4 +49,15 @@ export default defineNuxtConfig({
     locales: [{ code: "nl", language: "nl-NL", file: "nl.ts" }],
     langDir: "locales/",
   },
+  routeRules: {
+    "/**": {
+      headers: {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        // Start with 5-minute max-age; increase to 1 year once verified stable in prod
+        "Strict-Transport-Security": "max-age=300; includeSubDomains",
+      },
+    },
+  },
 });
