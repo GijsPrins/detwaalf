@@ -16,6 +16,15 @@ Security is a first-class concern on every feature, not an afterthought.
 
 ---
 
+## Git workflow
+
+- Always create a new branch for each feature or fix — never commit directly to `master`
+- Branch naming: `feature/<short-description>` or `fix/<short-description>`
+- When pushing a branch, always create a PR and show the PR URL so the user can review
+- **Never merge or complete a PR** — the user always does this manually, even if explicitly asked to
+
+---
+
 ## Reference docs
 
 Always consult the Nuxt 4 docs first when looking anything up: https://nuxt.com/docs/4.x/getting-started/introduction
