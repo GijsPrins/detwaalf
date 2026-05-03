@@ -30,7 +30,8 @@ async function register() {
     options: {
       data: {
         display_name: name.value,
-      }
+      },
+      emailRedirectTo: `${window.location.origin}/confirm`,
     }
   })
 

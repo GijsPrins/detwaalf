@@ -339,6 +339,8 @@ export default {
     },
     confirm: {
       loading: "Bezig met inloggen…",
+      success: "Je e-mailadres is bevestigd!",
+      redirecting: "Je wordt doorgestuurd naar je dashboard…",
       error: "De link is ongeldig of verlopen. Probeer opnieuw in te loggen.",
     },
   },

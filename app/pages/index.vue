@@ -2,6 +2,7 @@
 definePageMeta({ auth: false, layout: "landing" });
 
 const { t } = useI18n();
+const user = useSupabaseUser();
 useHead(() => ({ title: t("page.home") }));
 </script>
 
@@ -23,6 +24,7 @@ useHead(() => ({ title: t("page.home") }));
           </p>
           <div class="flex items-center justify-center lg:justify-start gap-4">
             <NuxtLink
+              v-if="!user"
               to="/login"
               class="inline-flex items-center rounded-lg bg-orange-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-orange-700 transition-colors"
             >

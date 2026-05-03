@@ -28,6 +28,10 @@ export default defineNuxtConfig({
   modules: ["@nuxtjs/supabase", "@nuxtjs/i18n", "@pinia/nuxt"],
   supabase: {
     types: "~/types/database.types.ts",
+    cookieOptions: {
+      maxAge: 60 * 60 * 24 * 60, // 60 days — keeps session alive across new tabs and restarts
+      sameSite: "lax",
+    },
     redirectOptions: {
       login: "/login",
       callback: "/confirm",
