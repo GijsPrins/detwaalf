@@ -8,7 +8,7 @@ export default {
     login: "Inloggen",
     profile: "Mijn profiel",
     contact: "Contact",
-    admin: "Berichten",
+    admin: "Beheer",
   },
   landing: {
     nav: {
@@ -52,6 +52,7 @@ export default {
     contact: "Contact",
     privacy: "Privacybeleid",
     adminMessages: "Berichten",
+    adminSlugs: "Slugwoorden",
     verifyEmail: "Bevestig je e-mail",
     publicProfile: "Profiel",
   },
@@ -367,6 +368,10 @@ export default {
   },
   admin: {
     notAuthorized: "Je hebt geen toegang tot deze pagina.",
+    tabs: {
+      messages: "Berichten",
+      slugs: "Slugwoorden",
+    },
     messages: {
       title: "Berichten",
       unread: "{count} ongelezen",
@@ -376,6 +381,59 @@ export default {
       error: "Kon berichten niet laden. Probeer de pagina te vernieuwen.",
       markRead: "Markeer als gelezen",
       readOn: "Gelezen op {date}",
+    },
+    slugs: {
+      title: "Slugwoorden",
+      subtitle:
+        "Beheer woorden die worden gebruikt voor openbare profiellinks.",
+      addTitle: "Nieuw woord toevoegen",
+      bulkTitle: "Woorden in bulk toevoegen",
+      bulkDescription:
+        "Plak een lijst met AI-gegenereerde woorden en kies het scheidingsteken.",
+      loading: "Slugwoorden laden…",
+      empty: "Nog geen slugwoorden.",
+      error: "Kon slugwoorden niet laden. Probeer de pagina te vernieuwen.",
+      saveError: "Opslaan mislukt. Probeer het opnieuw.",
+      bulkNoWords: "Geen geldige woorden gevonden in de invoer.",
+      bulkSuccess:
+        "{count} woorden verwerkt. Bestaande woorden zijn automatisch overgeslagen.",
+      searchLabel: "Zoeken",
+      searchPlaceholder: "Zoek op woord, taal of type",
+      noSearchResults: "Geen slugwoorden gevonden voor deze zoekopdracht.",
+      localePlaceholder: "bijv. nl",
+      wordPlaceholder: "bijv. pionier",
+      bulkWordsPlaceholder: "snelle\nsterke\nkoene",
+      bulkDelimiter: "Scheidingsteken",
+      bulkWords: "Woordenlijst",
+      add: "Toevoegen",
+      bulkAdd: "Bulk toevoegen",
+      bulkAdding: "Bezig met toevoegen…",
+      edit: "Bewerken",
+      save: "Opslaan",
+      saving: "Opslaan…",
+      cancel: "Annuleren",
+      activate: "Activeren",
+      deactivate: "Deactiveren",
+      delete: "Verwijderen",
+      deleteConfirm: "Weet je zeker dat je '{word}' wilt verwijderen?",
+      active: "Actief",
+      inactive: "Inactief",
+      fields: {
+        locale: "Taal",
+        type: "Type",
+        word: "Woord",
+        active: "Actief",
+      },
+      types: {
+        adjective: "Bijvoeglijk",
+        noun: "Zelfstandig",
+      },
+      delimiters: {
+        newline: "Nieuwe regel",
+        comma: "Komma (,)",
+        semicolon: "Puntkomma (;)",
+        pipe: "Pipe (\\|)",
+      },
     },
   },
   privacy: {

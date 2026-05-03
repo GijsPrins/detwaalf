@@ -4,153 +4,168 @@ import {
   type ActiveDistance,
   DISTANCE_COLORS,
   DISTANCE_BADGE_CLASS,
-} from '~/constants/distances'
-import { PROVINCE_COUNT, PROVINCE_NAMES } from '~/constants/provinces'
-import type { PublicParticipationRow, ProfileWithSlug } from '~/queries/profiles'
+} from "~/constants/distances";
+import { PROVINCE_COUNT, PROVINCE_NAMES } from "~/constants/provinces";
+import type {
+  PublicParticipationRow,
+  ProfileWithSlug,
+} from "~/queries/profiles";
 
-const { t } = useI18n()
-const route = useRoute()
-const slug = computed(() => route.params.slug as string)
+const { t } = useI18n();
+const route = useRoute();
+const slug = computed(() => route.params.slug as string);
 
-const { profile, participations, completedProvinces, isLoading, notFound, isPrivate } =
-  usePublicProfile(slug)
+const {
+  profile,
+  participations,
+  completedProvinces,
+  isLoading,
+  notFound,
+  isPrivate,
+} = usePublicProfile(slug);
 
 useHead(() => ({
-  title: profile.value?.display_name ?? t('page.publicProfile'),
-}))
+  title: profile.value?.display_name ?? t("page.publicProfile"),
+}));
 
-const activeDistance = ref<ActiveDistance>('all')
-const selectedProvinceId = ref<number | null>(null)
+const activeDistance = ref<ActiveDistance>("all");
+const selectedProvinceId = ref<number | null>(null);
 
 const selectedProvinceName = computed(() =>
   selectedProvinceId.value != null
     ? (PROVINCE_NAMES[selectedProvinceId.value] ?? null)
     : null,
-)
+);
 
 function formatEventDate(dateStr: string): string {
-  return new Intl.DateTimeFormat('nl-NL', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(dateStr))
+  return new Intl.DateTimeFormat("nl-NL", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(dateStr));
 }
 
 interface ProvinceEventInfo {
-  eventName: string
-  eventDate: string
+  eventName: string;
+  eventDate: string;
+  sortDate: string;
 }
 
-const selectedProvinceEvents = computed<Record<DistanceCategory, ProvinceEventInfo | null>>(() => {
+const selectedProvinceEvents = computed<
+  Record<DistanceCategory, ProvinceEventInfo | null>
+>(() => {
   const result: Record<DistanceCategory, ProvinceEventInfo | null> = {
-    '10k': null,
+    "10k": null,
     half: null,
     marathon: null,
-  }
-  if (selectedProvinceId.value == null) return result
+  };
+  if (selectedProvinceId.value == null) return result;
 
   for (const p of participations.value ?? []) {
-    if (p.province_id !== selectedProvinceId.value) continue
-    const cat = p.distance_category as DistanceCategory
-    if (!(cat in result)) continue
-    const existing = result[cat]
-    if (!existing || p.event_date > existing.eventDate) {
+    if (p.province_id !== selectedProvinceId.value) continue;
+    const cat = p.distance_category as DistanceCategory;
+    if (!(cat in result)) continue;
+    const existing = result[cat];
+    if (!existing || p.event_date > existing.sortDate) {
       result[cat] = {
         eventName: p.event_name,
         eventDate: formatEventDate(p.event_date),
-      }
+        sortDate: p.event_date,
+      };
     }
   }
-  return result
-})
+  return result;
+});
 
 const medalTracks = computed(() => [
   {
-    key: '10k' as DistanceCategory,
-    label: t('dashboard.filters.10k'),
-    medal: t('dashboard.medals.10k'),
-    count: completedProvinces.value['10k'].size,
-    color: DISTANCE_COLORS['10k'],
-    badgeClass: DISTANCE_BADGE_CLASS['10k'],
+    key: "10k" as DistanceCategory,
+    label: t("dashboard.filters.10k"),
+    medal: t("dashboard.medals.10k"),
+    count: completedProvinces.value["10k"].size,
+    color: DISTANCE_COLORS["10k"],
+    badgeClass: DISTANCE_BADGE_CLASS["10k"],
   },
   {
-    key: 'half' as DistanceCategory,
-    label: t('dashboard.filters.half'),
-    medal: t('dashboard.medals.half'),
+    key: "half" as DistanceCategory,
+    label: t("dashboard.filters.half"),
+    medal: t("dashboard.medals.half"),
     count: completedProvinces.value.half.size,
     color: DISTANCE_COLORS.half,
     badgeClass: DISTANCE_BADGE_CLASS.half,
   },
   {
-    key: 'marathon' as DistanceCategory,
-    label: t('dashboard.filters.marathon'),
-    medal: t('dashboard.medals.marathon'),
+    key: "marathon" as DistanceCategory,
+    label: t("dashboard.filters.marathon"),
+    medal: t("dashboard.medals.marathon"),
     count: completedProvinces.value.marathon.size,
     color: DISTANCE_COLORS.marathon,
     badgeClass: DISTANCE_BADGE_CLASS.marathon,
   },
-])
+]);
 
 const filters = computed(() => [
   {
-    key: 'all' as const,
-    label: t('dashboard.filters.all'),
-    activeClass: 'bg-orange-100 text-orange-700',
-    inactiveClass: 'text-gray-500 hover:text-gray-900',
+    key: "all" as const,
+    label: t("dashboard.filters.all"),
+    activeClass: "bg-orange-100 text-orange-700",
+    inactiveClass: "text-gray-500 hover:text-gray-900",
   },
   {
-    key: '10k' as const,
-    label: t('dashboard.medals.10k'),
-    activeClass: 'bg-orange-200 text-orange-800',
-    inactiveClass: 'text-orange-400 hover:text-orange-600',
+    key: "10k" as const,
+    label: t("dashboard.medals.10k"),
+    activeClass: "bg-orange-200 text-orange-800",
+    inactiveClass: "text-orange-400 hover:text-orange-600",
   },
   {
-    key: 'half' as const,
-    label: t('dashboard.medals.half'),
-    activeClass: 'bg-gray-200 text-gray-700',
-    inactiveClass: 'text-gray-400 hover:text-gray-600',
+    key: "half" as const,
+    label: t("dashboard.medals.half"),
+    activeClass: "bg-gray-200 text-gray-700",
+    inactiveClass: "text-gray-400 hover:text-gray-600",
   },
   {
-    key: 'marathon' as const,
-    label: t('dashboard.medals.marathon'),
-    activeClass: 'bg-yellow-100 text-yellow-700',
-    inactiveClass: 'text-yellow-500 hover:text-yellow-700',
+    key: "marathon" as const,
+    label: t("dashboard.medals.marathon"),
+    activeClass: "bg-yellow-100 text-yellow-700",
+    inactiveClass: "text-yellow-500 hover:text-yellow-700",
   },
-])
+]);
 
-const profileWithSlug = computed(() => profile.value as ProfileWithSlug | null)
+const profileWithSlug = computed(() => profile.value as ProfileWithSlug | null);
 
 const avatarInitials = computed(() => {
-  const name = profileWithSlug.value?.display_name ?? ''
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? '')
-    .join('') || '?'
-})
+  const name = profileWithSlug.value?.display_name ?? "";
+  return (
+    name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((p) => p[0]?.toUpperCase() ?? "")
+      .join("") || "?"
+  );
+});
 
 const emptyProvinces = computed<Record<DistanceCategory, Set<number>>>(() => ({
-  '10k': new Set(),
+  "10k": new Set(),
   half: new Set(),
   marathon: new Set(),
-}))
+}));
 </script>
 
 <template>
   <div class="page-list-container">
     <!-- Loading -->
     <div v-if="isLoading" class="text-sm text-gray-400 py-8 text-center">
-      {{ t('profile.loading') }}
+      {{ t("profile.loading") }}
     </div>
 
     <!-- Not found -->
     <div v-else-if="notFound" class="text-sm text-gray-400 py-8 text-center">
-      {{ t('publicProfile.notFound') }}
+      {{ t("publicProfile.notFound") }}
     </div>
 
     <!-- Private profile -->
     <div v-else-if="isPrivate" class="py-8 text-center">
-      <p class="text-sm text-gray-400">{{ t('publicProfile.isPrivate') }}</p>
+      <p class="text-sm text-gray-400">{{ t("publicProfile.isPrivate") }}</p>
     </div>
 
     <!-- Public profile -->
@@ -164,7 +179,7 @@ const emptyProvinces = computed<Record<DistanceCategory, Set<number>>>(() => ({
         </div>
         <div>
           <p class="text-lg font-semibold text-gray-900">
-            {{ profileWithSlug?.display_name || '—' }}
+            {{ profileWithSlug?.display_name || "—" }}
           </p>
           <p v-if="profileWithSlug?.slug" class="text-xs text-gray-400">
             @{{ profileWithSlug.slug }}
@@ -197,7 +212,7 @@ const emptyProvinces = computed<Record<DistanceCategory, Set<number>>>(() => ({
         <div class="bg-white rounded-xl border border-gray-100 p-6">
           <div class="flex items-center justify-between mb-5">
             <span class="text-sm font-medium text-gray-900">{{
-              t('dashboard.provincesLabel')
+              t("dashboard.provincesLabel")
             }}</span>
             <div class="flex items-center gap-1">
               <button
@@ -234,7 +249,7 @@ const emptyProvinces = computed<Record<DistanceCategory, Set<number>>>(() => ({
               {{ selectedProvinceName }}
             </span>
             <span v-else class="text-xs text-gray-400">
-              {{ t('dashboard.selectProvinceHint') }}
+              {{ t("dashboard.selectProvinceHint") }}
             </span>
           </div>
 
