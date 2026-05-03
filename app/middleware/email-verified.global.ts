@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
 ]
 
 export default defineNuxtRouteMiddleware((to) => {
+  if (import.meta.server) return
   if (PUBLIC_PATHS.includes(to.path)) return
 
   const user = useSupabaseUser()
