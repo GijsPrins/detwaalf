@@ -2,8 +2,6 @@ import type { Database, Tables } from '~/types/database.types'
 
 type Client = ReturnType<typeof useSupabaseClient<Database>>
 
-// 'slug' column added by migration 20260503000001.
-// Regenerate DB types with: npx supabase gen types typescript --linked > app/types/database.types.ts
 export type ProfileWithSlug = Tables<'profiles'> & { slug: string | null }
 
 export type PublicParticipationRow = {
@@ -26,19 +24,14 @@ export async function fetchPublicProfile(
   return data as ProfileWithSlug | null
 }
 
-// get_public_profile_participations is not yet in the generated Database types.
 export async function fetchPublicParticipations(
   supabase: Client,
   userId: string,
 ): Promise<PublicParticipationRow[]> {
-  const rpc = supabase.rpc as (
-    fn: string,
-    args: Record<string, string>
-  ) => Promise<{ data: unknown; error: { message: string } | null }>
-
-  const { data, error } = await rpc('get_public_profile_participations', {
-    target_user_id: userId,
-  })
-  if (error) throw new Error(error.message)
+  const { data, error } = await supabase.rpc(
+    'get_public_profile_participations' as unknown as keyof Database['public']['Functions'],
+    { target_user_id: userId } as never,
+  )
+  if (error) throw new Error((error as { message: string }).message)
   return (data as PublicParticipationRow[]) ?? []
 }
