@@ -8,14 +8,17 @@ export function useEventParticipation(eventId: MaybeRef<string>) {
   const user = useSupabaseUser();
 
   return useQuery({
-    queryKey: computed(() => ["eventParticipation", toValue(eventId), user.value?.id]),
-    enabled: computed(() => Boolean(toValue(eventId)) && Boolean(user.value)),
+    // Include userId in cache key so two users on the same browser never share cached participation data.
+    // useSupabaseUser() may be null briefly on hydration; the queryFn resolves the authoritative user.
+    queryKey: computed(() => ["eventParticipation", toValue(eventId), user.value?.id ?? null]),
+    enabled: computed(() => Boolean(toValue(eventId))),
     staleTime: 0,
     refetchOnMount: "always",
     queryFn: async () => {
-      const userId = user.value?.id;
-      if (!userId) return null;
-      return fetchEventParticipation(supabase, toValue(eventId), userId);
+      const { data: { user: authUser }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      if (!authUser) return null;
+      return fetchEventParticipation(supabase, toValue(eventId), authUser.id);
     },
   });
 }
