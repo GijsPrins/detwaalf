@@ -14,8 +14,8 @@ as $$
   select
     e.province_id,
     ep.actual_distance_km,
-    e.name  as event_name,
-    e.date  as event_date
+    e.name       as event_name,
+    e.event_date as event_date
   from event_participations ep
   join events e on e.id = ep.event_id
   where ep.user_id               = target_user_id
