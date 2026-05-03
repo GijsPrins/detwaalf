@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -307,6 +308,7 @@ export type Database = {
           display_name: string | null
           id: string
           is_public: boolean
+          slug: string | null
           updated_at: string
         }
         Insert: {
@@ -315,6 +317,7 @@ export type Database = {
           display_name?: string | null
           id: string
           is_public?: boolean
+          slug?: string | null
           updated_at?: string
         }
         Update: {
@@ -323,6 +326,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           is_public?: boolean
+          slug?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -345,12 +349,46 @@ export type Database = {
         }
         Relationships: []
       }
+      slug_word_list: {
+        Row: {
+          active: boolean
+          id: number
+          locale: string
+          type: string
+          word: string
+        }
+        Insert: {
+          active?: boolean
+          id?: never
+          locale: string
+          type: string
+          word: string
+        }
+        Update: {
+          active?: boolean
+          id?: never
+          locale?: string
+          type?: string
+          word?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      generate_profile_slug: { Args: { p_locale: string }; Returns: string }
       get_medal: { Args: { p_distance_km: number }; Returns: string }
+      get_public_profile_participations: {
+        Args: { target_user_id: string }
+        Returns: {
+          actual_distance_km: number
+          event_date: string
+          event_name: string
+          province_id: number
+        }[]
+      }
       has_role: { Args: { role_name: string }; Returns: boolean }
     }
     Enums: {
@@ -517,3 +555,4 @@ export const Constants = {
     },
   },
 } as const
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
