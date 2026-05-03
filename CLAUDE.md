@@ -128,6 +128,34 @@ marathon              →  marathon (gold)
 
 Always use `event_distance` when storing or displaying a specific event's distances. Use `distance_category` only when determining medal eligibility or filtering by medal type.
 
+### Auth in composables
+
+`useSupabaseUser()` returns `null` during SSR and briefly on client hydration before the session is restored. **Never gate a TanStack Query `enabled` on it**, or the query will silently not fire on page load.
+
+Two distinct uses — keep them separate:
+
+- **Inside `queryFn` / `mutationFn`** — use `supabase.auth.getUser()`. It is async but always resolves to the current auth state, making it reliable for the actual data fetch or write.
+- **Cache key / reactive UI** — use `useSupabaseUser()`. A brief `null` value in the cache key is harmless; the query will re-run once the key becomes non-null.
+
+```ts
+// Correct pattern for a per-user query
+const user = useSupabaseUser();
+
+useQuery({
+  queryKey: computed(() => ["resource", id, user.value?.id ?? null]), // useSupabaseUser for isolation
+  enabled: computed(() => Boolean(id)),                               // never gate on user.value
+  queryFn: async () => {
+    const { data: { user: authUser } } = await supabase.auth.getUser(); // getUser for reliable resolution
+    if (!authUser) return null;
+    return fetchResource(supabase, id, authUser.id);
+  },
+});
+```
+
+The same rule applies to mutations: call `supabase.auth.getUser()` (or read `user.value` with a null-guard and throw) inside `mutationFn`, never rely on `user.value` being non-null at call time.
+
+---
+
 ### TanStack Query cache keys
 
 Conventions used across all composables — follow them when adding new ones:

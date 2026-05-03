@@ -124,16 +124,17 @@ export type DetailParticipationRow = ParticipationRow & {
 export async function fetchEventParticipation(
   supabase: Client,
   eventId: string,
+  userId: string,
 ): Promise<DetailParticipationRow | null> {
   const { data, error } = await supabase
     .from("event_participations")
     .select("id, event_id, event_distance_id, status, finish_time_seconds, timing_url, notes")
     .eq("event_id", eventId)
-    .order("updated_at", { ascending: false })
-    .limit(1);
+    .eq("user_id", userId)
+    .maybeSingle();
 
   if (error) throw error;
-  return (data?.[0] ?? null) as DetailParticipationRow | null;
+  return data as DetailParticipationRow | null;
 }
 
 export async function updateEvent(
@@ -162,6 +163,7 @@ export async function saveParticipation(
     timing_url?: string | null;
     notes?: string | null;
   },
+  userId: string,
 ): Promise<Tables<"event_participations">> {
   const updatePayload = {
     status: participation.status,
@@ -175,6 +177,7 @@ export async function saveParticipation(
     .from("event_participations")
     .update(updatePayload)
     .eq("event_id", participation.event_id)
+    .eq("user_id", userId)
     .select("id, event_id, event_distance_id, status");
 
   if (updateError) throw updateError;
@@ -213,11 +216,13 @@ export async function insertEvent(
 export async function deleteParticipation(
   supabase: Client,
   eventId: string,
+  userId: string,
 ): Promise<void> {
   const { error } = await supabase
     .from("event_participations")
     .delete()
-    .eq("event_id", eventId);
+    .eq("event_id", eventId)
+    .eq("user_id", userId);
 
   if (error) throw error;
 }
