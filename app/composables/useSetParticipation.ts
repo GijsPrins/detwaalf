@@ -11,14 +11,17 @@ interface SetParticipationInput {
 export function useSetParticipation(eventId: MaybeRef<string>) {
   const supabase = useSupabaseClient<Database>();
   const queryClient = useQueryClient();
+  const user = useSupabaseUser();
 
   return useMutation({
     mutationFn: ({ status, eventDistanceId }: SetParticipationInput) => {
+      const userId = user.value?.id;
+      if (!userId) throw new Error("Not authenticated");
       return saveParticipation(supabase, {
         event_id: toValue(eventId),
         status,
         event_distance_id: eventDistanceId ?? null,
-      });
+      }, userId);
     },
     onSuccess: (data, variables) => {
       const evId = toValue(eventId);

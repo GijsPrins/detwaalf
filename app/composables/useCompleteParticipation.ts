@@ -14,17 +14,21 @@ export interface CompleteParticipationInput {
 export function useCompleteParticipation() {
   const supabase = useSupabaseClient<Database>();
   const queryClient = useQueryClient();
+  const user = useSupabaseUser();
 
   return useMutation({
-    mutationFn: (input: CompleteParticipationInput) =>
-      saveParticipation(supabase, {
+    mutationFn: (input: CompleteParticipationInput) => {
+      const userId = user.value?.id;
+      if (!userId) throw new Error("Not authenticated");
+      return saveParticipation(supabase, {
         event_id: input.eventId,
         event_distance_id: input.eventDistanceId,
         status: input.status,
         finish_time_seconds: input.finishTimeSeconds,
         timing_url: input.timingUrl,
         notes: input.notes,
-      }),
+      }, userId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
     },

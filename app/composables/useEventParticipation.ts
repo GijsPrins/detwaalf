@@ -5,22 +5,17 @@ import { fetchEventParticipation } from "~/queries/events";
 
 export function useEventParticipation(eventId: MaybeRef<string>) {
   const supabase = useSupabaseClient<Database>();
+  const user = useSupabaseUser();
 
   return useQuery({
-    queryKey: computed(() => ["eventParticipation", toValue(eventId)]),
-    enabled: computed(() => Boolean(toValue(eventId))),
+    queryKey: computed(() => ["eventParticipation", toValue(eventId), user.value?.id]),
+    enabled: computed(() => Boolean(toValue(eventId)) && Boolean(user.value)),
     staleTime: 0,
     refetchOnMount: "always",
     queryFn: async () => {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error) throw error;
-      if (!user) return null;
-
-      return fetchEventParticipation(supabase, toValue(eventId));
+      const userId = user.value?.id;
+      if (!userId) return null;
+      return fetchEventParticipation(supabase, toValue(eventId), userId);
     },
   });
 }
