@@ -8,7 +8,8 @@ const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
 watchEffect(() => {
-  if (user.value?.email_confirmed_at) navigateTo('/dashboard')
+  const u = user.value
+  if (u?.confirmed_at || u?.email_confirmed_at) navigateTo('/dashboard')
 })
 
 const cooldown = ref(0)
