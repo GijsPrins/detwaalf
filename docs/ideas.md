@@ -27,6 +27,7 @@ These must be completed before the app is opened to the public.
 | Public registration | Open sign-up flow once product is mature enough for public users | **Should** |
 | Profile page | Display name, optional avatar, short bio; user can edit own profile | **Should** |
 | Progress sharing | Share progress to social media, e.g. "Ik sta op 7/12 voor zilver!" | **Could** |
+| OG / social meta tags | Add per-page Open Graph title, description and image so shared links look good. Default static `og-image.png` is already in place. Next step: per-URL images — e.g. province outline on the event detail page. Simple approach: 12 pre-generated province PNGs as static assets. More powerful: `@nuxtjs/og-image` module for fully dynamic images including event name/date. Candidate pages: event detail, province detail. | **Could** |
 | Milestone notifications | Notify on milestones: first province, halfway, track completed. Channel TBD (in-app / email) | **Could** |
 | Extra completion info | Log extra context when completing, e.g. running with someone else's bib. Text field + optional proof image | **Could** |
 

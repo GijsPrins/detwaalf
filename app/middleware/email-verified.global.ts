@@ -12,6 +12,7 @@ const PUBLIC_PATHS = [
 export default defineNuxtRouteMiddleware((to) => {
   if (import.meta.server) return
   if (PUBLIC_PATHS.includes(to.path)) return
+  if (to.path.startsWith('/profile/')) return
 
   const user = useSupabaseUser()
   if (user.value && !user.value.email_confirmed_at) {

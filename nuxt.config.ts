@@ -39,6 +39,7 @@ export default defineNuxtConfig({
         "/events",
         "/onboarding",
         "/privacy",
+        "/profile/*",
       ],
       saveRedirectToCookie: true,
     },
