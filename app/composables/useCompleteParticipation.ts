@@ -14,12 +14,11 @@ export interface CompleteParticipationInput {
 export function useCompleteParticipation() {
   const supabase = useSupabaseClient<Database>();
   const queryClient = useQueryClient();
-  const user = useSupabaseUser();
 
   return useMutation({
-    mutationFn: (input: CompleteParticipationInput) => {
-      const userId = user.value?.id;
-      if (!userId) throw new Error("Not authenticated");
+    mutationFn: async (input: CompleteParticipationInput) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
       return saveParticipation(supabase, {
         event_id: input.eventId,
         event_distance_id: input.eventDistanceId,
@@ -27,7 +26,7 @@ export function useCompleteParticipation() {
         finish_time_seconds: input.finishTimeSeconds,
         timing_url: input.timingUrl,
         notes: input.notes,
-      }, userId);
+      }, user.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
