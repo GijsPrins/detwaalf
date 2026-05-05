@@ -6,13 +6,12 @@ import { deleteParticipation } from "~/queries/events";
 export function useClearParticipation(eventId: MaybeRef<string>) {
   const supabase = useSupabaseClient<Database>();
   const queryClient = useQueryClient();
-  const user = useSupabaseUser();
 
   return useMutation({
-    mutationFn: () => {
-      const userId = user.value?.id;
-      if (!userId) throw new Error("Not authenticated");
-      return deleteParticipation(supabase, toValue(eventId), userId);
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      return deleteParticipation(supabase, toValue(eventId), user.id);
     },
     onSuccess: () => {
       const evId = toValue(eventId);
