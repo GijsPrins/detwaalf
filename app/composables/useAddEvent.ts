@@ -13,22 +13,28 @@ type EventInput = Omit<TablesInsert<"events">, "created_by"> & {
 
 export function useAddEvent() {
   const supabase = useSupabaseClient<Database>();
-  const user = useSupabaseUser();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (input: EventInput) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User must be authenticated to add an event.");
+      }
+
       const { distances, ...eventData } = input;
       const event = await insertEvent(supabase, {
         ...eventData,
-        created_by: user.value!.id,
+        created_by: user.id,
       });
 
       await replaceEventDistances(supabase, event.id, distances);
 
       await insertParticipation(supabase, {
         event_id: event.id,
-        user_id: user.value!.id,
+        user_id: user.id,
         status: "interested",
       });
 
