@@ -22,6 +22,8 @@ const { mutate: setStatus, isPending: isSettingStatus } =
   useSetParticipation(eventId);
 const { mutate: clearStatus, isPending: isClearingStatus } =
   useClearParticipation(eventId);
+const { mutate: deleteEvent, isPending: isDeleting } = useDeleteEvent(eventId);
+const confirmingDelete = ref(false);
 
 useHead(() => ({ title: event.value?.name ?? t("events.title") }));
 
@@ -297,13 +299,37 @@ const registrationStatus = computed(() => {
       >
         ← {{ t("nav.events") }}
       </NuxtLink>
-      <NuxtLink
-        v-if="canEdit && event"
-        :to="`/events/${event.id}/edit`"
-        class="inline-flex items-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors"
-      >
-        {{ t("eventDetail.edit") }}
-      </NuxtLink>
+      <div v-if="canEdit && event" class="flex items-center gap-3">
+        <template v-if="confirmingDelete">
+          <span class="text-sm text-gray-500">{{ t("eventDetail.deleteConfirm") }}</span>
+          <button
+            :disabled="isDeleting"
+            class="text-sm font-medium text-red-600 hover:text-red-700 transition-colors disabled:opacity-50"
+            @click="deleteEvent()"
+          >
+            {{ t("eventDetail.deleteConfirmYes") }}
+          </button>
+          <button
+            class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+            @click="confirmingDelete = false"
+          >
+            {{ t("eventDetail.deleteConfirmNo") }}
+          </button>
+        </template>
+        <button
+          v-else
+          class="text-sm font-medium text-gray-500 hover:text-red-600 transition-colors"
+          @click="confirmingDelete = true"
+        >
+          {{ t("eventDetail.delete") }}
+        </button>
+        <NuxtLink
+          :to="`/events/${event.id}/edit`"
+          class="inline-flex items-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors"
+        >
+          {{ t("eventDetail.edit") }}
+        </NuxtLink>
+      </div>
     </div>
 
     <div v-if="isPending" class="text-sm text-gray-400 py-12 text-center">

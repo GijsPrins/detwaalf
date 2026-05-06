@@ -153,6 +153,11 @@ export async function updateEvent(
   return data;
 }
 
+export async function deleteEvent(supabase: Client, id: string): Promise<void> {
+  const { error } = await supabase.from("events").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function saveParticipation(
   supabase: Client,
   participation: Pick<

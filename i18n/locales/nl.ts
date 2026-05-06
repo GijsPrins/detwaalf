@@ -234,6 +234,10 @@ export default {
   },
   eventDetail: {
     edit: "Bewerken",
+    delete: "Verwijderen",
+    deleteConfirm: "Weet je het zeker?",
+    deleteConfirmYes: "Ja, verwijder",
+    deleteConfirmNo: "Annuleren",
     backToEvent: "Terug naar evenement",
     notFound: "Evenement niet gevonden.",
     challengeTitle: "Voor je challenge",
