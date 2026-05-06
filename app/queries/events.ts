@@ -128,7 +128,9 @@ export async function fetchEventParticipation(
 ): Promise<DetailParticipationRow | null> {
   const { data, error } = await supabase
     .from("event_participations")
-    .select("id, event_id, event_distance_id, status, finish_time_seconds, timing_url, notes")
+    .select(
+      "id, event_id, event_distance_id, status, finish_time_seconds, timing_url, notes",
+    )
     .eq("event_id", eventId)
     .eq("user_id", userId)
     .maybeSingle();
@@ -151,6 +153,11 @@ export async function updateEvent(
 
   if (error) throw error;
   return data;
+}
+
+export async function deleteEvent(supabase: Client, id: string): Promise<void> {
+  const { error } = await supabase.from("events").delete().eq("id", id);
+  if (error) throw error;
 }
 
 export async function saveParticipation(

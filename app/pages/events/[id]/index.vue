@@ -22,6 +22,8 @@ const { mutate: setStatus, isPending: isSettingStatus } =
   useSetParticipation(eventId);
 const { mutate: clearStatus, isPending: isClearingStatus } =
   useClearParticipation(eventId);
+const { mutate: deleteEvent, isPending: isDeleting } = useDeleteEvent(eventId);
+const confirmingDelete = ref(false);
 
 useHead(() => ({ title: event.value?.name ?? t("events.title") }));
 
@@ -171,7 +173,8 @@ const singleParticipationDistanceLabel = computed(() => {
 const hasRecordedDetails = computed(() => {
   const p = participation.value;
   if (!p) return false;
-  if (p.status === "completed") return p.finish_time_seconds != null || !!p.timing_url;
+  if (p.status === "completed")
+    return p.finish_time_seconds != null || !!p.timing_url;
   if (p.status === "dns" || p.status === "dnf") return !!p.notes;
   return false;
 });
@@ -297,13 +300,39 @@ const registrationStatus = computed(() => {
       >
         ← {{ t("nav.events") }}
       </NuxtLink>
-      <NuxtLink
-        v-if="canEdit && event"
-        :to="`/events/${event.id}/edit`"
-        class="inline-flex items-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors"
-      >
-        {{ t("eventDetail.edit") }}
-      </NuxtLink>
+      <div v-if="canEdit && event" class="flex items-center gap-3">
+        <template v-if="confirmingDelete">
+          <span class="text-sm text-gray-500">{{
+            t("eventDetail.deleteConfirm")
+          }}</span>
+          <button
+            :disabled="isDeleting"
+            class="text-sm font-medium text-red-600 hover:text-red-700 transition-colors disabled:opacity-50"
+            @click="deleteEvent()"
+          >
+            {{ t("eventDetail.deleteConfirmYes") }}
+          </button>
+          <button
+            class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+            @click="confirmingDelete = false"
+          >
+            {{ t("eventDetail.deleteConfirmNo") }}
+          </button>
+        </template>
+        <button
+          v-else
+          class="text-sm font-medium text-gray-500 hover:text-red-600 transition-colors"
+          @click="confirmingDelete = true"
+        >
+          {{ t("eventDetail.delete") }}
+        </button>
+        <NuxtLink
+          :to="`/events/${event.id}/edit`"
+          class="inline-flex items-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors"
+        >
+          {{ t("eventDetail.edit") }}
+        </NuxtLink>
+      </div>
     </div>
 
     <div v-if="isPending" class="text-sm text-gray-400 py-12 text-center">
@@ -463,17 +492,30 @@ const registrationStatus = computed(() => {
           </div>
 
           <!-- Recorded result details -->
-          <div v-if="hasRecordedDetails" class="flex flex-col gap-3 mb-6 py-4 border-t border-b border-gray-100">
-            <div v-if="participation?.finish_time_seconds != null" class="flex flex-col sm:flex-row sm:gap-4">
-              <span class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide">
+          <div
+            v-if="hasRecordedDetails"
+            class="flex flex-col gap-3 mb-6 py-4 border-t border-b border-gray-100"
+          >
+            <div
+              v-if="participation?.finish_time_seconds != null"
+              class="flex flex-col sm:flex-row sm:gap-4"
+            >
+              <span
+                class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide"
+              >
                 {{ t("eventDetail.participation.finishTime") }}
               </span>
               <span class="text-sm text-gray-700 mt-1 sm:mt-0 font-medium">
                 {{ formatFinishTime(participation.finish_time_seconds) }}
               </span>
             </div>
-            <div v-if="participation?.timing_url" class="flex flex-col sm:flex-row sm:gap-4">
-              <span class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide">
+            <div
+              v-if="participation?.timing_url"
+              class="flex flex-col sm:flex-row sm:gap-4"
+            >
+              <span
+                class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide"
+              >
                 {{ t("eventDetail.participation.timingUrl") }}
               </span>
               <a
@@ -485,11 +527,18 @@ const registrationStatus = computed(() => {
                 {{ t("eventDetail.participation.timingUrlLink") }}
               </a>
             </div>
-            <div v-if="participation?.notes" class="flex flex-col sm:flex-row sm:gap-4">
-              <span class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide">
+            <div
+              v-if="participation?.notes"
+              class="flex flex-col sm:flex-row sm:gap-4"
+            >
+              <span
+                class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide"
+              >
                 {{ t("eventDetail.participation.notes") }}
               </span>
-              <span class="text-sm text-gray-700 mt-1 sm:mt-0">{{ participation.notes }}</span>
+              <span class="text-sm text-gray-700 mt-1 sm:mt-0">{{
+                participation.notes
+              }}</span>
             </div>
           </div>
 

@@ -44,15 +44,15 @@ npx supabase gen types typescript --linked > app/types/database.types.ts  # rege
 
 ## Tech stack
 
-| Layer | Choice |
-|---|---|
-| Framework | Nuxt 4 |
-| Styling | Tailwind CSS v4 (`@tailwindcss/vite` — loaded as a Vite plugin, not a Nuxt module) |
-| Data fetching | TanStack Query (`@tanstack/vue-query`) |
-| Global UI state | Pinia (`@pinia/nuxt`) — UI state only, not server data |
-| Backend | Supabase (PostgreSQL + Auth + Storage) via `@nuxtjs/supabase` |
-| i18n | `@nuxtjs/i18n` — Dutch only (`nl`) for now; English will be added in one pass later |
-| Types | Generated from Supabase schema at `app/types/database.types.ts` |
+| Layer           | Choice                                                                              |
+| --------------- | ----------------------------------------------------------------------------------- |
+| Framework       | Nuxt 4                                                                              |
+| Styling         | Tailwind CSS v4 (`@tailwindcss/vite` — loaded as a Vite plugin, not a Nuxt module)  |
+| Data fetching   | TanStack Query (`@tanstack/vue-query`)                                              |
+| Global UI state | Pinia (`@pinia/nuxt`) — UI state only, not server data                              |
+| Backend         | Supabase (PostgreSQL + Auth + Storage) via `@nuxtjs/supabase`                       |
+| i18n            | `@nuxtjs/i18n` — Dutch only (`nl`) for now; English will be added in one pass later |
+| Types           | Generated from Supabase schema at `app/types/database.types.ts`                     |
 
 In Nuxt 4, `~`/`@` resolve to `app/`. All source files live under `app/`. Exception: i18n locale files live at `i18n/locales/nl.ts` (outside `app/`).
 
@@ -65,24 +65,28 @@ In Nuxt 4, `~`/`@` resolve to `app/`. All source files live under `app/`. Except
 Keep these four concerns strictly separate:
 
 **Queries** (`app/queries/`)
+
 - One file per domain (e.g. `events.ts`, `participations.ts`)
 - Each file exports typed functions that call Supabase and return raw data
 - No mapping, no business logic — just the database call
 - Example: `fetchEventsByProvince(provinceId: number)`
 
 **Mappers** (`app/mappers/`)
+
 - One file per domain, mirroring the queries folder
 - Pure functions that transform raw Supabase rows into view-friendly shapes
 - No side effects, fully unit-testable
 - Example: `mapParticipation(row) → { ...row, medal: deriveMedal(row.actual_distance_km) }`
 
 **Composables** (`app/composables/`)
+
 - Wire queries + mappers together using TanStack Query
 - Own the loading/error state that components consume
 - Named `use<Domain><Action>` — e.g. `useProvinceProgress`, `useEventList`
 - Components should almost never call Supabase directly — always through a composable
 
 **Views & components** (`app/pages/`, `app/components/`)
+
 - Pages are thin: they pick a layout, call composables, pass data down
 - Components receive props, emit events — no direct data fetching
 - Split components early and often; prefer many small focused components over large ones
@@ -120,6 +124,7 @@ The app uses two separate enums that must not be confused:
 - **`distance_category`** — the medal bracket derived from an event distance: `10k | half | marathon`
 
 Mapping (defined in `app/utils/eventDistances.ts`):
+
 ```
 10k / 15k / 10_miles  →  10k   (bronze)
 half_marathon / 30k   →  half  (silver)
@@ -143,9 +148,11 @@ const user = useSupabaseUser();
 
 useQuery({
   queryKey: computed(() => ["resource", id, user.value?.id ?? null]), // useSupabaseUser for isolation
-  enabled: computed(() => Boolean(id)),                               // never gate on user.value
+  enabled: computed(() => Boolean(id)), // never gate on user.value
   queryFn: async () => {
-    const { data: { user: authUser } } = await supabase.auth.getUser(); // getUser for reliable resolution
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser(); // getUser for reliable resolution
     if (!authUser) return null;
     return fetchResource(supabase, id, authUser.id);
   },
@@ -160,14 +167,14 @@ The same rule applies to mutations: call `supabase.auth.getUser()` (or read `use
 
 Conventions used across all composables — follow them when adding new ones:
 
-| Resource | Query key |
-|---|---|
-| Events list | `["events", "list"]` |
-| Event detail | `["events", "detail", id]` |
+| Resource            | Query key                         |
+| ------------------- | --------------------------------- |
+| Events list         | `["events", "list"]`              |
+| Event detail        | `["events", "detail", id]`        |
 | User participations | `["eventParticipations", userId]` |
 | Event participation | `["eventParticipation", eventId]` |
-| Provinces | `["provinces"]` |
-| Profile | `["profile", userId]` |
+| Provinces           | `["provinces"]`                   |
+| Profile             | `["profile", userId]`             |
 
 Participation detail uses `staleTime: 0` (always refetch on mount). Provinces use `staleTime: Infinity` (static data, load once).
 
@@ -175,9 +182,23 @@ Participation detail uses `staleTime: 0` (always refetch on mount). Provinces us
 
 Admin/event-manager gating is done via a Supabase RPC call `has_role(role_name)`, wrapped in `useCanManageEvents()`. Use this composable to conditionally show management UI; enforce the same check server-side in RLS or DB functions — never rely on the frontend check alone.
 
-### No test setup
+### Test setup
 
-There is no test runner configured (no Vitest, no Jest). Do not add test infrastructure unless explicitly asked.
+Unit tests run with Vitest; E2E tests run with Playwright.
+
+```bash
+pnpm test              # run unit tests once
+pnpm test:watch        # watch mode
+pnpm test:coverage     # with coverage report
+pnpm test:e2e          # Playwright E2E (requires pnpm dev or pnpm preview running)
+pnpm test:e2e:ui       # Playwright UI mode
+```
+
+Unit tests live in `test/unit/` mirroring the source structure. Only pure functions are unit-tested — `app/mappers/` and `app/utils/`. The `vitest.config.ts` resolves the `~` alias to `app/`.
+
+E2E tests live in `test/e2e/`. Auth state is stored in `test/e2e/.auth/user.json` (gitignored). Set `E2E_TEST_EMAIL` and `E2E_TEST_PASSWORD` env vars pointing to a dedicated test account before running E2E locally.
+
+GitHub Actions runs unit tests on every PR and E2E on every PR and push to master. Secrets required in the repo: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`.
 
 ---
 
@@ -187,33 +208,33 @@ The visual language is minimal, airy, and text-forward. No emoji in UI copy. No 
 
 ### Colours
 
-| Role | Token |
-|---|---|
-| Page background | `bg-gray-50` |
-| Card background | `bg-white` |
-| Card border | `border border-gray-100` |
-| Primary text | `text-gray-900` |
-| Secondary text | `text-gray-700` |
-| Muted text | `text-gray-500` |
-| Subtle / meta text | `text-gray-400` |
-| Divider | `divide-gray-50` / `border-gray-100` |
+| Role                          | Token                                          |
+| ----------------------------- | ---------------------------------------------- |
+| Page background               | `bg-gray-50`                                   |
+| Card background               | `bg-white`                                     |
+| Card border                   | `border border-gray-100`                       |
+| Primary text                  | `text-gray-900`                                |
+| Secondary text                | `text-gray-700`                                |
+| Muted text                    | `text-gray-500`                                |
+| Subtle / meta text            | `text-gray-400`                                |
+| Divider                       | `divide-gray-50` / `border-gray-100`           |
 | Primary action (button, link) | `bg-orange-600 hover:bg-orange-700 text-white` |
-| Active / selected pill | `bg-orange-100 text-orange-700` |
-| Status / accent text | `text-orange-600` |
-| Bronze track | `#cd7f32` + `bg-orange-100 text-orange-700` |
-| Silver track | `#9ca3af` + `bg-gray-100 text-gray-500` |
-| Gold track | `#eab308` + `bg-yellow-100 text-yellow-700` |
+| Active / selected pill        | `bg-orange-100 text-orange-700`                |
+| Status / accent text          | `text-orange-600`                              |
+| Bronze track                  | `#cd7f32` + `bg-orange-100 text-orange-700`    |
+| Silver track                  | `#9ca3af` + `bg-gray-100 text-gray-500`        |
+| Gold track                    | `#eab308` + `bg-yellow-100 text-yellow-700`    |
 
 ### Typography
 
-| Use | Classes |
-|---|---|
-| Hero heading | `text-4xl font-bold text-gray-900 tracking-tight` |
-| Large stat | `text-2xl font-bold text-gray-900` |
-| Card / section title | `text-sm font-semibold text-gray-900` |
-| Label / body | `text-sm text-gray-700` |
-| Supporting body | `text-sm text-gray-500 leading-relaxed` |
-| Meta / secondary detail | `text-xs text-gray-400` |
+| Use                     | Classes                                           |
+| ----------------------- | ------------------------------------------------- |
+| Hero heading            | `text-4xl font-bold text-gray-900 tracking-tight` |
+| Large stat              | `text-2xl font-bold text-gray-900`                |
+| Card / section title    | `text-sm font-semibold text-gray-900`             |
+| Label / body            | `text-sm text-gray-700`                           |
+| Supporting body         | `text-sm text-gray-500 leading-relaxed`           |
+| Meta / secondary detail | `text-xs text-gray-400`                           |
 
 ### Cards
 
@@ -228,6 +249,7 @@ Use `p-6` when the card contains a map or large visual. Never mix shadow with bo
 ### Interactive controls
 
 **Pill filter button** (inactive / active):
+
 ```
 px-3 py-1 rounded-full text-xs font-medium transition-colors
 inactive: text-gray-500 hover:text-gray-900
@@ -235,11 +257,13 @@ active:   bg-orange-100 text-orange-700
 ```
 
 **Primary CTA button:**
+
 ```
 inline-flex items-center rounded-lg bg-orange-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-orange-700 transition-colors
 ```
 
 **Badge / status pill:**
+
 ```
 text-xs font-medium px-2 py-0.5 rounded-full  +  colour variant
 ```
@@ -263,12 +287,12 @@ h-1.5 bg-gray-100 rounded-full overflow-hidden
 
 Used in the events list and anywhere a participation status is displayed:
 
-| Status | Classes |
-|---|---|
-| `interested` | `bg-orange-100 text-orange-700` |
-| `signed_up` | `bg-blue-100 text-blue-700` |
-| `completed` | `bg-green-100 text-green-700` |
-| `dns` / `dnf` | `bg-gray-100 text-gray-500` |
+| Status        | Classes                         |
+| ------------- | ------------------------------- |
+| `interested`  | `bg-orange-100 text-orange-700` |
+| `signed_up`   | `bg-blue-100 text-blue-700`     |
+| `completed`   | `bg-green-100 text-green-700`   |
+| `dns` / `dnf` | `bg-gray-100 text-gray-500`     |
 
 ### Tone
 

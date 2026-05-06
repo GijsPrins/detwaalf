@@ -28,3 +28,8 @@ supabase/.temp/
 
 # Local agent settings
 .claude/settings.local.json
+
+# Playwright auth state and artifacts
+test/e2e/.auth/*.json
+playwright-report/
+test-results/
