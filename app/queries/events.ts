@@ -128,7 +128,9 @@ export async function fetchEventParticipation(
 ): Promise<DetailParticipationRow | null> {
   const { data, error } = await supabase
     .from("event_participations")
-    .select("id, event_id, event_distance_id, status, finish_time_seconds, timing_url, notes")
+    .select(
+      "id, event_id, event_distance_id, status, finish_time_seconds, timing_url, notes",
+    )
     .eq("event_id", eventId)
     .eq("user_id", userId)
     .maybeSingle();
