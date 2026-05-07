@@ -50,7 +50,9 @@ describe("events queries", () => {
   });
 
   it("fetchEvent loads one row by id", async () => {
-    const single = vi.fn().mockResolvedValue({ data: { id: "ev-1" }, error: null });
+    const single = vi
+      .fn()
+      .mockResolvedValue({ data: { id: "ev-1" }, error: null });
     const eq = vi.fn(() => ({ single }));
     const select = vi.fn(() => ({ eq }));
     const from = vi.fn(() => ({ select }));
@@ -79,7 +81,12 @@ describe("events queries", () => {
 
     expect(deleteEq).toHaveBeenCalledWith("event_id", "ev-1");
     expect(insert).toHaveBeenCalledWith([
-      { event_id: "ev-1", distance: "10k", distance_category: "10k", sort_order: 0 },
+      {
+        event_id: "ev-1",
+        distance: "10k",
+        distance_category: "10k",
+        sort_order: 0,
+      },
       {
         event_id: "ev-1",
         distance: "half_marathon",
@@ -112,20 +119,26 @@ describe("events queries", () => {
     const from = vi.fn(() => ({ select }));
     const supabase = { from } as never;
 
-    await expect(fetchEventParticipation(supabase, "ev-1", "user-1")).resolves.toBeNull();
+    await expect(
+      fetchEventParticipation(supabase, "ev-1", "user-1"),
+    ).resolves.toBeNull();
     expect(eqEvent).toHaveBeenCalledWith("event_id", "ev-1");
     expect(eqUser).toHaveBeenCalledWith("user_id", "user-1");
   });
 
   it("updateEvent updates and returns a single row", async () => {
-    const single = vi.fn().mockResolvedValue({ data: { id: "ev-1" }, error: null });
+    const single = vi
+      .fn()
+      .mockResolvedValue({ data: { id: "ev-1" }, error: null });
     const select = vi.fn(() => ({ single }));
     const eq = vi.fn(() => ({ select }));
     const update = vi.fn(() => ({ eq }));
     const from = vi.fn(() => ({ update }));
     const supabase = { from } as never;
 
-    await expect(updateEvent(supabase, "ev-1", { name: "New" })).resolves.toEqual({
+    await expect(
+      updateEvent(supabase, "ev-1", { name: "New" }),
+    ).resolves.toEqual({
       id: "ev-1",
     });
   });
@@ -143,7 +156,10 @@ describe("events queries", () => {
   it("saveParticipation returns updated row when update matches", async () => {
     const selectUpdate = vi
       .fn()
-      .mockResolvedValue({ data: [{ id: "p-1", event_id: "ev-1" }], error: null });
+      .mockResolvedValue({
+        data: [{ id: "p-1", event_id: "ev-1" }],
+        error: null,
+      });
     const eqUser = vi.fn(() => ({ select: selectUpdate }));
     const eqEvent = vi.fn(() => ({ eq: eqUser }));
     const update = vi.fn(() => ({ eq: eqEvent }));
@@ -176,7 +192,10 @@ describe("events queries", () => {
 
     const singleInsert = vi
       .fn()
-      .mockResolvedValue({ data: { id: "p-2", event_id: "ev-2" }, error: null });
+      .mockResolvedValue({
+        data: { id: "p-2", event_id: "ev-2" },
+        error: null,
+      });
     const selectInsert = vi.fn(() => ({ single: singleInsert }));
     const insert = vi.fn(() => ({ select: selectInsert }));
 
@@ -203,7 +222,9 @@ describe("events queries", () => {
   });
 
   it("insertEvent and insertParticipation return inserted rows", async () => {
-    const singleEvent = vi.fn().mockResolvedValue({ data: { id: "ev-3" }, error: null });
+    const singleEvent = vi
+      .fn()
+      .mockResolvedValue({ data: { id: "ev-3" }, error: null });
     const selectEvent = vi.fn(() => ({ single: singleEvent }));
     const insertEventFn = vi.fn(() => ({ select: selectEvent }));
 
@@ -211,7 +232,9 @@ describe("events queries", () => {
       .fn()
       .mockResolvedValue({ data: { id: "p-3" }, error: null });
     const selectParticipation = vi.fn(() => ({ single: singleParticipation }));
-    const insertParticipationFn = vi.fn(() => ({ select: selectParticipation }));
+    const insertParticipationFn = vi.fn(() => ({
+      select: selectParticipation,
+    }));
 
     const from = vi
       .fn()
@@ -220,11 +243,16 @@ describe("events queries", () => {
 
     const supabase = { from } as never;
 
-    await expect(insertEvent(supabase, { name: "Run" } as never)).resolves.toEqual({
+    await expect(
+      insertEvent(supabase, { name: "Run" } as never),
+    ).resolves.toEqual({
       id: "ev-3",
     });
     await expect(
-      insertParticipation(supabase, { event_id: "ev-3", status: "interested" } as never),
+      insertParticipation(supabase, {
+        event_id: "ev-3",
+        status: "interested",
+      } as never),
     ).resolves.toEqual({ id: "p-3" });
   });
 

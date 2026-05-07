@@ -70,7 +70,9 @@ describe("contactMessages queries", () => {
 
   it("throws query errors", async () => {
     const expectedError = new Error("forbidden");
-    const order = vi.fn().mockResolvedValue({ data: null, error: expectedError });
+    const order = vi
+      .fn()
+      .mockResolvedValue({ data: null, error: expectedError });
     const select = vi.fn(() => ({ order }));
     const from = vi.fn(() => ({ select }));
     const supabase = { from } as never;

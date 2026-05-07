@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { PROVINCE_COUNT, PROVINCE_NAMES, SLUG_TO_ID } from "~/constants/provinces";
+import {
+  PROVINCE_COUNT,
+  PROVINCE_NAMES,
+  SLUG_TO_ID,
+} from "~/constants/provinces";
 
 describe("province constants", () => {
   it("exposes exactly 12 provinces", () => {

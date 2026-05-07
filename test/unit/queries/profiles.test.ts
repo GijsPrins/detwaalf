@@ -7,7 +7,9 @@ import {
 
 describe("profiles queries", () => {
   it("fetchPublicProfile uses slug filter for non-uuid values", async () => {
-    const maybeSingle = vi.fn().mockResolvedValue({ data: { slug: "runner" }, error: null });
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { slug: "runner" }, error: null });
     const eq = vi.fn(() => ({ maybeSingle }));
     const or = vi.fn(() => ({ maybeSingle }));
     const select = vi.fn(() => ({ eq, or }));
@@ -22,7 +24,9 @@ describe("profiles queries", () => {
 
   it("fetchPublicProfile uses OR filter for uuid values", async () => {
     const id = "123e4567-e89b-12d3-a456-426614174000";
-    const maybeSingle = vi.fn().mockResolvedValue({ data: { id }, error: null });
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: { id }, error: null });
     const eq = vi.fn(() => ({ maybeSingle }));
     const or = vi.fn(() => ({ maybeSingle }));
     const select = vi.fn(() => ({ eq, or }));
@@ -47,7 +51,9 @@ describe("profiles queries", () => {
     const rpc = vi.fn().mockResolvedValue({ data, error: null });
     const supabase = { rpc } as never;
 
-    await expect(fetchPublicParticipations(supabase, "user-1")).resolves.toEqual(data);
+    await expect(
+      fetchPublicParticipations(supabase, "user-1"),
+    ).resolves.toEqual(data);
     expect(rpc).toHaveBeenCalledWith("get_public_profile_participations", {
       target_user_id: "user-1",
     });

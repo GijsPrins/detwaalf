@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { computed, ref, toValue } from "vue";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/vue-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import {
   deleteEvent,
   deleteParticipation,
@@ -131,12 +127,16 @@ describe("composables", () => {
 
     (globalThis as { computed: typeof computed }).computed = computed;
     (globalThis as { toValue: typeof toValue }).toValue = toValue;
-    (globalThis as { navigateTo: ReturnType<typeof vi.fn> }).navigateTo = vi.fn();
+    (globalThis as { navigateTo: ReturnType<typeof vi.fn> }).navigateTo =
+      vi.fn();
     (
       globalThis as { useSupabaseClient: ReturnType<typeof vi.fn> }
     ).useSupabaseClient = vi.fn(() => supabase);
-    (globalThis as { useSupabaseUser: ReturnType<typeof vi.fn> }).useSupabaseUser =
-      vi.fn(() => ref({ id: "user-1", email: "user@example.com" }));
+    (
+      globalThis as { useSupabaseUser: ReturnType<typeof vi.fn> }
+    ).useSupabaseUser = vi.fn(() =>
+      ref({ id: "user-1", email: "user@example.com" }),
+    );
 
     supabase.auth.getUser.mockResolvedValue({
       data: { user: { id: "user-1", email: "user@example.com" } },
@@ -196,10 +196,15 @@ describe("composables", () => {
   });
 
   it("useParticipations query returns empty list when user is missing", async () => {
-    supabase.auth.getUser.mockResolvedValue({ data: { user: null }, error: null });
+    supabase.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: null,
+    });
     const query = useParticipations();
 
-    await expect((query.queryFn as () => Promise<unknown>)()).resolves.toEqual([]);
+    await expect((query.queryFn as () => Promise<unknown>)()).resolves.toEqual(
+      [],
+    );
   });
 
   it("useProvinces wires staleTime and fetchProvinces", async () => {
@@ -214,13 +219,19 @@ describe("composables", () => {
   });
 
   it("useEventParticipation query handles authenticated user", async () => {
-    vi.mocked(fetchEventParticipation).mockResolvedValue({ id: "p-1" } as never);
+    vi.mocked(fetchEventParticipation).mockResolvedValue({
+      id: "p-1",
+    } as never);
     const query = useEventParticipation(ref("ev-1"));
 
     const result = await (query.queryFn as () => Promise<unknown>)();
 
     expect((query.enabled as { value: boolean }).value).toBe(true);
-    expect(fetchEventParticipation).toHaveBeenCalledWith(supabase, "ev-1", "user-1");
+    expect(fetchEventParticipation).toHaveBeenCalledWith(
+      supabase,
+      "ev-1",
+      "user-1",
+    );
     expect(result).toEqual({ id: "p-1" });
   });
 
@@ -232,7 +243,9 @@ describe("composables", () => {
     } as never);
 
     const mutation = useSetParticipation(ref("ev-1"));
-    const data = await (mutation.mutationFn as (payload: unknown) => Promise<unknown>)({
+    const data = await (
+      mutation.mutationFn as (payload: unknown) => Promise<unknown>
+    )({
       status: "interested",
       eventDistanceId: "dist-1",
     });
@@ -256,7 +269,11 @@ describe("composables", () => {
     await (mutation.mutationFn as () => Promise<unknown>)();
     (mutation.onSuccess as () => void)();
 
-    expect(deleteParticipation).toHaveBeenCalledWith(supabase, "ev-2", "user-1");
+    expect(deleteParticipation).toHaveBeenCalledWith(
+      supabase,
+      "ev-2",
+      "user-1",
+    );
     expect(queryClient.setQueriesData).toHaveBeenCalled();
     expect(queryClient.refetchQueries).toHaveBeenCalled();
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
@@ -299,7 +316,9 @@ describe("composables", () => {
     (mutation.onSuccess as () => void)();
 
     expect(deleteEvent).toHaveBeenCalledWith(supabase, "ev-4");
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["events"] });
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["events"],
+    });
     expect(globalThis.navigateTo).toHaveBeenCalledWith("/events");
   });
 
@@ -436,7 +455,9 @@ describe("composables", () => {
     const result = await (query.queryFn as () => Promise<unknown>)();
 
     expect(result).toBe(true);
-    expect(supabase.rpc).toHaveBeenCalledWith("has_role", { role_name: "admin" });
+    expect(supabase.rpc).toHaveBeenCalledWith("has_role", {
+      role_name: "admin",
+    });
     expect(supabase.rpc).toHaveBeenCalledWith("has_role", {
       role_name: "event_manager",
     });
@@ -466,7 +487,9 @@ describe("composables", () => {
   });
 
   it("useProfile exposes query and mutation wrappers", async () => {
-    const singleUpsert = vi.fn().mockResolvedValue({ data: { id: "user-1" }, error: null });
+    const singleUpsert = vi
+      .fn()
+      .mockResolvedValue({ data: { id: "user-1" }, error: null });
     const selectUpsert = vi.fn(() => ({ single: singleUpsert }));
     const upsert = vi.fn(() => ({ select: selectUpsert }));
 

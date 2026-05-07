@@ -6,8 +6,12 @@ describe("generateProfileSlug", () => {
     const rpc = vi.fn().mockResolvedValue({ data: "snelle-wolf", error: null });
     const supabase = { rpc } as never;
 
-    await expect(generateProfileSlug(supabase, "nl")).resolves.toBe("snelle-wolf");
-    expect(rpc).toHaveBeenCalledWith("generate_profile_slug", { p_locale: "nl" });
+    await expect(generateProfileSlug(supabase, "nl")).resolves.toBe(
+      "snelle-wolf",
+    );
+    expect(rpc).toHaveBeenCalledWith("generate_profile_slug", {
+      p_locale: "nl",
+    });
   });
 
   it("throws with the rpc error message", async () => {
@@ -16,7 +20,9 @@ describe("generateProfileSlug", () => {
       .mockResolvedValue({ data: null, error: { message: "rpc failed" } });
     const supabase = { rpc } as never;
 
-    await expect(generateProfileSlug(supabase, "nl")).rejects.toThrow("rpc failed");
+    await expect(generateProfileSlug(supabase, "nl")).rejects.toThrow(
+      "rpc failed",
+    );
   });
 
   it("throws when rpc returns no data", async () => {

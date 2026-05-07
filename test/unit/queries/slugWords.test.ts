@@ -9,7 +9,9 @@ import {
 
 describe("slugWords queries", () => {
   it("fetchSlugWords applies deterministic ordering", async () => {
-    const order3 = vi.fn().mockResolvedValue({ data: [{ id: 1 }], error: null });
+    const order3 = vi
+      .fn()
+      .mockResolvedValue({ data: [{ id: 1 }], error: null });
     const order2 = vi.fn(() => ({ order: order3 }));
     const order1 = vi.fn(() => ({ order: order2 }));
     const select = vi.fn(() => ({ order: order1 }));
@@ -27,7 +29,12 @@ describe("slugWords queries", () => {
     const from = vi.fn(() => ({ insert }));
     const supabase = { from } as never;
 
-    const payload = { locale: "nl", type: "noun" as const, word: "wolf", active: true };
+    const payload = {
+      locale: "nl",
+      type: "noun" as const,
+      word: "wolf",
+      active: true,
+    };
     await insertSlugWord(supabase, payload);
 
     expect(insert).toHaveBeenCalledWith(payload);
