@@ -7,7 +7,13 @@ export default defineConfig({
     include: ["test/unit/**/*.test.ts"],
     coverage: {
       provider: "v8",
-      include: ["app/mappers/**", "app/utils/**"],
+      include: [
+        "app/mappers/**",
+        "app/utils/**",
+        "app/queries/**",
+        "app/constants/**",
+        "app/composables/**",
+      ],
       reporter: ["text", "lcov"],
     },
   },
