@@ -16,7 +16,10 @@ export interface CompleteModalResult {
 
 type Outcome = CompleteModalResult["status"];
 
-const props = defineProps<{ event: CompleteModalEvent | null }>();
+const props = defineProps<{
+  event: CompleteModalEvent | null;
+  initialOutcome?: Outcome | null;
+}>();
 
 const emit = defineEmits<{
   confirm: [result: CompleteModalResult];
@@ -34,7 +37,7 @@ const timeError = ref<string | null>(null);
 watch(
   () => props.event,
   () => {
-    outcome.value = null;
+    outcome.value = props.initialOutcome ?? null;
     finishTimeInput.value = "";
     timingUrl.value = "";
     notes.value = "";

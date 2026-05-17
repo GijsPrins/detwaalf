@@ -306,6 +306,17 @@ describe("composables", () => {
       },
       "user-1",
     );
+
+    (mutation.onSuccess as (_data: unknown, variables: { eventId: string }) => void)(
+      {},
+      { eventId: "ev-3" },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["eventParticipation", "ev-3"],
+    });
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["eventParticipations"],
+    });
   });
 
   it("useDeleteEvent deletes and navigates", async () => {
@@ -322,7 +333,7 @@ describe("composables", () => {
     expect(globalThis.navigateTo).toHaveBeenCalledWith("/events");
   });
 
-  it("useAddEvent creates event, distances and default participation", async () => {
+  it("useAddEvent creates event and sends the user to explicit participation setup", async () => {
     vi.mocked(createEventWithDistances).mockResolvedValue("ev-5" as never);
 
     const mutation = useAddEvent();
@@ -337,7 +348,7 @@ describe("composables", () => {
       payload,
     );
 
-    (mutation.onSuccess as () => void)();
+    (mutation.onSuccess as (eventId: string) => void)("ev-5");
 
     expect(createEventWithDistances).toHaveBeenCalledWith(supabase, payload);
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
@@ -346,7 +357,9 @@ describe("composables", () => {
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["eventParticipations"],
     });
-    expect(globalThis.navigateTo).toHaveBeenCalledWith("/events");
+    expect(globalThis.navigateTo).toHaveBeenCalledWith(
+      "/events/ev-5?tab=participation&created=1",
+    );
   });
 
   it("useUpdateEvent updates event and distances then navigates to detail", async () => {

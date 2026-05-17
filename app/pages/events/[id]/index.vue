@@ -7,12 +7,23 @@ import {
   getDistanceCategoryLabel,
   getEventDistanceLabel,
 } from "~/utils/eventDistances";
+import type {
+  CompleteModalEvent,
+  CompleteModalResult,
+} from "~/components/participation/CompleteModal.vue";
 
 definePageMeta({ auth: false });
 
 const { t } = useI18n();
 const route = useRoute();
 const eventId = computed(() => route.params.id as string);
+type DetailTab = "event" | "participation";
+const activeTab = ref<DetailTab>(
+  route.query.tab === "participation" ? "participation" : "event",
+);
+const showCreatedHint = computed(
+  () => activeTab.value === "participation" && route.query.created === "1",
+);
 
 const user = useSupabaseUser();
 const { data: event, isPending, isError } = useEvent(eventId);
@@ -22,8 +33,12 @@ const { mutate: setStatus, isPending: isSettingStatus } =
   useSetParticipation(eventId);
 const { mutate: clearStatus, isPending: isClearingStatus } =
   useClearParticipation(eventId);
+const { mutateAsync: completeParticipation, isPending: isCompleting } =
+  useCompleteParticipation();
 const { mutate: deleteEvent, isPending: isDeleting } = useDeleteEvent(eventId);
 const confirmingDelete = ref(false);
+const modalEvent = ref<CompleteModalEvent | null>(null);
+const modalInitialOutcome = ref<CompleteModalResult["status"] | null>(null);
 
 useHead(() => ({ title: event.value?.name ?? t("events.title") }));
 
@@ -69,7 +84,7 @@ watch(
   { immediate: true },
 );
 
-const currentParticipationStatus = computed(
+const rawCurrentParticipationStatus = computed(
   () =>
     optimisticParticipationStatus.value ?? participation.value?.status ?? null,
 );
@@ -79,6 +94,22 @@ const currentParticipationDistanceId = computed(
     optimisticParticipationDistanceId.value ??
     participation.value?.event_distance_id ??
     null,
+);
+
+const participationNeedsMissingDistance = computed(() => {
+  const status = rawCurrentParticipationStatus.value;
+  return (
+    !!status &&
+    statusNeedsDistance.includes(status) &&
+    shouldAskParticipationDistance.value &&
+    !currentParticipationDistanceId.value
+  );
+});
+
+const currentParticipationStatus = computed(() =>
+  participationNeedsMissingDistance.value
+    ? null
+    : rawCurrentParticipationStatus.value,
 );
 
 const currentParticipationBadgeClass = computed(() => {
@@ -182,22 +213,52 @@ const hasRecordedDetails = computed(() => {
 
 const participationDistanceError = ref(false);
 
+function buildCompleteModalEvent(): CompleteModalEvent | null {
+  if (!event.value) return null;
+  const selectedDistanceId = selectedParticipationDistanceId.value;
+  const distanceLabel = selectedDistanceId
+    ? (participationDistanceOptions.value.find(
+        (option) => option.id === selectedDistanceId,
+      )?.label ?? "")
+    : "";
+
+  return {
+    eventId: event.value.id,
+    eventDistanceId: selectedDistanceId,
+    eventName: event.value.name,
+    province: event.value.provinceName,
+    distance: distanceLabel,
+  };
+}
+
+function validateParticipationDistance(status: Enums<"participation_status">) {
+  const needsDistance = statusNeedsDistance.includes(status);
+  if (
+    needsDistance &&
+    shouldAskParticipationDistance.value &&
+    !selectedParticipationDistanceId.value
+  ) {
+    participationDistanceError.value = true;
+    return false;
+  }
+
+  participationDistanceError.value = false;
+  return true;
+}
+
 function setParticipationStatus(status: Enums<"participation_status">) {
+  if (!validateParticipationDistance(status)) return;
+
+  if (status === "completed" || status === "dns" || status === "dnf") {
+    modalInitialOutcome.value = status;
+    modalEvent.value = buildCompleteModalEvent();
+    return;
+  }
+
   const previousStatus = currentParticipationStatus.value;
   const previousDistanceId = currentParticipationDistanceId.value;
   const selectedDistanceId = selectedParticipationDistanceId.value;
   const needsDistance = statusNeedsDistance.includes(status);
-
-  if (
-    needsDistance &&
-    shouldAskParticipationDistance.value &&
-    !selectedDistanceId
-  ) {
-    participationDistanceError.value = true;
-    return;
-  }
-
-  participationDistanceError.value = false;
 
   optimisticParticipationStatus.value = status;
   optimisticParticipationDistanceId.value = needsDistance
@@ -220,6 +281,36 @@ function setParticipationStatus(status: Enums<"participation_status">) {
       },
     },
   );
+}
+
+async function handleCompleteConfirm(result: CompleteModalResult) {
+  if (!modalEvent.value) return;
+
+  const previousStatus = currentParticipationStatus.value;
+  const previousDistanceId = currentParticipationDistanceId.value;
+
+  optimisticParticipationStatus.value = result.status;
+  const eventDistanceId =
+    result.status === "completed" ? modalEvent.value.eventDistanceId : null;
+  optimisticParticipationDistanceId.value = eventDistanceId;
+
+  try {
+    await completeParticipation({
+      eventId: modalEvent.value.eventId,
+      eventDistanceId,
+      status: result.status,
+      finishTimeSeconds: result.finishTimeSeconds,
+      timingUrl: result.timingUrl,
+      notes: result.notes,
+    });
+    modalEvent.value = null;
+    modalInitialOutcome.value = null;
+    optimisticParticipationStatus.value = undefined;
+    optimisticParticipationDistanceId.value = undefined;
+  } catch {
+    optimisticParticipationStatus.value = previousStatus;
+    optimisticParticipationDistanceId.value = previousDistanceId;
+  }
 }
 
 function clearParticipationStatus() {
@@ -384,6 +475,34 @@ const registrationStatus = computed(() => {
         </div>
       </div>
 
+      <div
+        class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg w-max mb-8"
+      >
+        <button
+          class="px-4 py-1.5 text-sm font-medium rounded-md transition-colors"
+          :class="
+            activeTab === 'event'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          "
+          @click="activeTab = 'event'"
+        >
+          {{ t("eventDetail.tabs.event") }}
+        </button>
+        <button
+          class="px-4 py-1.5 text-sm font-medium rounded-md transition-colors"
+          :class="
+            activeTab === 'participation'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          "
+          @click="activeTab = 'participation'"
+        >
+          {{ t("eventDetail.tabs.participation") }}
+        </button>
+      </div>
+
+      <template v-if="activeTab === 'event'">
       <!-- Challenge relevance -->
       <div class="border-t border-gray-100 pt-6 mb-8">
         <p class="text-sm font-semibold text-gray-900 mb-3">
@@ -468,14 +587,27 @@ const registrationStatus = computed(() => {
           </div>
         </div>
       </div>
+      </template>
 
       <!-- Participation -->
-      <div class="border-t border-gray-100 pt-8">
+      <div v-else class="border-t border-gray-100 pt-8">
         <p class="text-sm font-semibold text-gray-900 mb-4">
           {{ t("eventDetail.participation.title") }}
         </p>
 
         <template v-if="user">
+          <div
+            v-if="showCreatedHint"
+            class="mb-5 rounded-xl border border-orange-100 bg-orange-50 px-5 py-4"
+          >
+            <p class="text-sm font-medium text-orange-800">
+              {{ t("eventDetail.participation.createdHintTitle") }}
+            </p>
+            <p class="text-sm text-orange-700 mt-1">
+              {{ t("eventDetail.participation.createdHint") }}
+            </p>
+          </div>
+
           <div class="mb-6 flex flex-wrap items-center gap-3">
             <span
               v-if="currentParticipationStatus"
@@ -486,6 +618,12 @@ const registrationStatus = computed(() => {
             </span>
             <p v-if="currentParticipationSummary" class="text-sm text-gray-700">
               {{ currentParticipationSummary }}
+            </p>
+            <p
+              v-else-if="participationNeedsMissingDistance"
+              class="text-sm text-orange-700"
+            >
+              {{ t("eventDetail.participation.missingDistance") }}
             </p>
             <p v-else class="text-sm text-gray-500">
               {{ t("eventDetail.participation.empty") }}
@@ -567,7 +705,7 @@ const registrationStatus = computed(() => {
                   id="participationDistance"
                   v-model="selectedParticipationDistanceId"
                   class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-                  :disabled="isSettingStatus || isClearingStatus"
+                  :disabled="isSettingStatus || isClearingStatus || isCompleting"
                   @change="participationDistanceError = false"
                 >
                   <option :value="null">
@@ -605,7 +743,7 @@ const registrationStatus = computed(() => {
                 <button
                   v-for="option in statusOptions"
                   :key="option.value"
-                  :disabled="isSettingStatus || isClearingStatus"
+                  :disabled="isSettingStatus || isClearingStatus || isCompleting"
                   class="px-3.5 py-1.5 border rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                   :class="
                     currentParticipationStatus === option.value
@@ -617,7 +755,7 @@ const registrationStatus = computed(() => {
                   {{ option.label }}
                 </button>
                 <button
-                  :disabled="isSettingStatus || isClearingStatus"
+                  :disabled="isSettingStatus || isClearingStatus || isCompleting"
                   class="px-3.5 py-1.5 border rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                   :class="
                     currentParticipationStatus === null
@@ -643,6 +781,16 @@ const registrationStatus = computed(() => {
           {{ t("eventDetail.participation.loginSuffix") }}
         </p>
       </div>
+
+      <ParticipationCompleteModal
+        :event="modalEvent"
+        :initial-outcome="modalInitialOutcome"
+        @confirm="handleCompleteConfirm"
+        @cancel="
+          modalEvent = null;
+          modalInitialOutcome = null;
+        "
+      />
     </template>
   </div>
 </template>

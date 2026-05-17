@@ -22,10 +22,10 @@ export function useAddEvent() {
 
       return createEventWithDistances(supabase, input);
     },
-    onSuccess: () => {
+    onSuccess: (eventId) => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
-      navigateTo("/events");
+      navigateTo(`/events/${eventId}?tab=participation&created=1`);
     },
   });
 }

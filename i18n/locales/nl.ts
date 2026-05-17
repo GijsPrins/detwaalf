@@ -255,9 +255,18 @@ export default {
       closed: "Inschrijving gesloten",
       unknown: "Inschrijfstatus onbekend",
     },
+    tabs: {
+      event: "Evenement",
+      participation: "Mijn deelname",
+    },
     participation: {
       title: "Mijn status",
       empty: "Nog geen status gekozen.",
+      missingDistance:
+        "Je deelname heeft nog geen afstand. Kies een afstand om je status compleet te maken.",
+      createdHintTitle: "Evenement toegevoegd",
+      createdHint:
+        "Kies zelf of je dit evenement aan je deelnames wilt toevoegen en voor welke afstand.",
       set: "Geef aan hoe je bij dit evenement betrokken bent.",
       setWithDistance: "Kies eerst een afstand en geef daarna je status door.",
       singleDistanceHint: "Dit evenement heeft één afstand voor je status.",
@@ -265,8 +274,7 @@ export default {
       stepStatus: "2. Status",
       distanceLabel: "Voor welke afstand?",
       distancePlaceholder: "Kies afstand",
-      distanceRequired:
-        "Kies eerst een afstand voor Geïnteresseerd of Ingeschreven.",
+      distanceRequired: "Kies eerst een afstand voor deze status.",
       summary: "Je bent {status}.",
       summaryWithDistance: "Je bent {status} voor {distance}.",
       forDistance: "Voor afstand: {distance}",
@@ -304,7 +312,7 @@ export default {
       registrationDeadline: "Inschrijfdeadline",
       optional: "(optioneel)",
     },
-    hint: "Je wordt aangemeld als 'Geïnteresseerd'. Je kunt dit daarna aanpassen.",
+    hint: "Na het opslaan kun je zelf kiezen of je dit evenement toevoegt aan je deelnames.",
     provinceAutoFilled: "Provincie automatisch ingevuld op basis van locatie.",
     submit: "Opslaan",
     cancel: "Annuleren",
