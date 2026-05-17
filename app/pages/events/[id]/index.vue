@@ -39,6 +39,7 @@ const statusOptions: { value: Enums<"participation_status">; label: string }[] =
 const statusNeedsDistance: Enums<"participation_status">[] = [
   "interested",
   "signed_up",
+  "completed",
 ];
 
 const selectedParticipationDistanceId = ref<string | null>(null);

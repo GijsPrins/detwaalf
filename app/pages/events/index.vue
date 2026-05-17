@@ -2,6 +2,7 @@
 import type { Enums } from "~/types/database.types";
 import { PARTICIPATION_STATUS_BADGE_CLASS } from "~/constants/participation";
 import { mapEvents } from "~/mappers/events";
+import { getLocalDateString } from "~/utils/localDate";
 import EventCardRow from "~/components/event/EventCardRow.vue";
 
 definePageMeta({ auth: false });
@@ -39,7 +40,7 @@ const statusFilters: { key: StatusFilter; label: string }[] = [
   { key: "dnf", label: t("events.statusFilter.dnf") },
 ];
 
-const todayStr = new Date().toISOString().split("T")[0];
+const todayStr = getLocalDateString();
 
 const filteredEvents = computed(() => {
   let list = events.value ?? [];
