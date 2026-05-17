@@ -8,14 +8,11 @@ test('authenticated admin can add and delete an event', async ({ page }) => {
   await page.locator('#eventDate').pressSequentially('2027-09-15')
   await page.locator('#province').selectOption({ index: 1 })
   await page.getByRole('button', { name: 'Opslaan' }).click()
-  await page.waitForURL('/events')
-
-  // Navigate to the created event's detail page
-  await page.locator('a[href^="/events/"]:not([href="/events/new"])').filter({ hasText: 'E2E Test Evenement' }).first().click()
-  await page.waitForURL(/\/events\/[^/]+$/)
+  await page.waitForURL(/\/events\/[^/]+\?tab=participation&created=1$/)
   await expect(page.getByRole('heading', { name: 'E2E Test Evenement' })).toBeVisible()
 
   // Cleanup: delete the event so it doesn't pollute the database
+  await page.getByRole('button', { name: 'Evenement' }).click()
   await page.getByRole('button', { name: 'Verwijderen' }).click()
   await page.getByRole('button', { name: 'Ja, verwijder' }).click()
   await page.waitForURL('/events')

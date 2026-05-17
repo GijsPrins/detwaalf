@@ -28,7 +28,10 @@ export function useCompleteParticipation() {
         notes: input.notes,
       }, user.id);
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["eventParticipation", variables.eventId],
+      });
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
     },
   });
