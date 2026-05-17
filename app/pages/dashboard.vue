@@ -22,9 +22,69 @@ const activeDistance = ref<ActiveDistance>("all");
 const selectedProvinceId = ref<number | null>(null);
 
 const { data: events } = useEventList();
-const { data: participations } = useParticipations();
+const { data: participations, isPending: isParticipationsPending } =
+  useParticipations();
 
 const today = getLocalDateString();
+
+const onboardingStatusNeedsDistance: ParticipationStatus[] = [
+  "interested",
+  "signed_up",
+  "completed",
+];
+
+const isFirstRunDashboard = computed(
+  () =>
+    !isParticipationsPending.value &&
+    (participations.value?.length ?? 0) === 0,
+);
+
+const hasCompletedParticipation = computed(() =>
+  (participations.value ?? []).some((p) => p.status === "completed"),
+);
+
+const participationMissingDistance = computed(() =>
+  (participations.value ?? []).find(
+    (p) =>
+      onboardingStatusNeedsDistance.includes(p.status) &&
+      !p.event_distance_id,
+  ),
+);
+
+const firstIncompleteParticipation = computed(() =>
+  (participations.value ?? []).find((p) => p.status !== "completed") ?? null,
+);
+
+const shouldShowProgressOnboarding = computed(
+  () =>
+    !isParticipationsPending.value &&
+    !isFirstRunDashboard.value &&
+    !hasCompletedParticipation.value,
+);
+
+const onboardingCurrentStep = computed(() => {
+  if (isFirstRunDashboard.value) return 2;
+  if (participationMissingDistance.value) return 4;
+  return 5;
+});
+
+const onboardingTarget = computed(() => {
+  const participation =
+    participationMissingDistance.value ?? firstIncompleteParticipation.value;
+  return participation
+    ? `/events/${participation.event_id}?tab=participation`
+    : "/events";
+});
+
+const onboardingCtaLabel = computed(() => {
+  if (onboardingCurrentStep.value === 4) {
+    return t("dashboard.firstRun.chooseDistance");
+  }
+  if (onboardingCurrentStep.value === 5) {
+    return t("dashboard.firstRun.viewParticipation");
+  }
+  return t("dashboard.firstRun.findEvent");
+});
 
 const eventMap = computed(() => {
   const map = new Map<string, NonNullable<typeof events.value>[number]>();
@@ -347,8 +407,31 @@ async function handleConfirm(result: CompleteModalResult) {
 <template>
   <div class="page-list-container">
     <ParticipationCompletePrompt
+      v-if="!isFirstRunDashboard"
       :events="pendingEvents"
       @complete="openModal"
+    />
+
+    <div
+      v-if="isParticipationsPending"
+      class="bg-white rounded-xl border border-gray-100 p-6"
+    >
+      <p class="text-sm font-medium text-gray-500">
+        {{ t("dashboard.loading") }}
+      </p>
+    </div>
+
+    <template v-else-if="isFirstRunDashboard">
+      <DashboardFirstRunOnboarding :current-step="onboardingCurrentStep" />
+    </template>
+
+    <template v-else>
+    <DashboardFirstRunOnboarding
+      v-if="shouldShowProgressOnboarding"
+      compact
+      :current-step="onboardingCurrentStep"
+      :cta-target="onboardingTarget"
+      :cta-label="onboardingCtaLabel"
     />
 
     <!-- Compact mobile medal summary (always visible on mobile) -->
@@ -488,6 +571,7 @@ async function handleConfirm(result: CompleteModalResult) {
         </div>
       </div>
     </div>
+    </template>
 
     <ParticipationCompleteModal
       :event="modalEvent"
