@@ -170,6 +170,12 @@ function getRowClass(state: StepState) {
             {{ t("dashboard.firstRun.findEvent") }}
           </NuxtLink>
           <NuxtLink
+            to="/events?period=past"
+            class="inline-flex items-center justify-center rounded-lg border border-orange-200 bg-orange-50 px-4 py-2.5 text-sm font-semibold text-orange-700 transition-colors hover:border-orange-300 hover:bg-orange-100"
+          >
+            {{ t("dashboard.firstRun.findPastEvent") }}
+          </NuxtLink>
+          <NuxtLink
             to="/onboarding"
             class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50"
           >

@@ -541,6 +541,12 @@ async function handleConfirm(result: CompleteModalResult) {
             class="text-sm text-gray-400"
           >
             {{ t("dashboard.noUpcoming") }}
+            <NuxtLink
+              to="/events"
+              class="ml-1 font-medium text-orange-600 transition-colors hover:text-orange-700"
+            >
+              {{ t("dashboard.viewEvents") }}
+            </NuxtLink>
           </p>
           <div v-else class="flex flex-col divide-y divide-gray-50">
             <NuxtLink

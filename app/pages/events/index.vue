@@ -11,6 +11,8 @@ const { t } = useI18n();
 useHead(() => ({ title: t("nav.events") }));
 
 const user = useSupabaseUser();
+const route = useRoute();
+const router = useRouter();
 const { data: rawEvents, isPending: isEventsPending } = useEventList();
 const { data: participations, isPending: isPartPending } = useParticipations();
 const { data: provinces } = useProvinces();
@@ -21,15 +23,25 @@ const isPending = computed(
 const events = computed(() =>
   mapEvents(rawEvents.value ?? [], participations.value ?? []),
 );
+const participationCount = computed(
+  () => events.value.filter((e) => e.participationStatus).length,
+);
 
 type StatusFilter = "all" | Enums<"participation_status">;
-type Tab = "catalog" | "participations";
+type Tab = "upcoming" | "past" | "participations";
+
+function getTabFromRoute(): Tab {
+  if (route.query.period === "past") return "past";
+  if (route.query.tab === "participations" && user.value) {
+    return "participations";
+  }
+  return "upcoming";
+}
 
 const statusFilter = ref<StatusFilter>("all");
-const activeTab = ref<Tab>("catalog");
+const activeTab = ref<Tab>(getTabFromRoute());
 const provinceFilter = ref<number | null>(null);
 const sortBy = ref<"date" | "name">("date");
-const showPastArchive = ref(false);
 
 const statusFilters: { key: StatusFilter; label: string }[] = [
   { key: "all", label: t("events.statusFilter.all") },
@@ -42,14 +54,29 @@ const statusFilters: { key: StatusFilter; label: string }[] = [
 
 const todayStr = getLocalDateString();
 
-const filteredEvents = computed(() => {
+const tabEvents = computed(() => {
   let list = events.value ?? [];
+
+  if (activeTab.value === "upcoming") {
+    list = list.filter((e) => e.eventDate >= todayStr);
+  }
+
+  if (activeTab.value === "past") {
+    list = list.filter((e) => e.eventDate < todayStr);
+  }
 
   if (activeTab.value === "participations") {
     list = list.filter((e) => e.participationStatus);
-    if (statusFilter.value !== "all") {
-      list = list.filter((e) => e.participationStatus === statusFilter.value);
-    }
+  }
+
+  return list;
+});
+
+const filteredEvents = computed(() => {
+  let list = tabEvents.value;
+
+  if (activeTab.value === "participations" && statusFilter.value !== "all") {
+    list = list.filter((e) => e.participationStatus === statusFilter.value);
   }
 
   if (provinceFilter.value !== null) {
@@ -65,6 +92,9 @@ const filteredEvents = computed(() => {
         activeTab.value === "participations" &&
         statusFilter.value === "completed"
       ) {
+        return b.eventDate.localeCompare(a.eventDate);
+      }
+      if (activeTab.value === "past") {
         return b.eventDate.localeCompare(a.eventDate);
       }
       return a.eventDate.localeCompare(b.eventDate);
@@ -111,13 +141,70 @@ function groupEventList(list: typeof filteredEvents.value) {
   return groups;
 }
 
-const upcomingGroups = computed(() =>
-  groupEventList(filteredEvents.value.filter((e) => e.eventDate >= todayStr)),
+const eventGroups = computed(() => groupEventList(filteredEvents.value));
+
+const hasActiveFilters = computed(
+  () =>
+    provinceFilter.value !== null ||
+    (activeTab.value === "participations" && statusFilter.value !== "all"),
 );
-const pastEvents = computed(() =>
-  filteredEvents.value.filter((e) => e.eventDate < todayStr),
+
+const emptyState = computed(() => {
+  if (hasActiveFilters.value && tabEvents.value.length > 0) {
+    return {
+      title: t("events.emptyState.filtered.title"),
+      body: t("events.emptyState.filtered.body"),
+      action: "clear" as const,
+    };
+  }
+
+  if (activeTab.value === "upcoming") {
+    return {
+      title: t("events.emptyState.upcoming.title"),
+      body: t("events.emptyState.upcoming.body"),
+      action: "past" as const,
+    };
+  }
+
+  if (activeTab.value === "past") {
+    return {
+      title: t("events.emptyState.past.title"),
+      body: t("events.emptyState.past.body"),
+      action: "upcoming" as const,
+    };
+  }
+
+  return {
+    title: t("events.emptyState.participations.title"),
+    body: t("events.emptyState.participations.body"),
+    action: "upcoming" as const,
+  };
+});
+
+function setActiveTab(tab: Tab) {
+  activeTab.value = tab;
+  if (tab !== "participations") statusFilter.value = "all";
+
+  router.replace({
+    query: {
+      ...route.query,
+      period: tab === "past" ? "past" : undefined,
+      tab: tab === "participations" ? "participations" : undefined,
+    },
+  });
+}
+
+function clearFilters() {
+  provinceFilter.value = null;
+  statusFilter.value = "all";
+}
+
+watch(
+  () => [route.query.period, route.query.tab, user.value?.id],
+  () => {
+    activeTab.value = getTabFromRoute();
+  },
 );
-const pastGroups = computed(() => groupEventList(pastEvents.value));
 </script>
 
 <template>
@@ -135,7 +222,7 @@ const pastGroups = computed(() => groupEventList(pastEvents.value));
 
       <!-- CTA only on catalog tab -->
       <NuxtLink
-        v-if="user && activeTab === 'catalog'"
+        v-if="user && activeTab !== 'participations'"
         to="/events/new"
         class="inline-flex items-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors"
       >
@@ -145,34 +232,42 @@ const pastGroups = computed(() => groupEventList(pastEvents.value));
 
     <!-- Tabs -->
     <div
-      class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg w-max mb-6"
-      v-if="user"
+      class="mb-6 flex max-w-full items-center gap-1 overflow-x-auto rounded-lg bg-gray-100 p-1 sm:w-max"
     >
       <button
         class="px-4 py-1.5 text-sm font-medium rounded-md transition-colors"
         :class="
-          activeTab === 'catalog'
+          activeTab === 'upcoming'
             ? 'bg-white text-gray-900 shadow-sm'
             : 'text-gray-500 hover:text-gray-700'
         "
-        @click="
-          activeTab = 'catalog';
-          statusFilter = 'all';
-          showPastArchive = false;
-        "
+        @click="setActiveTab('upcoming')"
       >
-        {{ t("events.tabs.catalog") }}
+        {{ t("events.tabs.upcoming") }}
       </button>
       <button
+        class="px-4 py-1.5 text-sm font-medium rounded-md transition-colors"
+        :class="
+          activeTab === 'past'
+            ? 'bg-white text-gray-900 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700'
+        "
+        @click="setActiveTab('past')"
+      >
+        {{ t("events.tabs.past") }}
+      </button>
+      <button
+        v-if="user"
         class="px-4 py-1.5 text-sm font-medium rounded-md transition-colors"
         :class="
           activeTab === 'participations'
             ? 'bg-white text-gray-900 shadow-sm'
             : 'text-gray-500 hover:text-gray-700'
         "
-        @click="activeTab = 'participations'"
+        @click="setActiveTab('participations')"
       >
         {{ t("events.tabs.participations") }}
+        <span class="ml-1 text-gray-400">({{ participationCount }})</span>
       </button>
     </div>
 
@@ -240,15 +335,42 @@ const pastGroups = computed(() => groupEventList(pastEvents.value));
 
     <div
       v-else-if="filteredEvents.length === 0"
-      class="text-sm text-gray-400 py-12 text-center"
+      class="mx-auto max-w-md py-12 text-center"
     >
-      {{ t("events.empty") }}
+      <p class="text-sm font-semibold text-gray-700">
+        {{ emptyState.title }}
+      </p>
+      <p class="mt-1 text-sm text-gray-400">
+        {{ emptyState.body }}
+      </p>
+      <div class="mt-5 flex justify-center">
+        <button
+          v-if="emptyState.action === 'clear'"
+          class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50"
+          @click="clearFilters"
+        >
+          {{ t("events.emptyState.actions.clearFilters") }}
+        </button>
+        <button
+          v-else-if="emptyState.action === 'past'"
+          class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50"
+          @click="setActiveTab('past')"
+        >
+          {{ t("events.emptyState.actions.viewPast") }}
+        </button>
+        <button
+          v-else
+          class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50"
+          @click="setActiveTab('upcoming')"
+        >
+          {{ t("events.emptyState.actions.viewUpcoming") }}
+        </button>
+      </div>
     </div>
 
     <!-- List -->
     <div v-else class="space-y-10">
-      <!-- Upcoming Events (Primary View) -->
-      <div v-for="group in upcomingGroups" :key="group.label">
+      <div v-for="group in eventGroups" :key="group.label">
         <h2
           class="text-sm font-semibold text-gray-900 mb-4 sticky top-0 bg-gray-50 py-2 z-10 border-b border-gray-200"
         >
@@ -259,50 +381,12 @@ const pastGroups = computed(() => groupEventList(pastEvents.value));
             v-for="event in group.events"
             :key="event.id"
             :event="event"
+            :prefer-participation="
+              !!user &&
+              (activeTab === 'past' || activeTab === 'participations')
+            "
+            :return-to="activeTab"
           />
-        </div>
-      </div>
-
-      <!-- Past Events Archive Toggle (Only visible if there are past events) -->
-      <div
-        v-if="pastEvents.length > 0"
-        class="mt-12 text-center border-t border-gray-100 pt-8"
-      >
-        <button
-          v-if="!showPastArchive"
-          @click="showPastArchive = true"
-          class="text-sm text-gray-500 hover:text-orange-600 font-medium transition-colors"
-        >
-          {{ t("events.archive.show", { count: pastEvents.length }) }}
-        </button>
-
-        <div v-else class="text-left mt-8 space-y-10">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-semibold text-gray-900">
-              {{ t("events.archive.title", { count: pastEvents.length }) }}
-            </h3>
-            <button
-              @click="showPastArchive = false"
-              class="text-xs text-gray-500 hover:text-gray-900"
-            >
-              {{ t("events.archive.hide") }}
-            </button>
-          </div>
-
-          <div v-for="group in pastGroups" :key="group.label">
-            <h2
-              class="text-sm font-semibold text-gray-900 mb-4 sticky top-0 bg-gray-50 py-2 z-10 border-b border-gray-200"
-            >
-              {{ group.label }}
-            </h2>
-            <div class="space-y-3">
-              <EventCardRow
-                v-for="event in group.events"
-                :key="event.id"
-                :event="event"
-              />
-            </div>
-          </div>
         </div>
       </div>
     </div>

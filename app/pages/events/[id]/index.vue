@@ -16,6 +16,7 @@ definePageMeta({ auth: false });
 
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 const eventId = computed(() => route.params.id as string);
 type DetailTab = "event" | "participation";
 const activeTab = ref<DetailTab>(
@@ -41,6 +42,30 @@ const modalEvent = ref<CompleteModalEvent | null>(null);
 const modalInitialOutcome = ref<CompleteModalResult["status"] | null>(null);
 
 useHead(() => ({ title: event.value?.name ?? t("events.title") }));
+
+const backToEventsTarget = computed(() => {
+  if (route.query.from === "past") return "/events?period=past";
+  if (route.query.from === "participations") return "/events?tab=participations";
+  return "/events";
+});
+
+function setActiveDetailTab(tab: DetailTab) {
+  activeTab.value = tab;
+  router.replace({
+    query: {
+      ...route.query,
+      tab: tab === "participation" ? "participation" : undefined,
+    },
+  });
+}
+
+watch(
+  () => route.query.tab,
+  () => {
+    activeTab.value =
+      route.query.tab === "participation" ? "participation" : "event";
+  },
+);
 
 const statusOptions: { value: Enums<"participation_status">; label: string }[] =
   [
@@ -387,7 +412,7 @@ const registrationStatus = computed(() => {
     <!-- Back + edit -->
     <div class="flex items-center justify-between mb-8">
       <NuxtLink
-        to="/events"
+        :to="backToEventsTarget"
         class="text-sm text-gray-500 hover:text-gray-900 transition-colors"
       >
         ← {{ t("nav.events") }}
@@ -485,7 +510,7 @@ const registrationStatus = computed(() => {
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
           "
-          @click="activeTab = 'event'"
+          @click="setActiveDetailTab('event')"
         >
           {{ t("eventDetail.tabs.event") }}
         </button>
@@ -496,7 +521,7 @@ const registrationStatus = computed(() => {
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
           "
-          @click="activeTab = 'participation'"
+          @click="setActiveDetailTab('participation')"
         >
           {{ t("eventDetail.tabs.participation") }}
         </button>
