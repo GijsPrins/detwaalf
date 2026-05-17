@@ -142,6 +142,7 @@ export default {
     },
     upcoming: "Aankomend",
     noUpcoming: "Geen aankomende evenementen.",
+    viewEvents: "Bekijk evenementen",
     noMedalForProvince: "Nog niet gelopen",
     selectProvinceHint: "Klik op een provincie voor details",
     firstRun: {
@@ -151,6 +152,7 @@ export default {
         "Mooi, je bent binnen. De volgende stap is je eerste deelname toevoegen, zodat dit dashboard je persoonlijke provinciekaart wordt.",
       nextStep: "Volgende stap",
       findEvent: "Vind je eerste evenement",
+      findPastEvent: "Ik heb al een evenement gelopen",
       howItWorks: "Hoe werkt het?",
       chooseDistance: "Kies je afstand",
       viewParticipation: "Bekijk je deelname",
@@ -236,6 +238,29 @@ export default {
     subtitle: "Alle aankomende en gelopen evenementen",
     new: "Nieuw evenement",
     empty: "Geen evenementen gevonden.",
+    emptyState: {
+      upcoming: {
+        title: "Geen aankomende evenementen gevonden",
+        body: "Je kunt ook eerdere evenementen bekijken om een gelopen wedstrijd toe te voegen.",
+      },
+      past: {
+        title: "Geen afgelopen evenementen gevonden",
+        body: "Bekijk aankomende evenementen om je volgende provincie te plannen.",
+      },
+      participations: {
+        title: "Je hebt nog geen evenementen toegevoegd",
+        body: "Kies een evenement en zet je status op geïnteresseerd, ingeschreven of voltooid.",
+      },
+      filtered: {
+        title: "Geen evenementen met deze filters",
+        body: "Pas je filters aan of wis ze om weer meer evenementen te zien.",
+      },
+      actions: {
+        clearFilters: "Wis filters",
+        viewPast: "Bekijk afgelopen evenementen",
+        viewUpcoming: "Bekijk aankomende evenementen",
+      },
+    },
     distanceWithCategory: "{distance} · telt voor {category}",
     sort: {
       label: "Sorteren op",
@@ -261,7 +286,8 @@ export default {
       dnf: "Niet gefinisht",
     },
     tabs: {
-      catalog: "Alle evenementen",
+      upcoming: "Aankomend",
+      past: "Afgelopen",
       participations: "Mijn deelnames",
     },
     archive: {

@@ -15,7 +15,7 @@ test.describe("Event participation flow", () => {
   test("user can set participation status to interested", async ({ page }) => {
     await page.goto("/events");
     await page.locator(eventCardLink).first().click();
-    await page.waitForURL(/\/events\/[^/]+$/);
+    await page.waitForURL(/\/events\/[^/?]+(\?.*)?$/);
     await page.getByRole("button", { name: "Mijn deelname" }).click();
 
     // Clear any existing status first so the test starts clean
@@ -35,7 +35,7 @@ test.describe("Event participation flow", () => {
   }) => {
     await page.goto("/events");
     await page.locator(eventCardLink).first().click();
-    await page.waitForURL(/\/events\/[^/]+$/);
+    await page.waitForURL(/\/events\/[^/?]+(\?.*)?$/);
     await page.getByRole("button", { name: "Mijn deelname" }).click();
 
     await chooseFirstDistanceIfNeeded(page);
@@ -48,7 +48,7 @@ test.describe("Event participation flow", () => {
   test("user can clear participation status", async ({ page }) => {
     await page.goto("/events");
     await page.locator(eventCardLink).first().click();
-    await page.waitForURL(/\/events\/[^/]+$/);
+    await page.waitForURL(/\/events\/[^/?]+(\?.*)?$/);
     await page.getByRole("button", { name: "Mijn deelname" }).click();
 
     // Set a status first

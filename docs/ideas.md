@@ -14,7 +14,7 @@ These must be completed before the app is opened to the public.
 | Security review | Audit RLS policies, auth flows, exposed secrets, input validation, XSS/injection risks | **Must** |
 | GDPR compliance | Privacy policy, right to erasure (account + all data), cookie notice if needed | **Must** |
 | ~~Email verification~~ | ~~Require email verification before a user can log any data~~ | Done — global middleware redirects unverified users to `/verify-email` |
-| Onboarding page | Explain the challenge rules, distances, medal tiers, how the app works | **Must** |
+| ~~Onboarding page~~ | ~~Explain the challenge rules, distances, medal tiers, how the app works~~ | Done |
 | ~~Error monitoring~~ | ~~Set up Sentry or similar for frontend errors; review Supabase rate limits~~ | ~~Should~~ — skipped; small invite-only audience, prefer not to add a paid service |
 | Unit + E2E tests | Vitest for logic/composables, Playwright for critical flows (login, add event, map view) | **Should** |
 
@@ -50,7 +50,7 @@ All require multi-user to be stable and tested first.
 
 | Feature | Description | Priority |
 |---|---|---|
-| Upcoming events view | Calendar or list view of upcoming events the user has not yet participated in | **Should** |
+| ~~Upcoming events view~~ | ~~Calendar or list view of upcoming events the user has not yet participated in~~ | Done |
 | Per-province suggestions | Show upcoming events per province as suggestions (external links) | **Could** |
 | GPX route display | Add `gpx_path` field (Supabase Storage) to `events` table. On the event detail page, parse the GPX file and render the route on a Leaflet + OSM-tiles map. Province auto-fill via Nominatim already planned. | **Could** |
 
@@ -84,4 +84,5 @@ These require significant architectural decisions and are not planned for the ne
 | Profile page | Display name and public/private toggle. Further improvements planned (see User features) |
 | Public registration | `/register` page is live and functional |
 | Upcoming events view | Events list groups upcoming events by date, separated from past events |
+| Event list modes | Events page has top-level `Aankomend`, `Afgelopen`, and `Mijn deelnames` views. Past events are directly reachable from onboarding/dashboard flows, and event detail links preserve the originating list view. |
 | GDPR compliance — right to erasure | Handled via the contact form; users can request deletion manually |

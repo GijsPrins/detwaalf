@@ -3,12 +3,15 @@ import { computed } from "vue";
 import type { Enums } from "~/types/database.types";
 import type { EventViewModel, EventDistanceViewModel } from "~/mappers/events";
 import { formatEventDistanceLabel } from "~/utils/eventDistances";
+import { getEventRegistrationCta } from "~/utils/eventRegistrationCta";
 import { PARTICIPATION_STATUS_BADGE_CLASS } from "~/constants/participation";
 
 const { t } = useI18n();
 
 const props = defineProps<{
   event: EventViewModel;
+  preferParticipation?: boolean;
+  returnTo?: "upcoming" | "past" | "participations";
 }>();
 
 const statusBadgeClass = PARTICIPATION_STATUS_BADGE_CLASS;
@@ -25,47 +28,38 @@ function renderDistance(distance: EventDistanceViewModel) {
   return formatEventDistanceLabel(distance, t);
 }
 
-const requiresAction = computed(() => {
-  if (props.event.participationStatus && props.event.participationStatus !== "interested") {
-    return false;
-  }
-  
-  if (!props.event.registrationOpens) return false;
-  
-  const now = new Date();
-  const opens = new Date(props.event.registrationOpens);
-  
-  if (opens > now) return false;
-  
-  if (props.event.registrationDeadline) {
-    const deadline = new Date(props.event.registrationDeadline);
-    if (deadline < now) return false;
-  }
-  
-  return true;
-});
+const registrationCta = computed(() => getEventRegistrationCta(props.event));
+
+const requiresAction = computed(() => registrationCta.value.type === "open");
 
 const futureRegistrationDate = computed(() => {
-  if (props.event.participationStatus && props.event.participationStatus !== "interested") {
-    return null;
+  if (registrationCta.value.type !== "future") return null;
+
+  return new Date(registrationCta.value.opensOn).toLocaleDateString("nl-NL", {
+    day: "numeric",
+    month: "short",
+  });
+});
+
+const eventTarget = computed(() => {
+  const query = new URLSearchParams();
+
+  if (props.preferParticipation) {
+    query.set("tab", "participation");
   }
 
-  if (!props.event.registrationOpens) return null;
-  
-  const now = new Date();
-  const opens = new Date(props.event.registrationOpens);
-  
-  if (opens > now) {
-    return opens.toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
+  if (props.returnTo) {
+    query.set("from", props.returnTo);
   }
-  
-  return null;
+
+  const queryString = query.toString();
+  return `/events/${props.event.id}${queryString ? `?${queryString}` : ""}`;
 });
 </script>
 
 <template>
   <NuxtLink
-    :to="`/events/${event.id}`"
+    :to="eventTarget"
     class="group bg-white rounded-xl border border-gray-100 p-4 hover:border-orange-300 hover:shadow-sm transition-all duration-200 flex items-center md:items-stretch gap-5"
   >
     <!-- Calendar Left Anchor -->
