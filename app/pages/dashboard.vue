@@ -7,6 +7,7 @@ import {
   DISTANCE_BADGE_CLASS,
 } from "~/constants/distances";
 import { PROVINCE_COUNT } from "~/constants/provinces";
+import { getLocalDateString } from "~/utils/localDate";
 import type {
   CompleteModalEvent,
   CompleteModalResult,
@@ -23,7 +24,7 @@ const selectedProvinceId = ref<number | null>(null);
 const { data: events } = useEventList();
 const { data: participations } = useParticipations();
 
-const today = new Date().toISOString().slice(0, 10);
+const today = getLocalDateString();
 
 const eventMap = computed(() => {
   const map = new Map<string, NonNullable<typeof events.value>[number]>();

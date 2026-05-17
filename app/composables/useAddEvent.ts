@@ -1,10 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import type { Database, TablesInsert } from "~/types/database.types";
-import {
-  insertEvent,
-  insertParticipation,
-  replaceEventDistances,
-} from "~/queries/events";
+import { createEventWithDistances } from "~/queries/events";
 import type { EventDistanceInput } from "~/types/events";
 
 type EventInput = Omit<TablesInsert<"events">, "created_by"> & {
@@ -24,24 +20,11 @@ export function useAddEvent() {
         throw new Error("User must be authenticated to add an event.");
       }
 
-      const { distances, ...eventData } = input;
-      const event = await insertEvent(supabase, {
-        ...eventData,
-        created_by: user.id,
-      });
-
-      await replaceEventDistances(supabase, event.id, distances);
-
-      await insertParticipation(supabase, {
-        event_id: event.id,
-        user_id: user.id,
-        status: "interested",
-      });
-
-      return event;
+      return createEventWithDistances(supabase, input);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
       navigateTo("/events");
     },
   });

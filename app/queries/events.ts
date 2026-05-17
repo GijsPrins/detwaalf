@@ -1,5 +1,6 @@
 import type {
   Database,
+  Json,
   Tables,
   TablesInsert,
   TablesUpdate,
@@ -32,6 +33,32 @@ export type UserParticipationRow = ParticipationRow & {
     "distance" | "distance_category"
   > | null;
 };
+
+type EventDistanceRpcInput = {
+  distance: EventDistanceInput["distance"];
+  distanceCategory: EventDistanceInput["distanceCategory"];
+};
+
+type EventWriteInput = Pick<
+  TablesInsert<"events">,
+  | "name"
+  | "event_date"
+  | "province_id"
+  | "location"
+  | "event_url"
+  | "registration_url"
+  | "registration_opens"
+  | "registration_deadline"
+> & {
+  distances: EventDistanceInput[];
+};
+
+function toEventDistancesJson(distances: EventDistanceInput[]): Json {
+  return distances.map<EventDistanceRpcInput>((distance) => ({
+    distance: distance.distance,
+    distanceCategory: distance.distanceCategory,
+  })) as Json;
+}
 
 export async function fetchEvents(supabase: Client): Promise<EventRow[]> {
   const { data, error } = await supabase
@@ -113,6 +140,58 @@ export async function replaceEventDistances(
     .insert(rows);
 
   if (insError) throw insError;
+}
+
+export async function createEventWithDistances(
+  supabase: Client,
+  event: EventWriteInput,
+): Promise<string> {
+  const { distances, ...eventData } = event;
+  const { data, error } = await supabase.rpc(
+    "create_event_with_distances" as unknown as keyof Database["public"]["Functions"],
+    {
+      p_name: eventData.name,
+      p_event_date: eventData.event_date,
+      p_province_id: eventData.province_id,
+      p_location: eventData.location ?? null,
+      p_event_url: eventData.event_url ?? null,
+      p_registration_url: eventData.registration_url ?? null,
+      p_registration_opens: eventData.registration_opens ?? null,
+      p_registration_deadline: eventData.registration_deadline ?? null,
+      p_distances: toEventDistancesJson(distances),
+    } as never,
+  );
+
+  if (error) throw error;
+  if (!data) throw new Error("create_event_with_distances returned no id");
+  return data as string;
+}
+
+export async function updateEventWithDistances(
+  supabase: Client,
+  id: string,
+  event: EventWriteInput,
+): Promise<string> {
+  const { distances, ...eventData } = event;
+  const { data, error } = await supabase.rpc(
+    "update_event_with_distances" as unknown as keyof Database["public"]["Functions"],
+    {
+      p_id: id,
+      p_name: eventData.name,
+      p_event_date: eventData.event_date,
+      p_province_id: eventData.province_id,
+      p_location: eventData.location ?? null,
+      p_event_url: eventData.event_url ?? null,
+      p_registration_url: eventData.registration_url ?? null,
+      p_registration_opens: eventData.registration_opens ?? null,
+      p_registration_deadline: eventData.registration_deadline ?? null,
+      p_distances: toEventDistancesJson(distances),
+    } as never,
+  );
+
+  if (error) throw error;
+  if (!data) throw new Error("update_event_with_distances returned no id");
+  return data as string;
 }
 
 export type DetailParticipationRow = ParticipationRow & {

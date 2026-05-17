@@ -4,16 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import {
   deleteEvent,
   deleteParticipation,
+  createEventWithDistances,
   fetchEvent,
   fetchEventParticipation,
   fetchEvents,
   fetchProvinces,
   fetchUserParticipations,
-  insertEvent,
-  insertParticipation,
-  replaceEventDistances,
   saveParticipation,
-  updateEvent,
+  updateEventWithDistances,
 } from "~/queries/events";
 import {
   deleteSlugWord,
@@ -76,10 +74,12 @@ vi.mock("~/queries/events", () => ({
   saveParticipation: vi.fn(),
   deleteParticipation: vi.fn(),
   deleteEvent: vi.fn(),
+  createEventWithDistances: vi.fn(),
   insertEvent: vi.fn(),
   replaceEventDistances: vi.fn(),
   insertParticipation: vi.fn(),
   updateEvent: vi.fn(),
+  updateEventWithDistances: vi.fn(),
 }));
 
 vi.mock("~/queries/slugWords", () => ({
@@ -323,47 +323,59 @@ describe("composables", () => {
   });
 
   it("useAddEvent creates event, distances and default participation", async () => {
-    vi.mocked(insertEvent).mockResolvedValue({ id: "ev-5" } as never);
-    vi.mocked(replaceEventDistances).mockResolvedValue(undefined as never);
-    vi.mocked(insertParticipation).mockResolvedValue({ id: "p-5" } as never);
+    vi.mocked(createEventWithDistances).mockResolvedValue("ev-5" as never);
 
     const mutation = useAddEvent();
-    await (mutation.mutationFn as (payload: unknown) => Promise<unknown>)({
+    const payload = {
       name: "Test Event",
       province_id: 1,
       event_date: "2026-05-07",
       distances: [{ distance: "10k", distanceCategory: "10k" }],
-    });
+    };
+
+    await (mutation.mutationFn as (payload: unknown) => Promise<unknown>)(
+      payload,
+    );
 
     (mutation.onSuccess as () => void)();
 
-    expect(insertEvent).toHaveBeenCalled();
-    expect(replaceEventDistances).toHaveBeenCalledWith(supabase, "ev-5", [
-      { distance: "10k", distanceCategory: "10k" },
-    ]);
-    expect(insertParticipation).toHaveBeenCalledWith(supabase, {
-      event_id: "ev-5",
-      user_id: "user-1",
-      status: "interested",
+    expect(createEventWithDistances).toHaveBeenCalledWith(supabase, payload);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["events"],
+    });
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["eventParticipations"],
     });
     expect(globalThis.navigateTo).toHaveBeenCalledWith("/events");
   });
 
   it("useUpdateEvent updates event and distances then navigates to detail", async () => {
-    vi.mocked(updateEvent).mockResolvedValue({ id: "ev-6" } as never);
-    vi.mocked(replaceEventDistances).mockResolvedValue(undefined as never);
+    vi.mocked(updateEventWithDistances).mockResolvedValue("ev-6" as never);
 
     const mutation = useUpdateEvent(ref("ev-6"));
 
-    await (mutation.mutationFn as (payload: unknown) => Promise<unknown>)({
+    const payload = {
       name: "Updated Event",
+      province_id: 1,
+      event_date: "2026-05-07",
+      location: null,
+      event_url: null,
+      registration_url: null,
+      registration_opens: null,
+      registration_deadline: null,
       distances: [{ distance: "half_marathon", distanceCategory: "half" }],
-    });
+    };
+
+    await (mutation.mutationFn as (payload: unknown) => Promise<unknown>)(
+      payload,
+    );
     (mutation.onSuccess as () => void)();
 
-    expect(updateEvent).toHaveBeenCalledWith(supabase, "ev-6", {
-      name: "Updated Event",
-    });
+    expect(updateEventWithDistances).toHaveBeenCalledWith(
+      supabase,
+      "ev-6",
+      payload,
+    );
     expect(globalThis.navigateTo).toHaveBeenCalledWith("/events/ev-6");
   });
 

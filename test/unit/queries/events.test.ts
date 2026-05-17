@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  createEventWithDistances,
   deleteEvent,
   deleteParticipation,
   fetchEvent,
@@ -12,6 +13,7 @@ import {
   replaceEventDistances,
   saveParticipation,
   updateEvent,
+  updateEventWithDistances,
 } from "~/queries/events";
 
 describe("events queries", () => {
@@ -109,6 +111,69 @@ describe("events queries", () => {
 
     await replaceEventDistances(supabase, "ev-1", []);
     expect(insert).not.toHaveBeenCalled();
+  });
+
+  it("createEventWithDistances calls the atomic create RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: "ev-rpc", error: null });
+    const supabase = { rpc } as never;
+
+    await expect(
+      createEventWithDistances(supabase, {
+        name: "Run",
+        event_date: "2026-05-07",
+        province_id: 1,
+        location: null,
+        event_url: null,
+        registration_url: null,
+        registration_opens: null,
+        registration_deadline: null,
+        distances: [{ distance: "10k", distanceCategory: "10k" }],
+      }),
+    ).resolves.toBe("ev-rpc");
+
+    expect(rpc).toHaveBeenCalledWith("create_event_with_distances", {
+      p_name: "Run",
+      p_event_date: "2026-05-07",
+      p_province_id: 1,
+      p_location: null,
+      p_event_url: null,
+      p_registration_url: null,
+      p_registration_opens: null,
+      p_registration_deadline: null,
+      p_distances: [{ distance: "10k", distanceCategory: "10k" }],
+    });
+  });
+
+  it("updateEventWithDistances calls the atomic update RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: "ev-rpc", error: null });
+    const supabase = { rpc } as never;
+
+    await expect(
+      updateEventWithDistances(supabase, "ev-1", {
+        name: "Run",
+        event_date: "2026-05-07",
+        province_id: 1,
+        location: null,
+        event_url: null,
+        registration_url: null,
+        registration_opens: null,
+        registration_deadline: null,
+        distances: [{ distance: "marathon", distanceCategory: "marathon" }],
+      }),
+    ).resolves.toBe("ev-rpc");
+
+    expect(rpc).toHaveBeenCalledWith("update_event_with_distances", {
+      p_id: "ev-1",
+      p_name: "Run",
+      p_event_date: "2026-05-07",
+      p_province_id: 1,
+      p_location: null,
+      p_event_url: null,
+      p_registration_url: null,
+      p_registration_opens: null,
+      p_registration_deadline: null,
+      p_distances: [{ distance: "marathon", distanceCategory: "marathon" }],
+    });
   });
 
   it("fetchEventParticipation filters by event and user and may return null", async () => {
