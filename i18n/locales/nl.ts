@@ -122,10 +122,12 @@ export default {
       goldDesc: "Marathon (42,2 km of meer)",
     },
     cta: "Ga de uitdaging aan",
+    ctaLoggedIn: "Vind je eerste evenement",
     back: "Terug naar home",
   },
   dashboard: {
     subtitle: "Voortgang per medailletrack",
+    loading: "Je dashboard wordt geladen...",
     provincesLabel: "Provincies",
     filters: {
       all: "Alle",
@@ -142,6 +144,46 @@ export default {
     noUpcoming: "Geen aankomende evenementen.",
     noMedalForProvince: "Nog niet gelopen",
     selectProvinceHint: "Klik op een provincie voor details",
+    firstRun: {
+      eyebrow: "Account aangemaakt",
+      title: "Je bent klaar voor de 12 Provincies challenge",
+      description:
+        "Mooi, je bent binnen. De volgende stap is je eerste deelname toevoegen, zodat dit dashboard je persoonlijke provinciekaart wordt.",
+      nextStep: "Volgende stap",
+      findEvent: "Vind je eerste evenement",
+      howItWorks: "Hoe werkt het?",
+      chooseDistance: "Kies je afstand",
+      viewParticipation: "Bekijk je deelname",
+      collapse: "Inklappen",
+      expand: "Uitklappen",
+      steps: {
+        account: {
+          title: "Maak je account aan",
+          description:
+            "Gelukt. Je profiel staat klaar en je voortgang wordt hier opgeslagen.",
+        },
+        explore: {
+          title: "Ontdek evenementen",
+          description:
+            "Zoek een aankomende loop die past bij waar en wanneer je wilt lopen.",
+        },
+        participation: {
+          title: "Voeg je eerste deelname toe",
+          description:
+            "Geef op de evenementpagina aan of je geinteresseerd of ingeschreven bent.",
+        },
+        distance: {
+          title: "Kies je afstand",
+          description:
+            "Je afstand bepaalt voor welke medailletrack de provincie meetelt.",
+        },
+        complete: {
+          title: "Voltooi je eerste provincie",
+          description:
+            "Vul na de wedstrijd je resultaat in en zie je dashboard tot leven komen.",
+        },
+      },
+    },
     completePrompt: {
       heading: "Heb je dit gelopen?",
       cta: "Resultaat invullen",

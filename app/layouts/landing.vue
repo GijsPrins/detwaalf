@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import NavigationBackButton from "~/components/navigation/BackButton.vue";
+
 const route = useRoute();
 const { t } = useI18n();
 const user = useSupabaseUser();
@@ -25,12 +27,15 @@ async function logout() {
     <nav
       class="border-b border-gray-100 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-50"
     >
-      <NuxtLink
-        :to="user ? '/dashboard' : '/'"
-        class="text-sm font-semibold text-gray-900 transition-colors hover:text-orange-600"
-      >
-        {{ t("nav.brand") }}
-      </NuxtLink>
+      <div class="flex items-center gap-2">
+        <NavigationBackButton />
+        <NuxtLink
+          :to="user ? '/dashboard' : '/'"
+          class="text-sm font-semibold text-gray-900 transition-colors hover:text-orange-600"
+        >
+          {{ t("nav.brand") }}
+        </NuxtLink>
+      </div>
 
       <!-- Desktop nav -->
       <div class="hidden sm:flex items-center gap-6">

@@ -2,6 +2,13 @@
 definePageMeta({ auth: false, layout: "landing" });
 
 const { t } = useI18n();
+const user = useSupabaseUser();
+
+const ctaTarget = computed(() => (user.value ? "/events" : "/register"));
+const ctaLabel = computed(() =>
+  user.value ? t("onboarding.ctaLoggedIn") : t("onboarding.cta"),
+);
+
 useHead(() => ({ title: t("page.onboarding") }));
 </script>
 
@@ -161,10 +168,10 @@ useHead(() => ({ title: t("page.onboarding") }));
       <!-- CTA -->
       <div class="mt-20 lg:pl-20 animate-fade-in-up delay-500">
         <NuxtLink
-          to="/register"
+          :to="ctaTarget"
           class="inline-flex items-center justify-center rounded-lg bg-orange-600 px-8 py-3.5 text-base font-medium text-white hover:bg-orange-700 transition-colors shadow-sm cursor-pointer w-full sm:w-auto"
         >
-          {{ t("onboarding.cta") }}
+          {{ ctaLabel }}
           <svg
             class="ml-2 w-4 h-4"
             transform="translate(0, 1)"
