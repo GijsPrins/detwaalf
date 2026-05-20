@@ -369,7 +369,7 @@ export default {
       distanceOption: "Afstand",
       countsTowards: "Telt voor",
       location: "Locatie (startplaats)",
-      locationPlaceholder: "bijv. Tilburg, Centrum",
+      locationPlaceholder: "bijv. Tilburg",
       province: "Provincie",
       provincePlaceholder: "Kies provincie",
       eventUrl: "Website evenement",
@@ -383,7 +383,16 @@ export default {
     hint: "Na het opslaan kun je zelf kiezen of je dit evenement toevoegt aan je deelnames.",
     provinceAutoFilled: "Provincie automatisch ingevuld op basis van locatie.",
     submit: "Opslaan",
+    submitAnyway: "Toch als nieuw evenement opslaan",
     cancel: "Annuleren",
+    duplicate: {
+      title: "Dit evenement lijkt al te bestaan",
+      description:
+        "Gebruik het bestaande evenement om dubbele vermeldingen te voorkomen. Je kunt daar meteen je deelname invullen.",
+      participation: "Mijn deelname invullen",
+      edit: "Evenement aanvullen",
+      otherMatches: "Andere mogelijke matches",
+    },
     errors: {
       generic: "Er is iets misgegaan. Probeer het opnieuw.",
       duplicateDistances: "Elke afstand mag maar één keer voorkomen.",

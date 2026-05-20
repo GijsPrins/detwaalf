@@ -4,6 +4,8 @@ import {
   hasDuplicateEventDistances,
   normalizeEventDistanceInputs,
 } from "~/utils/eventDistances";
+import { findPotentialDuplicateEvents } from "~/utils/eventDuplicates";
+import { formatEventDate } from "~/mappers/events";
 
 definePageMeta({ layout: "default" });
 
@@ -11,6 +13,8 @@ const { t } = useI18n();
 useHead(() => ({ title: t("eventForm.titleAdd") }));
 
 const { data: provinces } = useProvinces();
+const { data: events } = useEventList();
+const { data: canEditEvents } = useCanManageEvents();
 const { mutate, isPending, isError } = useAddEvent();
 
 const form = reactive({
@@ -33,6 +37,20 @@ const normalizedDistances = computed(() =>
 const hasDuplicateDistances = computed(() =>
   hasDuplicateEventDistances(form.distances),
 );
+const duplicateMatches = computed(() =>
+  findPotentialDuplicateEvents(
+    {
+      name: form.name,
+      eventDate: form.eventDate,
+      provinceId: form.provinceId,
+      eventUrl: form.eventUrl,
+      location: form.location,
+    },
+    events.value ?? [],
+  ),
+);
+const likelyDuplicate = computed(() => duplicateMatches.value[0] ?? null);
+const hasPotentialDuplicate = computed(() => duplicateMatches.value.length > 0);
 
 const canSubmit = computed(
   () =>
@@ -131,14 +149,6 @@ function submit() {
         />
       </div>
 
-      <!-- Afstanden -->
-      <div class="flex flex-col gap-2">
-        <EventDistanceFields v-model="form.distances" :disabled="isPending" />
-        <p v-if="hasDuplicateDistances" class="text-xs text-red-600">
-          {{ t("eventForm.errors.duplicateDistances") }}
-        </p>
-      </div>
-
       <!-- Locatie -->
       <div class="flex flex-col gap-1.5">
         <label for="location" class="text-sm font-medium text-gray-700">
@@ -182,6 +192,80 @@ function submit() {
         </select>
         <p v-if="provinceAutoFilled" class="text-xs text-orange-600">
           {{ t("eventForm.provinceAutoFilled") }}
+        </p>
+      </div>
+
+      <div
+        v-if="likelyDuplicate"
+        class="rounded-xl border border-orange-200 bg-orange-50 p-4"
+      >
+        <p class="text-sm font-semibold text-orange-900">
+          {{ t("eventForm.duplicate.title") }}
+        </p>
+        <p class="mt-1 text-sm text-orange-800">
+          {{ t("eventForm.duplicate.description") }}
+        </p>
+
+        <div class="mt-4 rounded-lg border border-orange-100 bg-white p-3">
+          <div
+            class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
+          >
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-gray-900">
+                {{ likelyDuplicate.event.name }}
+              </p>
+              <p class="mt-1 text-xs text-gray-500">
+                {{ formatEventDate(likelyDuplicate.event.event_date) }}
+                <template v-if="likelyDuplicate.event.province?.name">
+                  &middot; {{ likelyDuplicate.event.province.name }}
+                </template>
+                <template v-if="likelyDuplicate.event.location">
+                  &middot; {{ likelyDuplicate.event.location }}
+                </template>
+              </p>
+            </div>
+
+            <div class="flex shrink-0 flex-wrap gap-2">
+              <NuxtLink
+                :to="`/events/${likelyDuplicate.event.id}?tab=participation`"
+                class="inline-flex items-center justify-center rounded-lg bg-orange-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-orange-700"
+              >
+                {{ t("eventForm.duplicate.participation") }}
+              </NuxtLink>
+              <NuxtLink
+                v-if="canEditEvents"
+                :to="`/events/${likelyDuplicate.event.id}/edit`"
+                class="inline-flex items-center justify-center rounded-lg border border-orange-200 bg-white px-3 py-2 text-xs font-medium text-orange-700 transition-colors hover:bg-orange-100"
+              >
+                {{ t("eventForm.duplicate.edit") }}
+              </NuxtLink>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="duplicateMatches.length > 1" class="mt-3">
+          <p class="text-xs font-medium text-orange-900">
+            {{ t("eventForm.duplicate.otherMatches") }}
+          </p>
+          <div class="mt-2 flex flex-col gap-1">
+            <NuxtLink
+              v-for="match in duplicateMatches.slice(1)"
+              :key="match.event.id"
+              :to="`/events/${match.event.id}`"
+              class="text-xs text-orange-700 transition-colors hover:text-orange-900"
+            >
+              {{ match.event.name }} &middot;
+              {{ formatEventDate(match.event.event_date) }}
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+
+      <!-- Afstanden -->
+      <div class="flex flex-col gap-2">
+        <EventDistanceFields v-model="form.distances" :disabled="isPending" />
+        <p v-if="hasDuplicateDistances" class="text-xs text-red-600">
+          {{ t("eventForm.errors.duplicateDistances") }}
         </p>
       </div>
 
@@ -262,6 +346,7 @@ function submit() {
       <p class="text-xs text-orange-600">
         {{ t("eventForm.hint") }}
       </p>
+
       <p v-if="isError" class="text-sm text-red-600">
         {{ t("eventForm.errors.generic") }}
       </p>
@@ -273,7 +358,13 @@ function submit() {
           :disabled="!canSubmit"
           class="rounded-lg bg-orange-600 px-5 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {{ isPending ? "…" : t("eventForm.submit") }}
+          {{
+            isPending
+              ? "…"
+              : hasPotentialDuplicate
+                ? t("eventForm.submitAnyway")
+                : t("eventForm.submit")
+          }}
         </button>
         <NuxtLink
           to="/events"
