@@ -19,7 +19,7 @@ test.describe("Event participation flow", () => {
     await page.getByRole("button", { name: "Mijn deelname" }).click();
 
     // Clear any existing status first so the test starts clean
-    const clearButton = page.getByRole("button", { name: "Geen status" });
+    const clearButton = page.getByRole("button", { name: "Niet deelnemen" });
     if (await clearButton.isVisible()) {
       await clearButton.click();
     }
@@ -57,7 +57,7 @@ test.describe("Event participation flow", () => {
     await expect(page.getByText("Geïnteresseerd").first()).toBeVisible();
 
     // Then clear it
-    await page.getByRole("button", { name: "Geen status" }).click();
+    await page.getByRole("button", { name: "Niet deelnemen" }).click();
 
     await expect(
       page.locator(".bg-orange-100.text-orange-700"),

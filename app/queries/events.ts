@@ -277,6 +277,9 @@ export async function saveParticipation(
       event_id: participation.event_id,
       status: participation.status,
       event_distance_id: participation.event_distance_id ?? null,
+      finish_time_seconds: participation.finish_time_seconds ?? null,
+      timing_url: participation.timing_url ?? null,
+      notes: participation.notes ?? null,
     })
     .select()
     .single();

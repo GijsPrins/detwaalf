@@ -283,6 +283,9 @@ describe("events queries", () => {
       event_id: "ev-2",
       status: "signed_up",
       event_distance_id: null,
+      finish_time_seconds: null,
+      timing_url: null,
+      notes: null,
     });
   });
 

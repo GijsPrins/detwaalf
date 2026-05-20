@@ -346,13 +346,42 @@ export default {
       summary: "Je bent {status}.",
       summaryWithDistance: "Je bent {status} voor {distance}.",
       forDistance: "Voor afstand: {distance}",
-      clear: "Geen status",
+      clear: "Niet deelnemen",
       loginLink: "Log in",
       loginSuffix: "om je status bij te houden.",
       finishTime: "Eindtijd",
       timingUrl: "Uitslag",
       timingUrlLink: "Bekijk uitslag →",
       notes: "Notitie",
+      card: {
+        title: "Mijn deelname",
+        badgeFuture: "Nog niet toegevoegd",
+        badgePast: "Afgelopen",
+        futureTitle: "Wil je dit evenement op je planning zetten?",
+        futureDescription:
+          "Kies je afstand en geef aan of je interesse hebt of al bent ingeschreven.",
+        pastTitle: "Heb je dit evenement gelopen?",
+        pastDescription:
+          "Kies je afstand en leg meteen vast hoe het is gegaan.",
+        readyTitle: "Je deelname staat klaar",
+        readyDescription:
+          "Na de wedstrijd kun je hier je resultaat invullen.",
+        readyDescriptionWithMedal:
+          "Na de wedstrijd kun je hier je resultaat invullen. Je afstand telt mee voor {medal}.",
+        medalTitle: "{medal} voor {province}",
+        medalDescription:
+          "Deze provincie telt nu mee voor je {medal}-medaille.",
+        distanceTitle: "Afstand",
+        countsFor: "Telt voor {medal}",
+        planningTitle: "Planning",
+        resultActionsTitle: "Na afloop",
+        finishedHint: "Log je finishtijd en uitslaglink.",
+        dnsHint: "Niet gestart, eventueel met korte notitie.",
+        dnfHint: "Gestart, maar niet gefinisht.",
+        savedResultTitle: "Opgeslagen resultaat",
+        editResult: "Wijzigen",
+        manageTitle: "Deelname beheren",
+      },
     },
   },
   eventForm: {

@@ -7,6 +7,7 @@ import {
   getDistanceCategoryLabel,
   getEventDistanceLabel,
 } from "~/utils/eventDistances";
+import { getLocalDateString } from "~/utils/localDate";
 import type {
   CompleteModalEvent,
   CompleteModalResult,
@@ -40,6 +41,7 @@ const { mutate: deleteEvent, isPending: isDeleting } = useDeleteEvent(eventId);
 const confirmingDelete = ref(false);
 const modalEvent = ref<CompleteModalEvent | null>(null);
 const modalInitialOutcome = ref<CompleteModalResult["status"] | null>(null);
+const today = getLocalDateString();
 
 useHead(() => ({ title: event.value?.name ?? t("events.title") }));
 
@@ -66,15 +68,6 @@ watch(
       route.query.tab === "participation" ? "participation" : "event";
   },
 );
-
-const statusOptions: { value: Enums<"participation_status">; label: string }[] =
-  [
-    { value: "interested", label: t("events.status.interested") },
-    { value: "signed_up", label: t("events.status.signed_up") },
-    { value: "completed", label: t("events.status.completed") },
-    { value: "dns", label: t("events.status.dns") },
-    { value: "dnf", label: t("events.status.dnf") },
-  ];
 
 const statusNeedsDistance: Enums<"participation_status">[] = [
   "interested",
@@ -142,6 +135,21 @@ const currentParticipationBadgeClass = computed(() => {
   return PARTICIPATION_STATUS_BADGE_CLASS[currentParticipationStatus.value];
 });
 
+const eventHasPassed = computed(() =>
+  event.value ? event.value.eventDate <= today : false,
+);
+
+const hasResultStatus = computed(
+  () =>
+    currentParticipationStatus.value === "completed" ||
+    currentParticipationStatus.value === "dns" ||
+    currentParticipationStatus.value === "dnf",
+);
+
+const shouldShowResultActions = computed(
+  () => eventHasPassed.value || hasResultStatus.value,
+);
+
 const hasDetails = computed(
   () =>
     !!(
@@ -185,56 +193,159 @@ const participationDistanceOptions = computed(() =>
   })),
 );
 
-const selectedParticipationDistanceLabel = computed(() => {
-  if (!currentParticipationDistanceId.value || !event.value) return null;
-  const match = event.value.distances.find(
-    (distance) => distance.id === currentParticipationDistanceId.value,
+const activeParticipationDistanceId = computed(
+  () => selectedParticipationDistanceId.value ?? currentParticipationDistanceId.value,
+);
+
+const activeParticipationDistance = computed(() => {
+  if (!activeParticipationDistanceId.value || !event.value) return null;
+  return (
+    event.value.distances.find(
+      (distance) => distance.id === activeParticipationDistanceId.value,
+    ) ?? null
   );
-  return match ? getDistanceLabel(match) : null;
 });
 
-const currentParticipationSummary = computed(() => {
-  if (!currentParticipationStatus.value) return null;
+const activeParticipationMedal = computed(() =>
+  activeParticipationDistance.value
+    ? getDistanceCategoryText(activeParticipationDistance.value)
+    : null,
+);
 
-  if (
-    selectedParticipationDistanceLabel.value &&
-    statusNeedsDistance.includes(currentParticipationStatus.value)
-  ) {
-    return t("eventDetail.participation.summaryWithDistance", {
-      status: t(
-        `events.status.${currentParticipationStatus.value}`,
-      ).toLowerCase(),
-      distance: selectedParticipationDistanceLabel.value,
-    });
+const participationCardBadge = computed(() => {
+  if (currentParticipationStatus.value) {
+    return t(`events.status.${currentParticipationStatus.value}`);
+  }
+  return eventHasPassed.value
+    ? t("eventDetail.participation.card.badgePast")
+    : t("eventDetail.participation.card.badgeFuture");
+});
+
+const participationTone = computed(() => {
+  switch (currentParticipationStatus.value) {
+    case "interested":
+      return {
+        activePanel: "border-orange-300 bg-orange-50",
+        activeText: "text-orange-700",
+        heroPanel: "border-orange-100 bg-orange-50",
+        heroTitle: "text-orange-950",
+        heroDescription: "text-orange-800",
+      };
+    case "signed_up":
+      return {
+        activePanel: "border-blue-300 bg-blue-50",
+        activeText: "text-blue-700",
+        heroPanel: "border-blue-100 bg-blue-50",
+        heroTitle: "text-blue-950",
+        heroDescription: "text-blue-800",
+      };
+    case "completed":
+      return {
+        activePanel: "border-green-200 bg-green-50",
+        activeText: "text-green-700",
+        heroPanel: "border-green-100 bg-green-50",
+        heroTitle: "text-green-950",
+        heroDescription: "text-green-800",
+      };
+    case "dns":
+    case "dnf":
+      return {
+        activePanel: "border-gray-300 bg-gray-50",
+        activeText: "text-gray-700",
+        heroPanel: "border-gray-100 bg-gray-50",
+        heroTitle: "text-gray-900",
+        heroDescription: "text-gray-600",
+      };
+    default:
+      return {
+        activePanel: "border-blue-200 bg-blue-50",
+        activeText: "text-blue-700",
+        heroPanel: "border-orange-100 bg-orange-50",
+        heroTitle: "text-orange-950",
+        heroDescription: "text-orange-800",
+      };
+  }
+});
+
+const participationHero = computed(() => {
+  if (hasResultStatus.value) {
+    return null;
   }
 
-  return t("eventDetail.participation.summary", {
-    status: t(
-      `events.status.${currentParticipationStatus.value}`,
-    ).toLowerCase(),
-  });
+  if (currentParticipationStatus.value) {
+    return {
+      title: t("eventDetail.participation.card.readyTitle"),
+      description: activeParticipationMedal.value
+        ? t("eventDetail.participation.card.readyDescriptionWithMedal", {
+            medal: activeParticipationMedal.value.toLowerCase(),
+          })
+        : t("eventDetail.participation.card.readyDescription"),
+    };
+  }
+
+  return {
+    title: eventHasPassed.value
+      ? t("eventDetail.participation.card.pastTitle")
+      : t("eventDetail.participation.card.futureTitle"),
+    description: eventHasPassed.value
+      ? t("eventDetail.participation.card.pastDescription")
+      : t("eventDetail.participation.card.futureDescription"),
+  };
+});
+
+const completedMedalHero = computed(() => {
+  if (
+    currentParticipationStatus.value !== "completed" ||
+    !activeParticipationMedal.value ||
+    !activeParticipationDistance.value ||
+    !event.value
+  ) {
+    return null;
+  }
+
+  const tone = {
+    "10k": {
+      panel: "border-orange-200 bg-orange-50",
+      icon: "border-orange-200 bg-white text-orange-700",
+      text: "text-orange-950",
+      description: "text-orange-800",
+    },
+    half: {
+      panel: "border-gray-200 bg-gray-50",
+      icon: "border-gray-200 bg-white text-gray-500",
+      text: "text-gray-900",
+      description: "text-gray-600",
+    },
+    marathon: {
+      panel: "border-yellow-200 bg-yellow-50",
+      icon: "border-yellow-200 bg-white text-yellow-600",
+      text: "text-yellow-950",
+      description: "text-yellow-800",
+    },
+  }[activeParticipationDistance.value.distanceCategory];
+
+  return {
+    medal: activeParticipationMedal.value,
+    province: event.value.provinceName,
+    panelClass: tone.panel,
+    iconClass: tone.icon,
+    textClass: tone.text,
+    descriptionClass: tone.description,
+    title: t("eventDetail.participation.card.medalTitle", {
+      medal: activeParticipationMedal.value,
+      province: event.value.provinceName,
+    }),
+    description: t("eventDetail.participation.card.medalDescription", {
+      medal: activeParticipationMedal.value.toLowerCase(),
+    }),
+  };
 });
 
 const shouldAskParticipationDistance = computed(
   () => (event.value?.distances.length ?? 0) > 1,
 );
 
-const singleParticipationDistanceLabel = computed(() => {
-  if (shouldAskParticipationDistance.value || !event.value?.distances.length) {
-    return null;
-  }
-
-  return getDistanceLabel(event.value.distances[0]!);
-});
-
-const hasRecordedDetails = computed(() => {
-  const p = participation.value;
-  if (!p) return false;
-  if (p.status === "completed")
-    return p.finish_time_seconds != null || !!p.timing_url;
-  if (p.status === "dns" || p.status === "dnf") return !!p.notes;
-  return false;
-});
+const shouldShowSavedResult = computed(() => hasResultStatus.value);
 
 const participationDistanceError = ref(false);
 
@@ -269,6 +380,22 @@ function validateParticipationDistance(status: Enums<"participation_status">) {
 
   participationDistanceError.value = false;
   return true;
+}
+
+function selectParticipationDistance(id: string) {
+  selectedParticipationDistanceId.value = id;
+  participationDistanceError.value = false;
+
+  if (
+    currentParticipationStatus.value === "interested" ||
+    currentParticipationStatus.value === "signed_up"
+  ) {
+    setParticipationStatus(currentParticipationStatus.value);
+  }
+}
+
+function isParticipationDistanceActive(id: string) {
+  return activeParticipationDistanceId.value === id;
 }
 
 function setParticipationStatus(status: Enums<"participation_status">) {
@@ -474,7 +601,7 @@ const registrationStatus = computed(() => {
           </h1>
           <p class="text-sm text-gray-500 mt-2">
             {{ event.provinceName }}
-            · {{ formatEventDate(event.eventDate) }}
+            - {{ formatEventDate(event.eventDate) }}
           </p>
           <p
             v-if="registrationStatus"
@@ -616,10 +743,6 @@ const registrationStatus = computed(() => {
 
       <!-- Participation -->
       <div v-else class="border-t border-gray-100 pt-8">
-        <p class="text-sm font-semibold text-gray-900 mb-4">
-          {{ t("eventDetail.participation.title") }}
-        </p>
-
         <template v-if="user">
           <div
             v-if="showCreatedHint"
@@ -633,166 +756,341 @@ const registrationStatus = computed(() => {
             </p>
           </div>
 
-          <div class="mb-6 flex flex-wrap items-center gap-3">
-            <span
-              v-if="currentParticipationStatus"
-              class="text-xs font-medium px-2 py-1 rounded-full"
-              :class="currentParticipationBadgeClass"
-            >
-              {{ t(`events.status.${currentParticipationStatus}`) }}
-            </span>
-            <p v-if="currentParticipationSummary" class="text-sm text-gray-700">
-              {{ currentParticipationSummary }}
-            </p>
-            <p
-              v-else-if="participationNeedsMissingDistance"
-              class="text-sm text-orange-700"
-            >
-              {{ t("eventDetail.participation.missingDistance") }}
-            </p>
-            <p v-else class="text-sm text-gray-500">
-              {{ t("eventDetail.participation.empty") }}
-            </p>
-          </div>
-
-          <!-- Recorded result details -->
           <div
-            v-if="hasRecordedDetails"
-            class="flex flex-col gap-3 mb-6 py-4 border-t border-b border-gray-100"
+            class="-mx-4 bg-white px-4 py-5 sm:mx-0 sm:rounded-xl sm:border sm:border-gray-100 sm:p-5 sm:shadow-sm"
           >
-            <div
-              v-if="participation?.finish_time_seconds != null"
-              class="flex flex-col sm:flex-row sm:gap-4"
-            >
+            <div class="mb-5 flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <h2 class="text-xl font-semibold text-gray-900">
+                  {{ t("eventDetail.participation.card.title") }}
+                </h2>
+                <p class="mt-1 text-sm text-gray-500">
+                  {{ event.name }} - {{ formatEventDate(event.eventDate) }}
+                </p>
+              </div>
               <span
-                class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide"
+                class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
+                :class="
+                  currentParticipationStatus
+                    ? currentParticipationBadgeClass
+                    : 'bg-gray-100 text-gray-500'
+                "
               >
-                {{ t("eventDetail.participation.finishTime") }}
-              </span>
-              <span class="text-sm text-gray-700 mt-1 sm:mt-0 font-medium">
-                {{ formatFinishTime(participation.finish_time_seconds) }}
+                {{ participationCardBadge }}
               </span>
             </div>
-            <div
-              v-if="participation?.timing_url"
-              class="flex flex-col sm:flex-row sm:gap-4"
-            >
-              <span
-                class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide"
-              >
-                {{ t("eventDetail.participation.timingUrl") }}
-              </span>
-              <a
-                :href="participation.timing_url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-sm text-orange-600 hover:text-orange-700 transition-colors mt-1 sm:mt-0"
-              >
-                {{ t("eventDetail.participation.timingUrlLink") }}
-              </a>
-            </div>
-            <div
-              v-if="participation?.notes"
-              class="flex flex-col sm:flex-row sm:gap-4"
-            >
-              <span
-                class="text-xs text-gray-400 sm:w-36 shrink-0 pt-0.5 uppercase tracking-wide"
-              >
-                {{ t("eventDetail.participation.notes") }}
-              </span>
-              <span class="text-sm text-gray-700 mt-1 sm:mt-0">{{
-                participation.notes
-              }}</span>
-            </div>
-          </div>
 
-          <div class="flex flex-col gap-5">
-            <div>
-              <p class="text-xs uppercase tracking-wide text-gray-400 mb-2">
-                {{ t("eventDetail.participation.stepDistance") }}
-              </p>
-              <p class="text-[13px] text-gray-500 mb-3">
-                {{
-                  shouldAskParticipationDistance
-                    ? t("eventDetail.participation.setWithDistance")
-                    : t("eventDetail.participation.singleDistanceHint")
-                }}
-              </p>
-
-              <div v-if="shouldAskParticipationDistance" class="max-w-xs">
-                <label
-                  for="participationDistance"
-                  class="text-xs text-gray-500 block mb-1.5"
-                >
-                  {{ t("eventDetail.participation.distanceLabel") }}
-                </label>
-                <select
-                  id="participationDistance"
-                  v-model="selectedParticipationDistanceId"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-                  :disabled="isSettingStatus || isClearingStatus || isCompleting"
-                  @change="participationDistanceError = false"
-                >
-                  <option :value="null">
-                    {{ t("eventDetail.participation.distancePlaceholder") }}
-                  </option>
-                  <option
-                    v-for="option in participationDistanceOptions"
-                    :key="option.id"
-                    :value="option.id"
-                  >
-                    {{ option.label }}
-                  </option>
-                </select>
+            <div
+              v-if="completedMedalHero"
+              class="mb-4 grid grid-cols-[3.25rem_1fr] gap-3 rounded-lg border p-3"
+              :class="completedMedalHero.panelClass"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border-2"
+                :class="completedMedalHero.iconClass"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">
+                  social_leaderboard
+                </span>
+              </div>
+              <div>
+                <p class="text-sm font-semibold" :class="completedMedalHero.textClass">
+                  {{ completedMedalHero.title }}
+                </p>
                 <p
-                  v-if="participationDistanceError"
-                  class="text-xs text-red-600 mt-1.5"
+                  class="mt-1 text-sm"
+                  :class="completedMedalHero.descriptionClass"
                 >
-                  {{ t("eventDetail.participation.distanceRequired") }}
+                  {{ completedMedalHero.description }}
+                </p>
+              </div>
+            </div>
+
+            <div
+              v-if="participationHero"
+              class="mb-5 rounded-lg border p-4"
+              :class="participationTone.heroPanel"
+            >
+              <p class="text-sm font-semibold" :class="participationTone.heroTitle">
+                {{ participationHero.title }}
+              </p>
+              <p class="mt-1 text-sm" :class="participationTone.heroDescription">
+                {{ participationHero.description }}
+              </p>
+            </div>
+
+            <div class="border-t border-gray-100 pt-5">
+              <div class="mb-3">
+                <p class="text-sm font-semibold text-gray-900">
+                  {{ t("eventDetail.participation.card.distanceTitle") }}
+                </p>
+              </div>
+
+              <div v-if="shouldAskParticipationDistance" class="grid gap-2">
+                <button
+                  v-for="distance in event.distances"
+                  :key="distance.id"
+                  :disabled="isSettingStatus || isClearingStatus || isCompleting"
+                  class="flex items-center justify-between gap-3 rounded-lg border px-3 py-3 text-left transition-colors disabled:opacity-50"
+                  :class="
+                    isParticipationDistanceActive(distance.id)
+                      ? participationTone.activePanel
+                      : 'border-gray-200 bg-white hover:bg-gray-50'
+                  "
+                  @click="selectParticipationDistance(distance.id)"
+                >
+                  <span>
+                    <span
+                      class="block text-sm font-medium"
+                      :class="
+                        isParticipationDistanceActive(distance.id)
+                          ? participationTone.activeText
+                          : 'text-gray-900'
+                      "
+                    >
+                      {{ getDistanceLabel(distance) }}
+                    </span>
+                    <span class="mt-0.5 block text-xs text-gray-500">
+                      {{
+                        t("eventDetail.participation.card.countsFor", {
+                          medal: getDistanceCategoryText(distance).toLowerCase(),
+                        })
+                      }}
+                    </span>
+                  </span>
+                </button>
+              </div>
+
+              <div
+                v-else-if="event.distances[0]"
+                class="rounded-lg border px-3 py-3"
+                :class="participationTone.activePanel"
+              >
+                <p class="text-sm font-medium" :class="participationTone.activeText">
+                  {{ getDistanceLabel(event.distances[0]) }}
+                </p>
+                <p class="mt-0.5 text-xs text-gray-500">
+                  {{
+                    t("eventDetail.participation.card.countsFor", {
+                      medal: getDistanceCategoryText(
+                        event.distances[0],
+                      ).toLowerCase(),
+                    })
+                  }}
                 </p>
               </div>
 
               <p
-                v-else-if="singleParticipationDistanceLabel"
-                class="text-sm text-gray-700"
+                v-if="participationDistanceError"
+                class="mt-2 text-xs text-red-600"
               >
-                {{ singleParticipationDistanceLabel }}
+                {{ t("eventDetail.participation.distanceRequired") }}
               </p>
             </div>
 
-            <div>
-              <p class="text-xs uppercase tracking-wide text-gray-400 mb-2">
-                {{ t("eventDetail.participation.stepStatus") }}
-              </p>
+            <div class="mt-5 border-t border-gray-100 pt-5">
+              <div class="mb-3">
+                <p class="text-sm font-semibold text-gray-900">
+                  {{ t("eventDetail.participation.card.planningTitle") }}
+                </p>
+              </div>
               <div class="flex flex-wrap gap-2">
                 <button
-                  v-for="option in statusOptions"
-                  :key="option.value"
                   :disabled="isSettingStatus || isClearingStatus || isCompleting"
-                  class="px-3.5 py-1.5 border rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  class="rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors disabled:opacity-50"
                   :class="
-                    currentParticipationStatus === option.value
+                    currentParticipationStatus === 'interested'
                       ? 'border-orange-500 bg-orange-50 text-orange-700'
                       : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                   "
-                  @click="setParticipationStatus(option.value)"
+                  @click="setParticipationStatus('interested')"
                 >
-                  {{ option.label }}
+                  {{ t("events.status.interested") }}
                 </button>
                 <button
                   :disabled="isSettingStatus || isClearingStatus || isCompleting"
-                  class="px-3.5 py-1.5 border rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  class="rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors disabled:opacity-50"
                   :class="
-                    currentParticipationStatus === null
-                      ? 'border-gray-500 bg-gray-100 text-gray-700'
+                    currentParticipationStatus === 'signed_up'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                   "
-                  @click="clearParticipationStatus()"
+                  @click="setParticipationStatus('signed_up')"
                 >
-                  {{ t("eventDetail.participation.clear") }}
+                  {{ t("events.status.signed_up") }}
                 </button>
               </div>
             </div>
+
+            <div
+              v-if="shouldShowResultActions"
+              class="mt-5 border-t border-gray-100 pt-5"
+            >
+              <div class="mb-3">
+                <p class="text-sm font-semibold text-gray-900">
+                  {{ t("eventDetail.participation.card.resultActionsTitle") }}
+                </p>
+              </div>
+              <div class="grid gap-2">
+                <button
+                  :disabled="isSettingStatus || isClearingStatus || isCompleting"
+                  class="rounded-lg border px-3 py-3 text-left transition-colors disabled:opacity-50"
+                  :class="
+                    currentParticipationStatus === 'completed'
+                      ? 'border-green-200 bg-green-50'
+                      : 'border-gray-200 bg-white hover:bg-gray-50'
+                  "
+                  @click="setParticipationStatus('completed')"
+                >
+                  <span class="block text-sm font-medium text-gray-900">
+                    {{ t("dashboard.completeModal.finished") }}
+                  </span>
+                  <span class="mt-0.5 block text-xs text-gray-500">
+                    {{ t("eventDetail.participation.card.finishedHint") }}
+                  </span>
+                </button>
+                <button
+                  :disabled="isSettingStatus || isClearingStatus || isCompleting"
+                  class="rounded-lg border px-3 py-3 text-left transition-colors disabled:opacity-50"
+                  :class="
+                    currentParticipationStatus === 'dns'
+                      ? 'border-gray-400 bg-gray-50'
+                      : 'border-gray-200 bg-white hover:bg-gray-50'
+                  "
+                  @click="setParticipationStatus('dns')"
+                >
+                  <span class="block text-sm font-medium text-gray-900">
+                    {{ t("dashboard.completeModal.dns") }}
+                  </span>
+                  <span class="mt-0.5 block text-xs text-gray-500">
+                    {{ t("eventDetail.participation.card.dnsHint") }}
+                  </span>
+                </button>
+                <button
+                  :disabled="isSettingStatus || isClearingStatus || isCompleting"
+                  class="rounded-lg border px-3 py-3 text-left transition-colors disabled:opacity-50"
+                  :class="
+                    currentParticipationStatus === 'dnf'
+                      ? 'border-gray-400 bg-gray-50'
+                      : 'border-gray-200 bg-white hover:bg-gray-50'
+                  "
+                  @click="setParticipationStatus('dnf')"
+                >
+                  <span class="block text-sm font-medium text-gray-900">
+                    {{ t("dashboard.completeModal.dnf") }}
+                  </span>
+                  <span class="mt-0.5 block text-xs text-gray-500">
+                    {{ t("eventDetail.participation.card.dnfHint") }}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <div
+              v-if="shouldShowSavedResult"
+              class="mt-5 border-t border-gray-100 pt-5"
+            >
+              <div class="mb-3 flex items-center justify-between gap-3">
+                <p class="text-sm font-semibold text-gray-900">
+                  {{ t("eventDetail.participation.card.savedResultTitle") }}
+                </p>
+                <button
+                  class="text-xs font-medium text-orange-600 hover:text-orange-700"
+                  @click="
+                    modalInitialOutcome =
+                      currentParticipationStatus === 'completed' ||
+                      currentParticipationStatus === 'dns' ||
+                      currentParticipationStatus === 'dnf'
+                        ? currentParticipationStatus
+                        : null;
+                    modalEvent = buildCompleteModalEvent();
+                  "
+                >
+                  {{ t("eventDetail.participation.card.editResult") }}
+                </button>
+              </div>
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div
+                  v-if="currentParticipationStatus === 'completed'"
+                  class="border-t border-gray-100 py-3 sm:rounded-lg sm:border sm:bg-gray-50 sm:p-3"
+                >
+                  <p class="text-xs font-medium uppercase tracking-wide text-gray-400">
+                    {{ t("eventDetail.participation.finishTime") }}
+                  </p>
+                  <p class="mt-1 text-sm font-medium text-gray-900">
+                    {{
+                      participation?.finish_time_seconds != null
+                        ? formatFinishTime(participation.finish_time_seconds)
+                        : "-"
+                    }}
+                  </p>
+                </div>
+                <div
+                  v-if="currentParticipationStatus === 'completed'"
+                  class="border-t border-gray-100 py-3 sm:rounded-lg sm:border sm:bg-gray-50 sm:p-3"
+                >
+                  <p class="text-xs font-medium uppercase tracking-wide text-gray-400">
+                    {{ t("eventDetail.participation.timingUrl") }}
+                  </p>
+                  <a
+                    v-if="participation?.timing_url"
+                    :href="participation.timing_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="mt-1 block text-sm font-medium text-orange-600 hover:text-orange-700"
+                  >
+                    {{ t("eventDetail.participation.timingUrlLink") }}
+                  </a>
+                  <p v-else class="mt-1 text-sm font-medium text-gray-900">
+                    -
+                  </p>
+                </div>
+                <div
+                  v-if="
+                    currentParticipationStatus === 'dns' ||
+                    currentParticipationStatus === 'dnf'
+                  "
+                  class="border-t border-gray-100 py-3 sm:col-span-2 sm:rounded-lg sm:border sm:bg-gray-50 sm:p-3"
+                >
+                  <p class="text-xs font-medium uppercase tracking-wide text-gray-400">
+                    {{ t("eventDetail.participation.notes") }}
+                  </p>
+                  <p class="mt-1 text-sm text-gray-700">
+                    {{ participation?.notes || "-" }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              v-if="currentParticipationStatus"
+              class="mt-5 border-t border-gray-100 pt-5"
+            >
+              <div class="mb-3">
+                <p class="text-sm font-semibold text-gray-900">
+                  {{ t("eventDetail.participation.card.manageTitle") }}
+                </p>
+              </div>
+              <button
+                :disabled="isSettingStatus || isClearingStatus || isCompleting"
+                class="rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors disabled:opacity-50"
+                :class="
+                  currentParticipationStatus === null
+                    ? 'border-gray-500 bg-gray-100 text-gray-700'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                "
+                @click="clearParticipationStatus()"
+              >
+                {{ t("eventDetail.participation.clear") }}
+              </button>
+            </div>
+
+            <p
+              v-if="participationNeedsMissingDistance"
+              class="mt-4 text-sm text-orange-700"
+            >
+              {{ t("eventDetail.participation.missingDistance") }}
+            </p>
           </div>
         </template>
 

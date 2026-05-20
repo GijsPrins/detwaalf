@@ -45,9 +45,10 @@ async function persistSlug(newSlug: string) {
     .update({ slug: newSlug })
     .eq('id', currentUser.id)
   if (error) throw error
-  const current = queryClient.getQueryData<ProfileWithSlug | null>(['profile', 'self'])
+  const selfProfileKey = getSelfProfileQueryKey(currentUser.id)
+  const current = queryClient.getQueryData<ProfileWithSlug | null>(selfProfileKey)
   if (current) {
-    queryClient.setQueryData(['profile', 'self'], { ...current, slug: newSlug })
+    queryClient.setQueryData(selfProfileKey, { ...current, slug: newSlug })
   }
 }
 
