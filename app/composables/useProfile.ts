@@ -3,12 +3,19 @@ import type { Database } from '~/types/database.types'
 
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 
+export function getSelfProfileQueryKey(userId: string | null | undefined) {
+  return ['profile', 'self', userId ?? null] as const
+}
+
 export function useProfile() {
   const supabase = useSupabaseClient<Database>()
+  const user = useSupabaseUser()
   const queryClient = useQueryClient()
+  const profileQueryKey = computed(() => getSelfProfileQueryKey(user.value?.id))
 
   const query = useQuery({
-    queryKey: ['profile', 'self'],
+    queryKey: profileQueryKey,
+    enabled: computed(() => !!user.value),
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return null
@@ -21,6 +28,8 @@ export function useProfile() {
       return data
     },
   })
+
+  const profile = computed(() => (user.value ? (query.data.value ?? null) : null))
 
   const mutation = useMutation({
     mutationFn: async (update: Omit<ProfileUpdate, 'id'>) => {
@@ -35,12 +44,12 @@ export function useProfile() {
       return data
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(['profile', 'self'], data)
+      queryClient.setQueryData(getSelfProfileQueryKey(data.id), data)
     },
   })
 
   return {
-    profile: query.data,
+    profile,
     isLoading: query.isLoading,
     isError: query.isError,
     updateProfile: mutation.mutateAsync,

@@ -524,8 +524,11 @@ describe("composables", () => {
 
     await profile.updateProfile({ display_name: "Runner" });
 
-    expect(queryClient.setQueryData).toHaveBeenCalledWith(["profile", "self"], {
-      id: "user-1",
-    });
+    expect(queryClient.setQueryData).toHaveBeenCalledWith(
+      ["profile", "self", "user-1"],
+      {
+        id: "user-1",
+      },
+    );
   });
 });
