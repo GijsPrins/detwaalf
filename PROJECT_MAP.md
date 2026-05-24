@@ -25,7 +25,8 @@ Supabase is the backend boundary. Client-side checks decide what to show, but se
 | `vitest.config.ts` | Unit test config, `~`/`@` aliases to `app/`, coverage paths. |
 | `playwright.config.ts` | E2E config, base URL, auth setup project. |
 | `README.md` | Product summary and high-level stack notes. |
-| `CLAUDE.md` | Agent/coding guidelines and detailed project conventions. |
+| `AGENTS.md` | Shared agent/coding guidelines and detailed project conventions. |
+| `CLAUDE.md` | Claude-specific pointer to `AGENTS.md`. |
 
 ## Git And Review Workflow
 
@@ -79,7 +80,7 @@ test/
 docs/
   brief.md             # Product brief
   schema.md            # Database schema notes
-  deployment.md        # Deployment notes
+  deployment.md        # Public deployment overview; private ops details live in detwaalf-ops
   ideas.md             # Product ideas
 ```
 

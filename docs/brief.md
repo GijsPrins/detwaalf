@@ -51,10 +51,10 @@ Initially the app will be used by a small, invitation-only group of runners. The
 
 | Layer | Choice |
 |---|---|
-| Frontend | Nuxt 3 + Tailwind CSS (`@nuxtjs/tailwindcss`) |
+| Frontend | Nuxt 4 + Tailwind CSS (`@nuxtjs/tailwindcss`) |
 | Data layer | TanStack Query (`@tanstack/vue-query`) + Pinia (UI state only) |
-| Backend | Supabase (PostgreSQL, Auth, Storage) — EU Frankfurt region |
-| Hosting | Clever Cloud (France) — GDPR-native, Node.js runtime |
+| Backend | Supabase (PostgreSQL, Auth, Storage) |
+| Hosting | EU-based Node.js hosting |
 | Domain | twaalfprovincies.run |
 | Language | Dutch (primary), English (i18n via `@nuxtjs/i18n`) |
 
@@ -68,7 +68,7 @@ Initially the app will be used by a small, invitation-only group of runners. The
 - Proof images stored as Supabase Storage paths, not full URLs
 - Email verification required before a user can log data
 - No secrets on the frontend — Supabase anon key only, service role key never exposed
-- GDPR: all data in EU (Supabase Frankfurt + Clever Cloud France)
+- GDPR: keep production data in EU-based infrastructure
 
 ---
 
