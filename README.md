@@ -28,6 +28,6 @@ Thresholds are database-driven — new tiers can be added without a code change.
 | Styling         | Tailwind CSS                                        |
 | Data fetching   | TanStack Query                                      |
 | Global UI state | Pinia                                               |
-| Backend         | Supabase (PostgreSQL, Auth, Storage) — EU Frankfurt |
-| Hosting         | Clever Cloud (France)                               |
+| Backend         | Supabase (PostgreSQL, Auth, Storage)                |
+| Hosting         | EU-based Node.js hosting                            |
 | i18n            | Dutch (primary), English                            |
