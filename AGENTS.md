@@ -40,6 +40,15 @@ pnpm preview      # preview production build
 npx supabase gen types typescript --linked > app/types/database.types.ts  # regenerate DB types
 ```
 
+## Staging lifecycle
+
+Staging is intentionally stopped when it is not in use to control costs.
+
+- At the start of a new coding session, remind the user to start staging early if the work may need staging, or run `E:\Code\detwaalf-ops\scripts\start-staging.ps1` when appropriate.
+- Starting staging can take a few minutes because Supabase may need to restore and Clever Cloud may need to restart.
+- When the user says the session/work is done, run `E:\Code\detwaalf-ops\scripts\stop-staging.ps1` or explicitly remind the user to run it.
+- The staging start/stop scripts live in the private sibling repository `detwaalf-ops`; do not duplicate tokens or operational secrets in this public repository.
+
 ---
 
 ## Tech stack
