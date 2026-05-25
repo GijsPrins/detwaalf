@@ -27,6 +27,7 @@ Supabase is the backend boundary. Client-side checks decide what to show, but se
 | `README.md` | Product summary and high-level stack notes. |
 | `AGENTS.md` | Shared agent/coding guidelines and detailed project conventions. |
 | `CLAUDE.md` | Claude-specific pointer to `AGENTS.md`. |
+| `docs/environments.md` | Environment roles, staging-first Supabase CLI policy, and deployment promotion flow. |
 
 ## Git And Review Workflow
 
@@ -35,6 +36,8 @@ Supabase is the backend boundary. Client-side checks decide what to show, but se
 - Open a GitHub PR for review when the branch is ready.
 - The user approves and merges PRs by hand in GitHub.
 - Unit tests and E2E tests are required to pass before merge.
+- Test feature branches on staging before merging the same branch to `master`.
+- Do not merge `staging` into `master`; merge the approved feature branch to `master`.
 - When adding or editing behavior, update or add unit tests and E2E coverage for the changed flow. Keep test scope proportional, but do not leave new behavior uncovered.
 - Local pre-push sanity check:
 
@@ -234,4 +237,5 @@ pnpm test:e2e:ui
 - Do not expose service-role keys in frontend code.
 - Keep Supabase queries typed with the generated `Database` type.
 - Add migrations for schema or policy changes rather than relying on dashboard-only changes.
+- Keep the local Supabase CLI linked to staging, not production, so `supabase db push` is safe by default.
 - Keep pages readable. When a page accumulates reusable domain logic, extract it into a composable, mapper, or utility.
