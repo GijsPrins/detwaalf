@@ -267,6 +267,10 @@ export default {
       date: "Datum",
       name: "Naam",
     },
+    search: {
+      label: "Evenementen zoeken",
+      placeholder: "Zoek op naam, plaats of website",
+    },
     filter: {
       allProvinces: "Alle provincies",
     },
