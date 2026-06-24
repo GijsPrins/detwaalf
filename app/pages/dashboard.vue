@@ -24,6 +24,7 @@ const selectedProvinceId = ref<number | null>(null);
 const { data: events } = useEventList();
 const { data: participations, isPending: isParticipationsPending } =
   useParticipations();
+const { data: cancellationSignals } = useEventCancellationSignals();
 
 const today = getLocalDateString();
 
@@ -332,6 +333,18 @@ interface PendingEvent {
   sortDate: string;
 }
 
+interface CancelledEventSuggestion {
+  participationId: string;
+  eventId: string;
+  eventDistanceId: string | null;
+  eventName: string;
+  province: string;
+  distance: string;
+  eventDate: string;
+  sortDate: string;
+  cancelledCount: number;
+}
+
 const pendingEvents = computed<PendingEvent[]>(() => {
   const result: PendingEvent[] = [];
   for (const p of participations.value ?? []) {
@@ -358,18 +371,68 @@ const pendingEvents = computed<PendingEvent[]>(() => {
 });
 
 const modalEvent = ref<CompleteModalEvent | null>(null);
+const modalInitialOutcome = ref<CompleteModalResult["status"] | null>(null);
 const celebrationMedal = ref<DistanceCategory | null>(null);
 const celebrationProvince = ref("");
+
+const cancellationSignalMap = computed(() => {
+  const map = new Map<string, number>();
+  for (const signal of cancellationSignals.value ?? []) {
+    map.set(signal.event_id, signal.cancelled_count);
+  }
+  return map;
+});
+
+const cancelledEventSuggestions = computed<CancelledEventSuggestion[]>(() => {
+  const result: CancelledEventSuggestion[] = [];
+  for (const p of participations.value ?? []) {
+    if (p.status !== "interested" && p.status !== "signed_up") continue;
+    const cancelledCount = cancellationSignalMap.value.get(p.event_id) ?? 0;
+    if (cancelledCount === 0) continue;
+    const event = eventMap.value.get(p.event_id);
+    if (!event) continue;
+    result.push({
+      participationId: p.id,
+      eventId: p.event_id,
+      eventDistanceId: p.event_distance_id ?? null,
+      eventName: event.name,
+      province: event.province?.name ?? "",
+      distance: p.event_distance
+        ? t(`eventDistance.${p.event_distance.distance}`)
+        : "",
+      eventDate: formatEventDate(event.event_date),
+      sortDate: event.event_date,
+      cancelledCount,
+    });
+  }
+  return result.sort((a, b) => a.sortDate.localeCompare(b.sortDate));
+});
 
 function openModal(eventId: string) {
   const pending = pendingEvents.value.find((e) => e.eventId === eventId);
   if (!pending) return;
+  modalInitialOutcome.value = null;
   modalEvent.value = {
     eventId: pending.eventId,
     eventDistanceId: pending.eventDistanceId,
     eventName: pending.eventName,
     province: pending.province,
     distance: pending.distance,
+  };
+}
+
+function openCancellationModal(eventId: string) {
+  const suggestion = cancelledEventSuggestions.value.find(
+    (event) => event.eventId === eventId,
+  );
+  if (!suggestion) return;
+  modalInitialOutcome.value = "cancelled";
+  modalEvent.value = {
+    eventId: suggestion.eventId,
+    eventDistanceId: suggestion.eventDistanceId,
+    eventName: suggestion.eventName,
+    province: suggestion.province,
+    distance: suggestion.distance,
   };
 }
 
@@ -396,6 +459,7 @@ async function handleConfirm(result: CompleteModalResult) {
   });
 
   modalEvent.value = null;
+  modalInitialOutcome.value = null;
 
   if (isNewMedal && pending?.distanceCategory) {
     celebrationMedal.value = pending.distanceCategory;
@@ -410,6 +474,11 @@ async function handleConfirm(result: CompleteModalResult) {
       v-if="!isFirstRunDashboard"
       :events="pendingEvents"
       @complete="openModal"
+    />
+    <ParticipationCancellationPrompt
+      v-if="!isFirstRunDashboard"
+      :events="cancelledEventSuggestions"
+      @cancel-event="openCancellationModal"
     />
 
     <div
@@ -581,8 +650,12 @@ async function handleConfirm(result: CompleteModalResult) {
 
     <ParticipationCompleteModal
       :event="modalEvent"
+      :initial-outcome="modalInitialOutcome"
       @confirm="handleConfirm"
-      @cancel="modalEvent = null"
+      @cancel="
+        modalEvent = null;
+        modalInitialOutcome = null;
+      "
     />
 
     <ParticipationMedalCelebration

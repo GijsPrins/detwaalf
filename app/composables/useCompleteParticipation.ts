@@ -5,7 +5,7 @@ import { saveParticipation } from "~/queries/events";
 export interface CompleteParticipationInput {
   eventId: string;
   eventDistanceId: string | null;
-  status: "completed" | "dns" | "dnf";
+  status: "completed" | "dns" | "dnf" | "cancelled";
   finishTimeSeconds: number | null;
   timingUrl: string | null;
   notes: string | null;
@@ -33,6 +33,7 @@ export function useCompleteParticipation() {
         queryKey: ["eventParticipation", variables.eventId],
       });
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
+      queryClient.invalidateQueries({ queryKey: ["eventCancellationSignals"] });
     },
   });
 }

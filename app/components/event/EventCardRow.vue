@@ -22,6 +22,7 @@ const DISTANCE_STATUS_CLASS: Record<Enums<"participation_status">, string> = {
   completed: "bg-green-50 border-green-200 text-green-700",
   dns: "bg-gray-100 border-gray-200 text-gray-500",
   dnf: "bg-gray-100 border-gray-200 text-gray-500",
+  cancelled: "bg-red-50 border-red-200 text-red-700",
 };
 
 function renderDistance(distance: EventDistanceViewModel) {

@@ -75,5 +75,6 @@ erDiagram
 - `event_participations` has a unique constraint on `(event_id, user_id)` — one record per user per event
 - `finish_time_seconds` is an integer (seconds) — format to `h:mm:ss` in the frontend
 - `proof_image_path` is a Supabase Storage path, not a full URL — resolve to a signed URL in the frontend
-- `status` enum values: `interested`, `signed_up`, `completed`, `dns`, `dnf`
+- `status` enum values: `interested`, `signed_up`, `completed`, `dns`, `dnf`, `cancelled`
 - `distance_category` enum values: `10k`, `half`, `marathon`
+- `get_event_cancellation_signals()` returns cancellation counts only for events the authenticated user already has an `interested` or `signed_up` participation for; it does not expose other users' notes

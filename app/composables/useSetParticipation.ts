@@ -39,6 +39,7 @@ export function useSetParticipation(eventId: MaybeRef<string>) {
       queryClient.refetchQueries({ queryKey: participationKeyPrefix });
 
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
+      queryClient.invalidateQueries({ queryKey: ["eventCancellationSignals"] });
     },
   });
 }

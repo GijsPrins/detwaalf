@@ -190,12 +190,19 @@ export default {
       heading: "Heb je dit gelopen?",
       cta: "Resultaat invullen",
     },
+    cancellationPrompt: {
+      heading: "Mogelijk afgelast",
+      body:
+        "{count} andere deelnemer heeft dit evenement als afgelast gemarkeerd. | {count} andere deelnemers hebben dit evenement als afgelast gemarkeerd.",
+      cta: "Ook afgelast zetten",
+    },
     completeModal: {
       label: "Gelopen?",
       how: "Hoe is het gegaan?",
       finished: "Gefinisht",
       dns: "DNS",
       dnf: "DNF",
+      cancelled: "Afgelast",
       finishTime: "Eindtijd (chip)",
       finishTimePlaceholder: "0:00:00",
       timingUrl: "Link naar uitslag",
@@ -206,6 +213,8 @@ export default {
       invalidTime: "Vul een geldige tijd in (bijv. 1:45:30)",
       notes: "Notitie",
       notesPlaceholder: "Wat is er gebeurd?",
+      cancellationReason: "Reden van afgelasting",
+      cancellationReasonPlaceholder: "Waarom is het evenement afgelast?",
     },
     celebration: {
       title: "Gefeliciteerd!",
@@ -218,6 +227,7 @@ export default {
       completed: "Voltooid",
       dns: "Niet gestart",
       dnf: "Niet gefinisht",
+      cancelled: "Afgelast",
     },
   },
   distance: {
@@ -249,7 +259,7 @@ export default {
       },
       participations: {
         title: "Je hebt nog geen evenementen toegevoegd",
-        body: "Kies een evenement en zet je status op geïnteresseerd, ingeschreven of voltooid.",
+        body: "Kies een evenement en zet je status op geïnteresseerd, ingeschreven, voltooid of afgelast.",
       },
       filtered: {
         title: "Geen evenementen met deze filters",
@@ -280,6 +290,7 @@ export default {
       completed: "Voltooid",
       dns: "Niet gestart",
       dnf: "Niet gefinisht",
+      cancelled: "Afgelast",
     },
     statusFilter: {
       all: "Alle",
@@ -288,6 +299,7 @@ export default {
       completed: "Gelopen",
       dns: "Niet gestart",
       dnf: "Niet gefinisht",
+      cancelled: "Afgelast",
     },
     tabs: {
       upcoming: "Aankomend",
@@ -382,6 +394,7 @@ export default {
         finishedHint: "Log je finishtijd en uitslaglink.",
         dnsHint: "Niet gestart, eventueel met korte notitie.",
         dnfHint: "Gestart, maar niet gefinisht.",
+        cancelledHint: "Evenement afgelast, eventueel met korte notitie.",
         savedResultTitle: "Opgeslagen resultaat",
         editResult: "Wijzigen",
         manageTitle: "Deelname beheren",

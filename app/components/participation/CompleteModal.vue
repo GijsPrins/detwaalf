@@ -8,7 +8,7 @@ export interface CompleteModalEvent {
 }
 
 export interface CompleteModalResult {
-  status: "completed" | "dns" | "dnf";
+  status: "completed" | "dns" | "dnf" | "cancelled";
   finishTimeSeconds: number | null;
   timingUrl: string | null;
   notes: string | null;
@@ -49,7 +49,20 @@ const outcomeLabels = computed<Record<Outcome, string>>(() => ({
   completed: t("dashboard.completeModal.finished"),
   dns: t("dashboard.completeModal.dns"),
   dnf: t("dashboard.completeModal.dnf"),
+  cancelled: t("dashboard.completeModal.cancelled"),
 }));
+
+const notesLabel = computed(() =>
+  outcome.value === "cancelled"
+    ? t("dashboard.completeModal.cancellationReason")
+    : t("dashboard.completeModal.notes"),
+);
+
+const notesPlaceholder = computed(() =>
+  outcome.value === "cancelled"
+    ? t("dashboard.completeModal.cancellationReasonPlaceholder")
+    : t("dashboard.completeModal.notesPlaceholder"),
+);
 
 const canConfirm = computed(() => outcome.value !== null);
 
@@ -115,9 +128,9 @@ function handleConfirm() {
         <p class="text-sm font-medium text-gray-700 mb-3">
           {{ t("dashboard.completeModal.how") }}
         </p>
-        <div class="grid grid-cols-3 gap-2 mb-4">
+        <div class="grid grid-cols-2 gap-2 mb-4 sm:grid-cols-4">
           <button
-            v-for="opt in (['completed', 'dns', 'dnf'] as Outcome[])"
+            v-for="opt in (['completed', 'dns', 'dnf', 'cancelled'] as Outcome[])"
             :key="opt"
             class="py-2 rounded-lg text-sm font-medium border transition-colors"
             :class="
@@ -169,11 +182,11 @@ function handleConfirm() {
           </div>
         </template>
 
-        <!-- Notes for DNS/DNF -->
-        <template v-if="outcome === 'dns' || outcome === 'dnf'">
+        <!-- Notes for DNS/DNF/cancelled -->
+        <template v-if="outcome === 'dns' || outcome === 'dnf' || outcome === 'cancelled'">
           <div class="mb-4">
             <label class="text-xs text-gray-700 mb-1 block">
-              {{ t("dashboard.completeModal.notes") }}
+              {{ notesLabel }}
               <span class="text-gray-400">
                 {{ t("dashboard.completeModal.optional") }}</span
               >
@@ -181,7 +194,7 @@ function handleConfirm() {
             <textarea
               v-model="notes"
               rows="2"
-              :placeholder="t('dashboard.completeModal.notesPlaceholder')"
+              :placeholder="notesPlaceholder"
               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 transition-colors resize-none"
             />
           </div>

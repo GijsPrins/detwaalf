@@ -6,6 +6,7 @@ import {
   deleteParticipation,
   createEventWithDistances,
   fetchEvent,
+  fetchEventCancellationSignals,
   fetchEventParticipation,
   fetchEvents,
   fetchProvinces,
@@ -43,6 +44,7 @@ import {
 } from "~/composables/useContactMessages";
 import { useDeleteEvent } from "~/composables/useDeleteEvent";
 import { useEvent } from "~/composables/useEvent";
+import { useEventCancellationSignals } from "~/composables/useEventCancellationSignals";
 import { useEventList } from "~/composables/useEventList";
 import { useEventParticipation } from "~/composables/useEventParticipation";
 import { useParticipations } from "~/composables/useParticipations";
@@ -68,6 +70,7 @@ vi.mock("@tanstack/vue-query", () => ({
 vi.mock("~/queries/events", () => ({
   fetchEvents: vi.fn(),
   fetchEvent: vi.fn(),
+  fetchEventCancellationSignals: vi.fn(),
   fetchUserParticipations: vi.fn(),
   fetchProvinces: vi.fn(),
   fetchEventParticipation: vi.fn(),
@@ -205,6 +208,35 @@ describe("composables", () => {
     await expect((query.queryFn as () => Promise<unknown>)()).resolves.toEqual(
       [],
     );
+  });
+
+  it("useEventCancellationSignals returns empty list when user is missing", async () => {
+    supabase.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: null,
+    });
+    const query = useEventCancellationSignals();
+
+    await expect((query.queryFn as () => Promise<unknown>)()).resolves.toEqual(
+      [],
+    );
+    expect(fetchEventCancellationSignals).not.toHaveBeenCalled();
+  });
+
+  it("useEventCancellationSignals wires authenticated cancellation signal query", async () => {
+    vi.mocked(fetchEventCancellationSignals).mockResolvedValue([
+      { event_id: "ev-1", cancelled_count: 1 },
+    ]);
+    const query = useEventCancellationSignals();
+
+    const result = await (query.queryFn as () => Promise<unknown>)();
+
+    expect((query.queryKey as { value: unknown }).value).toEqual([
+      "eventCancellationSignals",
+      "user-1",
+    ]);
+    expect(fetchEventCancellationSignals).toHaveBeenCalledWith(supabase);
+    expect(result).toEqual([{ event_id: "ev-1", cancelled_count: 1 }]);
   });
 
   it("useProvinces wires staleTime and fetchProvinces", async () => {
