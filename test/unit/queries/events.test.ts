@@ -5,6 +5,7 @@ import {
   deleteParticipation,
   fetchEvent,
   fetchEventParticipation,
+  fetchEventCancellationSignals,
   fetchEvents,
   fetchProvinces,
   fetchUserParticipations,
@@ -39,6 +40,17 @@ describe("events queries", () => {
 
     await fetchUserParticipations(supabase, "user-1");
     expect(eq).toHaveBeenCalledWith("user_id", "user-1");
+  });
+
+  it("fetchEventCancellationSignals calls the cancellation signal rpc", async () => {
+    const rows = [{ event_id: "ev-1", cancelled_count: 2 }];
+    const rpc = vi.fn().mockResolvedValue({ data: rows, error: null });
+    const supabase = { rpc } as never;
+
+    await expect(fetchEventCancellationSignals(supabase)).resolves.toEqual(
+      rows,
+    );
+    expect(rpc).toHaveBeenCalledWith("get_event_cancellation_signals");
   });
 
   it("fetchProvinces orders by name", async () => {

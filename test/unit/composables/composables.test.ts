@@ -6,6 +6,7 @@ import {
   deleteParticipation,
   createEventWithDistances,
   fetchEvent,
+  fetchEventCancellationSignals,
   fetchEventParticipation,
   fetchEvents,
   fetchProvinces,
@@ -22,8 +23,13 @@ import {
 } from "~/queries/slugWords";
 import {
   fetchContactMessages,
+  fetchOwnContactMessages,
+  fetchOwnContactMessagesCount,
+  fetchUnreadOwnContactRepliesCount,
   fetchUnreadContactMessagesCount,
   insertContactMessage,
+  insertContactMessageReply,
+  markOwnContactMessagesViewed,
   markMessageRead,
 } from "~/queries/contactMessages";
 import {
@@ -38,11 +44,17 @@ import { useCompleteParticipation } from "~/composables/useCompleteParticipation
 import {
   useContactMessages,
   useMarkMessageRead,
+  useMarkOwnContactMessagesViewed,
+  useOwnContactMessages,
+  useOwnContactMessagesCount,
+  useReplyToContactMessage,
   useSubmitContactMessage,
+  useUnreadOwnContactRepliesCount,
   useUnreadContactMessagesCount,
 } from "~/composables/useContactMessages";
 import { useDeleteEvent } from "~/composables/useDeleteEvent";
 import { useEvent } from "~/composables/useEvent";
+import { useEventCancellationSignals } from "~/composables/useEventCancellationSignals";
 import { useEventList } from "~/composables/useEventList";
 import { useEventParticipation } from "~/composables/useEventParticipation";
 import { useParticipations } from "~/composables/useParticipations";
@@ -68,6 +80,7 @@ vi.mock("@tanstack/vue-query", () => ({
 vi.mock("~/queries/events", () => ({
   fetchEvents: vi.fn(),
   fetchEvent: vi.fn(),
+  fetchEventCancellationSignals: vi.fn(),
   fetchUserParticipations: vi.fn(),
   fetchProvinces: vi.fn(),
   fetchEventParticipation: vi.fn(),
@@ -92,8 +105,13 @@ vi.mock("~/queries/slugWords", () => ({
 
 vi.mock("~/queries/contactMessages", () => ({
   fetchContactMessages: vi.fn(),
+  fetchOwnContactMessages: vi.fn(),
+  fetchOwnContactMessagesCount: vi.fn(),
+  fetchUnreadOwnContactRepliesCount: vi.fn(),
   fetchUnreadContactMessagesCount: vi.fn(),
   insertContactMessage: vi.fn(),
+  insertContactMessageReply: vi.fn(),
+  markOwnContactMessagesViewed: vi.fn(),
   markMessageRead: vi.fn(),
 }));
 
@@ -205,6 +223,35 @@ describe("composables", () => {
     await expect((query.queryFn as () => Promise<unknown>)()).resolves.toEqual(
       [],
     );
+  });
+
+  it("useEventCancellationSignals returns empty list when user is missing", async () => {
+    supabase.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: null,
+    });
+    const query = useEventCancellationSignals();
+
+    await expect((query.queryFn as () => Promise<unknown>)()).resolves.toEqual(
+      [],
+    );
+    expect(fetchEventCancellationSignals).not.toHaveBeenCalled();
+  });
+
+  it("useEventCancellationSignals wires authenticated cancellation signal query", async () => {
+    vi.mocked(fetchEventCancellationSignals).mockResolvedValue([
+      { event_id: "ev-1", cancelled_count: 1 },
+    ]);
+    const query = useEventCancellationSignals();
+
+    const result = await (query.queryFn as () => Promise<unknown>)();
+
+    expect((query.queryKey as { value: unknown }).value).toEqual([
+      "eventCancellationSignals",
+      "user-1",
+    ]);
+    expect(fetchEventCancellationSignals).toHaveBeenCalledWith(supabase);
+    expect(result).toEqual([{ event_id: "ev-1", cancelled_count: 1 }]);
   });
 
   it("useProvinces wires staleTime and fetchProvinces", async () => {
@@ -394,15 +441,28 @@ describe("composables", () => {
 
   it("contact message composables wire query and mutation behavior", async () => {
     vi.mocked(fetchContactMessages).mockResolvedValue([] as never);
+    vi.mocked(fetchOwnContactMessages).mockResolvedValue([] as never);
+    vi.mocked(fetchOwnContactMessagesCount).mockResolvedValue(1 as never);
+    vi.mocked(fetchUnreadOwnContactRepliesCount).mockResolvedValue(1 as never);
     vi.mocked(fetchUnreadContactMessagesCount).mockResolvedValue(0 as never);
     vi.mocked(insertContactMessage).mockResolvedValue(undefined as never);
+    vi.mocked(insertContactMessageReply).mockResolvedValue(undefined as never);
+    vi.mocked(markOwnContactMessagesViewed).mockResolvedValue(
+      undefined as never,
+    );
     vi.mocked(markMessageRead).mockResolvedValue(undefined as never);
 
     const enabled = ref(true);
     const query = useContactMessages({ enabled });
+    const own = useOwnContactMessages();
+    const ownCount = useOwnContactMessagesCount();
+    const ownUnreadReplies = useUnreadOwnContactRepliesCount();
     const unread = useUnreadContactMessagesCount({ enabled });
 
     await (query.queryFn as () => Promise<unknown>)();
+    await (own.queryFn as () => Promise<unknown>)();
+    await (ownCount.queryFn as () => Promise<unknown>)();
+    await (ownUnreadReplies.queryFn as () => Promise<unknown>)();
     await (unread.queryFn as () => Promise<unknown>)();
 
     const submit = useSubmitContactMessage();
@@ -411,13 +471,33 @@ describe("composables", () => {
       message: "hello",
     });
 
+    const reply = useReplyToContactMessage();
+    await (reply.mutationFn as (payload: unknown) => Promise<unknown>)({
+      contactMessageId: "msg-1",
+      body: "antwoord",
+    });
+    (reply.onSuccess as () => void)();
+
+    const markViewed = useMarkOwnContactMessagesViewed();
+    await (markViewed.mutationFn as () => Promise<unknown>)();
+    (markViewed.onSuccess as () => void)();
+
     const mark = useMarkMessageRead();
     await (mark.mutationFn as (id: string) => Promise<unknown>)("msg-1");
     (mark.onSuccess as () => void)();
 
     expect(fetchContactMessages).toHaveBeenCalledWith(supabase);
+    expect(fetchOwnContactMessages).toHaveBeenCalledWith(supabase);
+    expect(fetchOwnContactMessagesCount).toHaveBeenCalledWith(supabase);
+    expect(fetchUnreadOwnContactRepliesCount).toHaveBeenCalledWith(supabase);
     expect(fetchUnreadContactMessagesCount).toHaveBeenCalledWith(supabase);
     expect(insertContactMessage).toHaveBeenCalled();
+    expect(insertContactMessageReply).toHaveBeenCalledWith(supabase, {
+      contactMessageId: "msg-1",
+      authorId: "user-1",
+      body: "antwoord",
+    });
+    expect(markOwnContactMessagesViewed).toHaveBeenCalledWith(supabase);
     expect(markMessageRead).toHaveBeenCalledWith(supabase, "msg-1");
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["contactMessages"],

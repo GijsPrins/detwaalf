@@ -143,7 +143,8 @@ const hasResultStatus = computed(
   () =>
     currentParticipationStatus.value === "completed" ||
     currentParticipationStatus.value === "dns" ||
-    currentParticipationStatus.value === "dnf",
+    currentParticipationStatus.value === "dnf" ||
+    currentParticipationStatus.value === "cancelled",
 );
 
 const shouldShowResultActions = computed(
@@ -249,12 +250,28 @@ const participationTone = computed(() => {
       };
     case "dns":
     case "dnf":
+    case "cancelled":
       return {
-        activePanel: "border-gray-300 bg-gray-50",
-        activeText: "text-gray-700",
-        heroPanel: "border-gray-100 bg-gray-50",
-        heroTitle: "text-gray-900",
-        heroDescription: "text-gray-600",
+        activePanel:
+          currentParticipationStatus.value === "cancelled"
+            ? "border-red-200 bg-red-50"
+            : "border-gray-300 bg-gray-50",
+        activeText:
+          currentParticipationStatus.value === "cancelled"
+            ? "text-red-700"
+            : "text-gray-700",
+        heroPanel:
+          currentParticipationStatus.value === "cancelled"
+            ? "border-red-100 bg-red-50"
+            : "border-gray-100 bg-gray-50",
+        heroTitle:
+          currentParticipationStatus.value === "cancelled"
+            ? "text-red-950"
+            : "text-gray-900",
+        heroDescription:
+          currentParticipationStatus.value === "cancelled"
+            ? "text-red-800"
+            : "text-gray-600",
       };
     default:
       return {
@@ -347,6 +364,12 @@ const shouldAskParticipationDistance = computed(
 
 const shouldShowSavedResult = computed(() => hasResultStatus.value);
 
+const resultNotesLabel = computed(() =>
+  currentParticipationStatus.value === "cancelled"
+    ? t("dashboard.completeModal.cancellationReason")
+    : t("eventDetail.participation.notes"),
+);
+
 const participationDistanceError = ref(false);
 
 function buildCompleteModalEvent(): CompleteModalEvent | null {
@@ -401,7 +424,12 @@ function isParticipationDistanceActive(id: string) {
 function setParticipationStatus(status: Enums<"participation_status">) {
   if (!validateParticipationDistance(status)) return;
 
-  if (status === "completed" || status === "dns" || status === "dnf") {
+  if (
+    status === "completed" ||
+    status === "dns" ||
+    status === "dnf" ||
+    status === "cancelled"
+  ) {
     modalInitialOutcome.value = status;
     modalEvent.value = buildCompleteModalEvent();
     return;
@@ -983,6 +1011,23 @@ const registrationStatus = computed(() => {
                     {{ t("eventDetail.participation.card.dnfHint") }}
                   </span>
                 </button>
+                <button
+                  :disabled="isSettingStatus || isClearingStatus || isCompleting"
+                  class="rounded-lg border px-3 py-3 text-left transition-colors disabled:opacity-50"
+                  :class="
+                    currentParticipationStatus === 'cancelled'
+                      ? 'border-red-200 bg-red-50'
+                      : 'border-gray-200 bg-white hover:bg-gray-50'
+                  "
+                  @click="setParticipationStatus('cancelled')"
+                >
+                  <span class="block text-sm font-medium text-gray-900">
+                    {{ t("dashboard.completeModal.cancelled") }}
+                  </span>
+                  <span class="mt-0.5 block text-xs text-gray-500">
+                    {{ t("eventDetail.participation.card.cancelledHint") }}
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -1000,7 +1045,8 @@ const registrationStatus = computed(() => {
                     modalInitialOutcome =
                       currentParticipationStatus === 'completed' ||
                       currentParticipationStatus === 'dns' ||
-                      currentParticipationStatus === 'dnf'
+                      currentParticipationStatus === 'dnf' ||
+                      currentParticipationStatus === 'cancelled'
                         ? currentParticipationStatus
                         : null;
                     modalEvent = buildCompleteModalEvent();
@@ -1048,12 +1094,13 @@ const registrationStatus = computed(() => {
                 <div
                   v-if="
                     currentParticipationStatus === 'dns' ||
-                    currentParticipationStatus === 'dnf'
+                    currentParticipationStatus === 'dnf' ||
+                    currentParticipationStatus === 'cancelled'
                   "
                   class="border-t border-gray-100 py-3 sm:col-span-2 sm:rounded-lg sm:border sm:bg-gray-50 sm:p-3"
                 >
                   <p class="text-xs font-medium uppercase tracking-wide text-gray-400">
-                    {{ t("eventDetail.participation.notes") }}
+                    {{ resultNotesLabel }}
                   </p>
                   <p class="mt-1 text-sm text-gray-700">
                     {{ participation?.notes || "-" }}

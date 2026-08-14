@@ -57,6 +57,23 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
   }
+  contact_messages {
+    uuid id PK
+    uuid user_id FK
+    text email
+    text type
+    text message
+    timestamptz created_at
+    timestamptz read_at
+    timestamptz last_viewed_at
+  }
+  contact_message_replies {
+    uuid id PK
+    uuid contact_message_id FK
+    uuid author_id FK
+    text body
+    timestamptz created_at
+  }
 
   profiles ||--o{ profile_roles : "has"
   app_roles ||--o{ profile_roles : "assigned via"
@@ -64,6 +81,9 @@ erDiagram
   profiles ||--o{ event_participations : "tracks"
   provinces ||--o{ events : "hosts"
   events ||--o{ event_participations : "has"
+  profiles ||--o{ contact_messages : "sends"
+  contact_messages ||--o{ contact_message_replies : "has"
+  profiles ||--o{ contact_message_replies : "authors"
 ```
 
 ---
@@ -75,5 +95,8 @@ erDiagram
 - `event_participations` has a unique constraint on `(event_id, user_id)` — one record per user per event
 - `finish_time_seconds` is an integer (seconds) — format to `h:mm:ss` in the frontend
 - `proof_image_path` is a Supabase Storage path, not a full URL — resolve to a signed URL in the frontend
-- `status` enum values: `interested`, `signed_up`, `completed`, `dns`, `dnf`
+- `status` enum values: `interested`, `signed_up`, `completed`, `dns`, `dnf`, `cancelled`
 - `distance_category` enum values: `10k`, `half`, `marathon`
+- `get_event_cancellation_signals()` returns cancellation counts only for events the authenticated user already has an `interested` or `signed_up` participation for; it does not expose other users' notes
+- `contact_messages` stores authenticated user support/contact requests; admins can read and mark them as read, and users can read their own message threads. `last_viewed_at` tracks when the user last opened their message overview so new replies can be highlighted.
+- `contact_message_replies` stores in-app admin replies to contact messages. Admins can create replies; the original message owner can read replies to their own messages.

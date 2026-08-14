@@ -10,6 +10,13 @@ const {
   isError,
 } = useContactMessages({ enabled: messagesEnabled });
 const { mutate: markRead } = useMarkMessageRead();
+const {
+  mutateAsync: replyToMessage,
+  isPending: isReplying,
+  isError: replyError,
+} = useReplyToContactMessage();
+const replyDrafts = ref<Record<string, string>>({});
+const repliedMessageId = ref<string | null>(null);
 
 const unreadCount = computed(
   () => (messages.value ?? []).filter((m) => !m.read_at).length,
@@ -23,6 +30,24 @@ function formatDate(dateStr: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(dateStr));
+}
+
+function sortedReplies(
+  replies: NonNullable<typeof messages.value>[number]["contact_message_replies"],
+) {
+  return [...replies].sort(
+    (a, b) =>
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+  );
+}
+
+async function submitReply(messageId: string) {
+  const body = replyDrafts.value[messageId]?.trim();
+  if (!body) return;
+
+  await replyToMessage({ contactMessageId: messageId, body });
+  replyDrafts.value[messageId] = "";
+  repliedMessageId.value = messageId;
 }
 </script>
 
@@ -103,6 +128,62 @@ function formatDate(dateStr: string) {
           <p class="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
             {{ msg.message }}
           </p>
+
+          <div
+            v-if="msg.contact_message_replies.length"
+            class="mt-4 border-t border-gray-100 pt-4 space-y-3"
+          >
+            <div
+              v-for="reply in sortedReplies(msg.contact_message_replies)"
+              :key="reply.id"
+              class="rounded-lg bg-gray-50 px-3 py-2"
+            >
+              <div class="mb-1 text-xs text-gray-400">
+                {{ t("admin.messages.replyFromAdmin") }} ·
+                {{ formatDate(reply.created_at) }}
+              </div>
+              <p class="text-sm text-gray-700 whitespace-pre-wrap">
+                {{ reply.body }}
+              </p>
+            </div>
+          </div>
+
+          <form class="mt-4 flex flex-col gap-2" @submit.prevent="submitReply(msg.id)">
+            <label :for="`reply-${msg.id}`" class="text-xs font-medium text-gray-500">
+              {{ t("admin.messages.replyLabel") }}
+            </label>
+            <textarea
+              :id="`reply-${msg.id}`"
+              v-model="replyDrafts[msg.id]"
+              maxlength="2000"
+              rows="3"
+              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 resize-none"
+              :placeholder="t('admin.messages.replyPlaceholder')"
+            />
+            <div class="flex items-center justify-between gap-3">
+              <p v-if="replyError" class="text-xs text-red-600">
+                {{ t("admin.messages.replyError") }}
+              </p>
+              <p
+                v-else-if="repliedMessageId === msg.id"
+                class="text-xs text-green-700"
+              >
+                {{ t("admin.messages.replySent") }}
+              </p>
+              <span v-else />
+              <button
+                type="submit"
+                :disabled="!replyDrafts[msg.id]?.trim() || isReplying"
+                class="inline-flex items-center justify-center rounded-lg bg-orange-600 px-4 py-2 text-xs font-medium text-white hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {{
+                  isReplying
+                    ? t("admin.messages.replySending")
+                    : t("admin.messages.replySubmit")
+                }}
+              </button>
+            </div>
+          </form>
 
           <div class="mt-4 flex items-center justify-between">
             <span v-if="msg.read_at" class="text-xs text-gray-400">

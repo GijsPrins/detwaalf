@@ -3,6 +3,7 @@ import type { Enums } from "~/types/database.types";
 import { PARTICIPATION_STATUS_BADGE_CLASS } from "~/constants/participation";
 import { mapEvents } from "~/mappers/events";
 import { getLocalDateString } from "~/utils/localDate";
+import { matchesEventSearch } from "~/utils/eventSearch";
 import EventCardRow from "~/components/event/EventCardRow.vue";
 
 definePageMeta({ auth: false });
@@ -42,6 +43,7 @@ const statusFilter = ref<StatusFilter>("all");
 const activeTab = ref<Tab>(getTabFromRoute());
 const provinceFilter = ref<number | null>(null);
 const sortBy = ref<"date" | "name">("date");
+const searchQuery = ref("");
 
 const statusFilters: { key: StatusFilter; label: string }[] = [
   { key: "all", label: t("events.statusFilter.all") },
@@ -50,6 +52,7 @@ const statusFilters: { key: StatusFilter; label: string }[] = [
   { key: "completed", label: t("events.statusFilter.completed") },
   { key: "dns", label: t("events.statusFilter.dns") },
   { key: "dnf", label: t("events.statusFilter.dnf") },
+  { key: "cancelled", label: t("events.statusFilter.cancelled") },
 ];
 
 const todayStr = getLocalDateString();
@@ -82,6 +85,10 @@ const filteredEvents = computed(() => {
   if (provinceFilter.value !== null) {
     list = list.filter((e) => e.provinceId === provinceFilter.value);
   }
+
+  list = list.filter((event) =>
+    matchesEventSearch(event, searchQuery.value),
+  );
 
   if (sortBy.value === "name") {
     list = [...list].sort((a, b) => a.name.localeCompare(b.name, "nl"));
@@ -146,6 +153,7 @@ const eventGroups = computed(() => groupEventList(filteredEvents.value));
 const hasActiveFilters = computed(
   () =>
     provinceFilter.value !== null ||
+    searchQuery.value.trim() !== "" ||
     (activeTab.value === "participations" && statusFilter.value !== "all"),
 );
 
@@ -197,6 +205,7 @@ function setActiveTab(tab: Tab) {
 function clearFilters() {
   provinceFilter.value = null;
   statusFilter.value = "all";
+  searchQuery.value = "";
 }
 
 watch(
@@ -302,6 +311,30 @@ watch(
             : 'w-full'
         "
       >
+        <!-- Search -->
+        <label class="relative min-w-0 flex-1 sm:min-w-64 sm:max-w-sm">
+          <span class="sr-only">{{ t("events.search.label") }}</span>
+          <svg
+            aria-hidden="true"
+            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input
+            v-model="searchQuery"
+            class="w-full rounded-lg border border-gray-200 bg-white py-1.5 pl-9 pr-3 text-xs text-gray-700 outline-none placeholder:text-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+            type="search"
+            :placeholder="t('events.search.placeholder')"
+          >
+        </label>
+
         <!-- Province filter -->
         <select
           v-model="provinceFilter"
