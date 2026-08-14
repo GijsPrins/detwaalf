@@ -8,11 +8,21 @@ const {
   isError,
 } = useOwnContactMessages();
 const { mutate: markViewed } = useMarkOwnContactMessagesViewed();
+const capturedUnreadMessageIds = ref(new Set<string>());
+const hasCapturedUnreadState = ref(false);
+
+const hasNewReplies = computed(() => capturedUnreadMessageIds.value.size > 0);
 
 watch(
   () => messages.value,
   (value) => {
-    if (value?.length) {
+    if (value?.length && !hasCapturedUnreadState.value) {
+      capturedUnreadMessageIds.value = new Set(
+        value
+          .filter((message) => hasUnreadReply(message))
+          .map((message) => message.id),
+      );
+      hasCapturedUnreadState.value = true;
       markViewed();
     }
   },
@@ -37,14 +47,35 @@ function sortedReplies(
       new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
   );
 }
+
+function hasUnreadReply(message: NonNullable<typeof messages.value>[number]) {
+  const viewedAt = message.last_viewed_at
+    ? new Date(message.last_viewed_at).getTime()
+    : new Date(message.created_at).getTime();
+
+  return message.contact_message_replies.some(
+    (reply) => new Date(reply.created_at).getTime() > viewedAt,
+  );
+}
+
+function isNewThread(messageId: string) {
+  return capturedUnreadMessageIds.value.has(messageId);
+}
 </script>
 
 <template>
   <div class="page-data-container">
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900 mb-1">
-        {{ t("messages.title") }}
-      </h1>
+      <div class="mb-1 flex items-center gap-2">
+        <h1 class="text-2xl font-bold text-gray-900">
+          {{ t("messages.title") }}
+        </h1>
+        <span
+          v-if="hasNewReplies"
+          class="h-2 w-2 rounded-full bg-orange-600"
+          aria-hidden="true"
+        />
+      </div>
       <p class="text-sm text-gray-500">
         {{ t("messages.subtitle") }}
       </p>
@@ -75,11 +106,19 @@ function sortedReplies(
         v-for="msg in messages"
         :key="msg.id"
         class="rounded-xl border border-gray-100 bg-white p-4"
+        :class="{ 'border-orange-200': isNewThread(msg.id) }"
       >
         <div class="mb-2 flex items-start justify-between gap-3">
-          <span class="text-xs font-medium text-orange-600">
-            {{ t(`contact.type.${msg.type}`) }}
-          </span>
+          <div class="flex items-center gap-2">
+            <span
+              v-if="isNewThread(msg.id)"
+              class="h-2 w-2 rounded-full bg-orange-600"
+              aria-hidden="true"
+            />
+            <span class="text-xs font-medium text-orange-600">
+              {{ t(`contact.type.${msg.type}`) }}
+            </span>
+          </div>
           <span class="text-xs text-gray-400 shrink-0">
             {{ formatDate(msg.created_at) }}
           </span>
