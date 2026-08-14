@@ -8,6 +8,12 @@ async function chooseFirstDistanceIfNeeded(page: Page) {
   const distanceSelect = page.locator("#participationDistance");
   if (await distanceSelect.isVisible()) {
     await distanceSelect.selectOption({ index: 1 });
+    return;
+  }
+
+  const distanceButton = page.getByRole("button", { name: /Telt voor/ }).first();
+  if (await distanceButton.isVisible()) {
+    await distanceButton.click();
   }
 }
 

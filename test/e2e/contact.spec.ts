@@ -13,7 +13,7 @@ test.describe("Contact form", () => {
 
     await expect(page.getByText("Bericht ontvangen")).toBeVisible();
     await expect(
-      page.getByText("We nemen zo snel mogelijk contact met je op."),
+      page.getByText("Je vindt antwoorden terug onder Berichten."),
     ).toBeVisible();
   });
 });
