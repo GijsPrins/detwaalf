@@ -8,6 +8,8 @@ const {
   isError,
 } = useOwnContactMessages();
 const { mutate: markViewed } = useMarkOwnContactMessagesViewed();
+const { mutate: archiveMessage, isPending: isArchiving } =
+  useArchiveOwnContactMessage();
 const capturedUnreadMessageIds = ref(new Set<string>());
 const hasCapturedUnreadState = ref(false);
 
@@ -149,6 +151,16 @@ function isNewThread(messageId: string) {
         <p v-else class="mt-4 text-xs text-gray-400">
           {{ t("messages.noReply") }}
         </p>
+
+        <div class="mt-4 flex justify-end">
+          <button
+            class="text-xs font-medium text-gray-500 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="isArchiving"
+            @click="archiveMessage(msg.id)"
+          >
+            {{ t("messages.archive") }}
+          </button>
+        </div>
       </article>
 
       <NuxtLink

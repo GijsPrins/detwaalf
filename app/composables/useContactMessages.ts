@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/vue-query";
 import type { Ref } from "vue";
 import type { Database } from "~/types/database.types";
 import {
+  archiveContactMessage,
+  archiveOwnContactMessage,
   fetchContactMessages,
   fetchOwnContactMessages,
   fetchOwnContactMessagesCount,
@@ -179,6 +181,39 @@ export function useMarkMessageRead() {
 
   return useMutation({
     mutationFn: (id: string) => markMessageRead(supabase, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contactMessages"] });
+      queryClient.invalidateQueries({
+        queryKey: ["contactMessages", "unreadCount"],
+      });
+    },
+  });
+}
+
+export function useArchiveOwnContactMessage() {
+  const supabase = useSupabaseClient<Database>();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => archiveOwnContactMessage(supabase, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contactMessages", "own"] });
+      queryClient.invalidateQueries({
+        queryKey: ["contactMessages", "ownCount"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["contactMessages", "ownUnreadReplies"],
+      });
+    },
+  });
+}
+
+export function useArchiveContactMessage() {
+  const supabase = useSupabaseClient<Database>();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => archiveContactMessage(supabase, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contactMessages"] });
       queryClient.invalidateQueries({

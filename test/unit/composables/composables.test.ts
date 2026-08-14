@@ -22,6 +22,8 @@ import {
   updateSlugWord,
 } from "~/queries/slugWords";
 import {
+  archiveContactMessage,
+  archiveOwnContactMessage,
   fetchContactMessages,
   fetchOwnContactMessages,
   fetchOwnContactMessagesCount,
@@ -43,6 +45,8 @@ import { useClearParticipation } from "~/composables/useClearParticipation";
 import { useCompleteParticipation } from "~/composables/useCompleteParticipation";
 import {
   useContactMessages,
+  useArchiveContactMessage,
+  useArchiveOwnContactMessage,
   useMarkMessageRead,
   useMarkOwnContactMessagesViewed,
   useOwnContactMessages,
@@ -104,6 +108,8 @@ vi.mock("~/queries/slugWords", () => ({
 }));
 
 vi.mock("~/queries/contactMessages", () => ({
+  archiveContactMessage: vi.fn(),
+  archiveOwnContactMessage: vi.fn(),
   fetchContactMessages: vi.fn(),
   fetchOwnContactMessages: vi.fn(),
   fetchOwnContactMessagesCount: vi.fn(),
@@ -447,6 +453,8 @@ describe("composables", () => {
     vi.mocked(fetchUnreadContactMessagesCount).mockResolvedValue(0 as never);
     vi.mocked(insertContactMessage).mockResolvedValue(undefined as never);
     vi.mocked(insertContactMessageReply).mockResolvedValue(undefined as never);
+    vi.mocked(archiveContactMessage).mockResolvedValue(undefined as never);
+    vi.mocked(archiveOwnContactMessage).mockResolvedValue(undefined as never);
     vi.mocked(markOwnContactMessagesViewed).mockResolvedValue(
       undefined as never,
     );
@@ -486,6 +494,14 @@ describe("composables", () => {
     await (mark.mutationFn as (id: string) => Promise<unknown>)("msg-1");
     (mark.onSuccess as () => void)();
 
+    const archiveOwn = useArchiveOwnContactMessage();
+    await (archiveOwn.mutationFn as (id: string) => Promise<unknown>)("msg-1");
+    (archiveOwn.onSuccess as () => void)();
+
+    const archiveAdmin = useArchiveContactMessage();
+    await (archiveAdmin.mutationFn as (id: string) => Promise<unknown>)("msg-1");
+    (archiveAdmin.onSuccess as () => void)();
+
     expect(fetchContactMessages).toHaveBeenCalledWith(supabase);
     expect(fetchOwnContactMessages).toHaveBeenCalledWith(supabase);
     expect(fetchOwnContactMessagesCount).toHaveBeenCalledWith(supabase);
@@ -499,6 +515,8 @@ describe("composables", () => {
     });
     expect(markOwnContactMessagesViewed).toHaveBeenCalledWith(supabase);
     expect(markMessageRead).toHaveBeenCalledWith(supabase, "msg-1");
+    expect(archiveOwnContactMessage).toHaveBeenCalledWith(supabase, "msg-1");
+    expect(archiveContactMessage).toHaveBeenCalledWith(supabase, "msg-1");
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["contactMessages"],
     });

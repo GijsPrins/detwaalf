@@ -523,6 +523,7 @@ export default {
     replyLabel: "Antwoord",
     noReply: "Nog geen antwoord.",
     newMessage: "Nieuw bericht",
+    archive: "Archiveer",
   },
   admin: {
     notAuthorized: "Je hebt geen toegang tot deze pagina.",
@@ -546,6 +547,7 @@ export default {
       replySent: "Antwoord opgeslagen.",
       replyError: "Antwoord opslaan mislukt. Probeer het opnieuw.",
       replyFromAdmin: "Antwoord",
+      archive: "Archiveer",
     },
     slugs: {
       title: "Slugwoorden",
