@@ -47,6 +47,7 @@ export default defineNuxtConfig({
         "/register",
         "/confirm",
         "/events",
+        "/events/*",
         "/onboarding",
         "/privacy",
         "/profile/*",
