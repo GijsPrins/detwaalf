@@ -3,8 +3,13 @@ import type { Ref } from "vue";
 import type { Database } from "~/types/database.types";
 import {
   fetchContactMessages,
+  fetchOwnContactMessages,
+  fetchOwnContactMessagesCount,
+  fetchUnreadOwnContactRepliesCount,
   fetchUnreadContactMessagesCount,
   insertContactMessage,
+  insertContactMessageReply,
+  markOwnContactMessagesViewed,
   markMessageRead,
   type ContactMessageType,
 } from "~/queries/contactMessages";
@@ -16,6 +21,62 @@ export function useContactMessages(options?: { enabled: Ref<boolean> }) {
     queryKey: ["contactMessages"],
     queryFn: () => fetchContactMessages(supabase),
     enabled: options?.enabled,
+  });
+}
+
+export function useOwnContactMessages() {
+  const supabase = useSupabaseClient<Database>();
+  const user = useSupabaseUser();
+
+  return useQuery({
+    queryKey: computed(() => ["contactMessages", "own", user.value?.id ?? null]),
+    queryFn: async () => {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (!authUser) return [];
+      return fetchOwnContactMessages(supabase);
+    },
+  });
+}
+
+export function useOwnContactMessagesCount() {
+  const supabase = useSupabaseClient<Database>();
+  const user = useSupabaseUser();
+
+  return useQuery({
+    queryKey: computed(() => [
+      "contactMessages",
+      "ownCount",
+      user.value?.id ?? null,
+    ]),
+    queryFn: async () => {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (!authUser) return 0;
+      return fetchOwnContactMessagesCount(supabase);
+    },
+  });
+}
+
+export function useUnreadOwnContactRepliesCount() {
+  const supabase = useSupabaseClient<Database>();
+  const user = useSupabaseUser();
+
+  return useQuery({
+    queryKey: computed(() => [
+      "contactMessages",
+      "ownUnreadReplies",
+      user.value?.id ?? null,
+    ]),
+    queryFn: async () => {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (!authUser) return 0;
+      return fetchUnreadOwnContactRepliesCount(supabase);
+    },
   });
 }
 
@@ -33,6 +94,7 @@ export function useUnreadContactMessagesCount(options?: {
 
 export function useSubmitContactMessage() {
   const supabase = useSupabaseClient<Database>();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (payload: {
@@ -54,6 +116,58 @@ export function useSubmitContactMessage() {
         email: payload.email ?? user.email ?? "",
         type: payload.type,
         message: payload.message,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contactMessages", "own"] });
+      queryClient.invalidateQueries({
+        queryKey: ["contactMessages", "ownCount"],
+      });
+    },
+  });
+}
+
+export function useReplyToContactMessage() {
+  const supabase = useSupabaseClient<Database>();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: { contactMessageId: string; body: string }) => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error || !user) {
+        throw error ?? new Error("Not authenticated");
+      }
+
+      return insertContactMessageReply(supabase, {
+        contactMessageId: payload.contactMessageId,
+        authorId: user.id,
+        body: payload.body,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contactMessages"] });
+      queryClient.invalidateQueries({ queryKey: ["contactMessages", "own"] });
+      queryClient.invalidateQueries({
+        queryKey: ["contactMessages", "ownUnreadReplies"],
+      });
+    },
+  });
+}
+
+export function useMarkOwnContactMessagesViewed() {
+  const supabase = useSupabaseClient<Database>();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => markOwnContactMessagesViewed(supabase),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contactMessages", "own"] });
+      queryClient.invalidateQueries({
+        queryKey: ["contactMessages", "ownUnreadReplies"],
       });
     },
   });

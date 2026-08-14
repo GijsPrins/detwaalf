@@ -3,6 +3,13 @@ const { t } = useI18n();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const { profile } = useProfile();
+const { data: canManage } = useCanManageEvents();
+const { data: ownMessagesCount } = useOwnContactMessagesCount();
+const { data: unreadOwnRepliesCount } = useUnreadOwnContactRepliesCount();
+const adminUnreadEnabled = computed(() => !!canManage.value);
+const { data: unreadAdminMessagesCount } = useUnreadContactMessagesCount({
+  enabled: adminUnreadEnabled,
+});
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
@@ -19,6 +26,20 @@ const initials = computed(() => {
     .map((p) => p[0]?.toUpperCase() ?? "")
     .join("");
 });
+const hasOwnMessages = computed(() => (ownMessagesCount.value ?? 0) > 0);
+const hasUnreadOwnReplies = computed(
+  () => (unreadOwnRepliesCount.value ?? 0) > 0,
+);
+const hasUnreadAdminMessages = computed(
+  () => (unreadAdminMessagesCount.value ?? 0) > 0,
+);
+const showMessagesItem = computed(() => hasOwnMessages.value || canManage.value);
+const hasUnreadMessages = computed(
+  () => hasUnreadOwnReplies.value || hasUnreadAdminMessages.value,
+);
+const messagesRoute = computed(() =>
+  canManage.value ? "/admin/messages" : "/messages",
+);
 
 function toggle() {
   isOpen.value = !isOpen.value;
@@ -56,6 +77,11 @@ function handleOutsideClick(event: MouseEvent) {
     >
       <span class="user-menu__avatar" aria-hidden="true">{{ initials }}</span>
       <span class="user-menu__name">{{ displayName }}</span>
+      <span
+        v-if="hasUnreadMessages"
+        class="user-menu__dot user-menu__dot--trigger"
+        aria-hidden="true"
+      />
       <svg
         class="user-menu__chevron"
         :class="{ 'user-menu__chevron--open': isOpen }"
@@ -113,6 +139,38 @@ function handleOutsideClick(event: MouseEvent) {
             />
           </svg>
           {{ t("nav.profile") }}
+        </NuxtLink>
+
+        <NuxtLink
+          v-if="showMessagesItem"
+          :to="messagesRoute"
+          class="user-menu__item"
+          role="menuitem"
+          @click="isOpen = false"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 15 15"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M2 2.5h11v7.5H5.5L2 13V2.5Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="user-menu__item-label">
+            {{ t("nav.messages") }}
+            <span
+              v-if="hasUnreadMessages"
+              class="user-menu__dot"
+              aria-hidden="true"
+            />
+          </span>
         </NuxtLink>
 
         <NuxtLink
@@ -198,6 +256,7 @@ function handleOutsideClick(event: MouseEvent) {
 }
 
 .user-menu__trigger {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -210,6 +269,20 @@ function handleOutsideClick(event: MouseEvent) {
     border-color 0.15s,
     box-shadow 0.15s;
   color: #374151;
+}
+
+.user-menu__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: #ea580c;
+  flex-shrink: 0;
+}
+
+.user-menu__dot--trigger {
+  position: absolute;
+  top: 2px;
+  right: 6px;
 }
 
 .user-menu__trigger:hover {
@@ -337,6 +410,12 @@ function handleOutsideClick(event: MouseEvent) {
     background 0.12s,
     color 0.12s;
   text-align: left;
+}
+
+.user-menu__item-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .user-menu__item:hover {
