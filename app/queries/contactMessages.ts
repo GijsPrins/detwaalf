@@ -16,6 +16,7 @@ export async function fetchContactMessages(
   const { data, error } = await supabase
     .from("contact_messages")
     .select("*, contact_message_replies(*)")
+    .is("admin_archived_at", null)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -28,6 +29,7 @@ export async function fetchOwnContactMessages(
   const { data, error } = await supabase
     .from("contact_messages")
     .select("*, contact_message_replies(*)")
+    .is("user_archived_at", null)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -39,7 +41,8 @@ export async function fetchOwnContactMessagesCount(
 ): Promise<number> {
   const { count, error } = await supabase
     .from("contact_messages")
-    .select("id", { count: "exact", head: true });
+    .select("id", { count: "exact", head: true })
+    .is("user_archived_at", null);
 
   if (error) throw error;
   return count ?? 0;
@@ -70,6 +73,7 @@ export async function fetchUnreadContactMessagesCount(
   const { count, error } = await supabase
     .from("contact_messages")
     .select("id", { count: "exact", head: true })
+    .is("admin_archived_at", null)
     .is("read_at", null);
 
   if (error) throw error;
@@ -118,7 +122,32 @@ export async function markOwnContactMessagesViewed(
   const { error } = await supabase
     .from("contact_messages")
     .update({ last_viewed_at: new Date().toISOString() })
+    .is("user_archived_at", null)
     .neq("id", "00000000-0000-0000-0000-000000000000");
+
+  if (error) throw error;
+}
+
+export async function archiveOwnContactMessage(
+  supabase: Client,
+  id: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("contact_messages")
+    .update({ user_archived_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) throw error;
+}
+
+export async function archiveContactMessage(
+  supabase: Client,
+  id: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("contact_messages")
+    .update({ admin_archived_at: new Date().toISOString() })
+    .eq("id", id);
 
   if (error) throw error;
 }

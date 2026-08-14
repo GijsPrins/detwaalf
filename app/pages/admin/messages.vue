@@ -15,6 +15,8 @@ const {
   isPending: isReplying,
   isError: replyError,
 } = useReplyToContactMessage();
+const { mutate: archiveMessage, isPending: isArchiving } =
+  useArchiveContactMessage();
 const replyDrafts = ref<Record<string, string>>({});
 const repliedMessageId = ref<string | null>(null);
 
@@ -186,17 +188,26 @@ async function submitReply(messageId: string) {
           </form>
 
           <div class="mt-4 flex items-center justify-between">
-            <span v-if="msg.read_at" class="text-xs text-gray-400">
-              {{
-                t("admin.messages.readOn", { date: formatDate(msg.read_at) })
-              }}
-            </span>
+            <div>
+              <span v-if="msg.read_at" class="text-xs text-gray-400">
+                {{
+                  t("admin.messages.readOn", { date: formatDate(msg.read_at) })
+                }}
+              </span>
+              <button
+                v-else
+                class="text-xs font-medium text-orange-600 hover:text-orange-700 transition-colors"
+                @click="markRead(msg.id)"
+              >
+                {{ t("admin.messages.markRead") }}
+              </button>
+            </div>
             <button
-              v-else
-              class="text-xs font-medium text-orange-600 hover:text-orange-700 transition-colors"
-              @click="markRead(msg.id)"
+              class="text-xs font-medium text-gray-500 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="isArchiving"
+              @click="archiveMessage(msg.id)"
             >
-              {{ t("admin.messages.markRead") }}
+              {{ t("admin.messages.archive") }}
             </button>
           </div>
         </div>

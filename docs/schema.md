@@ -66,6 +66,8 @@ erDiagram
     timestamptz created_at
     timestamptz read_at
     timestamptz last_viewed_at
+    timestamptz user_archived_at
+    timestamptz admin_archived_at
   }
   contact_message_replies {
     uuid id PK
@@ -98,5 +100,5 @@ erDiagram
 - `status` enum values: `interested`, `signed_up`, `completed`, `dns`, `dnf`, `cancelled`
 - `distance_category` enum values: `10k`, `half`, `marathon`
 - `get_event_cancellation_signals()` returns cancellation counts only for events the authenticated user already has an `interested` or `signed_up` participation for; it does not expose other users' notes
-- `contact_messages` stores authenticated user support/contact requests; admins can read and mark them as read, and users can read their own message threads. `last_viewed_at` tracks when the user last opened their message overview so new replies can be highlighted.
+- `contact_messages` stores authenticated user support/contact requests; admins can read and mark them as read, and users can read their own message threads. `last_viewed_at` tracks when the user last opened their message overview so new replies can be highlighted. `user_archived_at` and `admin_archived_at` hide threads from the regular user and admin lists without deleting the underlying record.
 - `contact_message_replies` stores in-app admin replies to contact messages. Admins can create replies; the original message owner can read replies to their own messages.
