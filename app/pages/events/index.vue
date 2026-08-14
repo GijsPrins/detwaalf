@@ -52,6 +52,7 @@ const statusFilters: { key: StatusFilter; label: string }[] = [
   { key: "completed", label: t("events.statusFilter.completed") },
   { key: "dns", label: t("events.statusFilter.dns") },
   { key: "dnf", label: t("events.statusFilter.dnf") },
+  { key: "cancelled", label: t("events.statusFilter.cancelled") },
 ];
 
 const todayStr = getLocalDateString();

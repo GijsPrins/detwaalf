@@ -34,6 +34,11 @@ export type UserParticipationRow = ParticipationRow & {
   > | null;
 };
 
+export interface EventCancellationSignalRow {
+  event_id: string;
+  cancelled_count: number;
+}
+
 type EventDistanceRpcInput = {
   distance: EventDistanceInput["distance"];
   distanceCategory: EventDistanceInput["distanceCategory"];
@@ -85,6 +90,17 @@ export async function fetchUserParticipations(
 
   if (error) throw error;
   return (data ?? []) as UserParticipationRow[];
+}
+
+export async function fetchEventCancellationSignals(
+  supabase: Client,
+): Promise<EventCancellationSignalRow[]> {
+  const { data, error } = await supabase.rpc(
+    "get_event_cancellation_signals" as unknown as keyof Database["public"]["Functions"],
+  );
+
+  if (error) throw error;
+  return (data ?? []) as EventCancellationSignalRow[];
 }
 
 export async function fetchProvinces(
