@@ -11,9 +11,19 @@ const PUBLIC_PATHS = [
 
 import { hasConfirmedEmail } from "~/utils/emailConfirmation";
 
+function isPublicEventRoute(path: string) {
+  const segments = path.split("/").filter(Boolean);
+  return (
+    segments.length === 2 &&
+    segments[0] === "events" &&
+    segments[1] !== "new"
+  );
+}
+
 export default defineNuxtRouteMiddleware(async (to) => {
   if (import.meta.server) return;
   if (PUBLIC_PATHS.includes(to.path)) return;
+  if (isPublicEventRoute(to.path)) return;
   if (to.path.startsWith("/profile/")) return;
 
   const user = useSupabaseUser();
