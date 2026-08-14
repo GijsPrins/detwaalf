@@ -15,12 +15,22 @@ watch(
 );
 
 const { data: canManage } = useCanManageEvents();
+const { data: ownMessagesCount } = useOwnContactMessagesCount();
+const { data: unreadOwnRepliesCount } = useUnreadOwnContactRepliesCount();
 const adminUnreadEnabled = computed(() => !!canManage.value);
-const { data: unreadMessageCount } = useUnreadContactMessagesCount({
+const { data: unreadAdminMessagesCount } = useUnreadContactMessagesCount({
   enabled: adminUnreadEnabled,
 });
-const hasUnreadAdminMessages = computed(
-  () => (unreadMessageCount.value ?? 0) > 0,
+const showMessagesItem = computed(
+  () => (ownMessagesCount.value ?? 0) > 0 || !!canManage.value,
+);
+const hasUnreadMessages = computed(
+  () =>
+    (unreadOwnRepliesCount.value ?? 0) > 0 ||
+    (unreadAdminMessagesCount.value ?? 0) > 0,
+);
+const messagesRoute = computed(() =>
+  canManage.value ? "/admin/messages" : "/messages",
 );
 
 async function logout() {
@@ -62,17 +72,10 @@ async function logout() {
           </NuxtLink>
           <NuxtLink
             v-if="canManage"
-            to="/admin/messages"
+            to="/admin/slugs"
             class="text-sm text-gray-500 hover:text-gray-900 transition-colors"
           >
-            <span class="relative inline-flex items-start">
-              {{ t("nav.admin") }}
-              <span
-                v-if="hasUnreadAdminMessages"
-                class="absolute -top-1 -right-2 h-2 w-2 rounded-full bg-orange-600"
-                aria-hidden="true"
-              />
-            </span>
+            {{ t("nav.admin") }}
           </NuxtLink>
           <UserMenu />
         </template>
@@ -170,18 +173,25 @@ async function logout() {
             {{ t("nav.contact") }}
           </NuxtLink>
           <NuxtLink
-            v-if="canManage"
-            to="/admin/messages"
+            v-if="showMessagesItem"
+            :to="messagesRoute"
             class="flex items-center py-3 text-sm text-gray-700 hover:text-gray-900 border-b border-gray-50 transition-colors"
           >
             <span class="relative inline-flex items-start">
-              {{ t("nav.admin") }}
+              {{ t("nav.messages") }}
               <span
-                v-if="hasUnreadAdminMessages"
+                v-if="hasUnreadMessages"
                 class="absolute -top-1 -right-2 h-2 w-2 rounded-full bg-orange-600"
                 aria-hidden="true"
               />
             </span>
+          </NuxtLink>
+          <NuxtLink
+            v-if="canManage"
+            to="/admin/slugs"
+            class="flex items-center py-3 text-sm text-gray-700 hover:text-gray-900 border-b border-gray-50 transition-colors"
+          >
+            {{ t("nav.admin") }}
           </NuxtLink>
           <button
             class="flex w-full items-center py-3 text-sm text-red-600 hover:text-red-700 transition-colors"

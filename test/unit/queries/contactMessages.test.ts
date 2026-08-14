@@ -1,13 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   fetchContactMessages,
+  fetchOwnContactMessages,
+  fetchOwnContactMessagesCount,
+  fetchUnreadOwnContactRepliesCount,
   fetchUnreadContactMessagesCount,
   insertContactMessage,
+  insertContactMessageReply,
+  markOwnContactMessagesViewed,
   markMessageRead,
 } from "~/queries/contactMessages";
 
 describe("contactMessages queries", () => {
-  it("fetchContactMessages returns rows ordered by created_at desc", async () => {
+  it("fetchContactMessages returns rows with replies ordered by created_at desc", async () => {
     const rows = [{ id: "1" }];
     const order = vi.fn().mockResolvedValue({ data: rows, error: null });
     const select = vi.fn(() => ({ order }));
@@ -16,7 +21,20 @@ describe("contactMessages queries", () => {
 
     await expect(fetchContactMessages(supabase)).resolves.toEqual(rows);
     expect(from).toHaveBeenCalledWith("contact_messages");
-    expect(select).toHaveBeenCalledWith("*");
+    expect(select).toHaveBeenCalledWith("*, contact_message_replies(*)");
+    expect(order).toHaveBeenCalledWith("created_at", { ascending: false });
+  });
+
+  it("fetchOwnContactMessages uses the same thread query", async () => {
+    const rows = [{ id: "1", contact_message_replies: [] }];
+    const order = vi.fn().mockResolvedValue({ data: rows, error: null });
+    const select = vi.fn(() => ({ order }));
+    const from = vi.fn(() => ({ select }));
+    const supabase = { from } as never;
+
+    await expect(fetchOwnContactMessages(supabase)).resolves.toEqual(rows);
+    expect(from).toHaveBeenCalledWith("contact_messages");
+    expect(select).toHaveBeenCalledWith("*, contact_message_replies(*)");
     expect(order).toHaveBeenCalledWith("created_at", { ascending: false });
   });
 
@@ -53,6 +71,65 @@ describe("contactMessages queries", () => {
     });
   });
 
+  it("fetchOwnContactMessagesCount returns exact count", async () => {
+    const select = vi.fn().mockResolvedValue({ count: 2, error: null });
+    const from = vi.fn(() => ({ select }));
+    const supabase = { from } as never;
+
+    await expect(fetchOwnContactMessagesCount(supabase)).resolves.toBe(2);
+    expect(from).toHaveBeenCalledWith("contact_messages");
+    expect(select).toHaveBeenCalledWith("id", { count: "exact", head: true });
+  });
+
+  it("fetchUnreadOwnContactRepliesCount counts replies newer than last_viewed_at", async () => {
+    const rows = [
+      {
+        id: "1",
+        created_at: "2026-08-14T10:00:00.000Z",
+        last_viewed_at: "2026-08-14T11:00:00.000Z",
+        contact_message_replies: [
+          { id: "old", created_at: "2026-08-14T10:30:00.000Z" },
+          { id: "new", created_at: "2026-08-14T11:30:00.000Z" },
+        ],
+      },
+      {
+        id: "2",
+        created_at: "2026-08-14T12:00:00.000Z",
+        last_viewed_at: null,
+        contact_message_replies: [
+          { id: "reply", created_at: "2026-08-14T12:30:00.000Z" },
+        ],
+      },
+    ];
+    const order = vi.fn().mockResolvedValue({ data: rows, error: null });
+    const select = vi.fn(() => ({ order }));
+    const from = vi.fn(() => ({ select }));
+    const supabase = { from } as never;
+
+    await expect(fetchUnreadOwnContactRepliesCount(supabase)).resolves.toBe(2);
+  });
+
+  it("insertContactMessageReply maps payload fields correctly", async () => {
+    const insert = vi.fn().mockResolvedValue({ error: null });
+    const from = vi.fn(() => ({ insert }));
+    const supabase = { from } as never;
+
+    await expect(
+      insertContactMessageReply(supabase, {
+        contactMessageId: "msg-1",
+        authorId: "admin-1",
+        body: "Reply",
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(from).toHaveBeenCalledWith("contact_message_replies");
+    expect(insert).toHaveBeenCalledWith({
+      contact_message_id: "msg-1",
+      author_id: "admin-1",
+      body: "Reply",
+    });
+  });
+
   it("markMessageRead updates read_at and filters on id", async () => {
     const eq = vi.fn().mockResolvedValue({ error: null });
     const update = vi.fn(() => ({ eq }));
@@ -66,6 +143,25 @@ describe("contactMessages queries", () => {
     expect(typeof updatePayload.read_at).toBe("string");
     expect(updatePayload.read_at.length).toBeGreaterThan(0);
     expect(eq).toHaveBeenCalledWith("id", "msg-1");
+  });
+
+  it("markOwnContactMessagesViewed updates last_viewed_at for visible rows", async () => {
+    const neq = vi.fn().mockResolvedValue({ error: null });
+    const update = vi.fn(() => ({ neq }));
+    const from = vi.fn(() => ({ update }));
+    const supabase = { from } as never;
+
+    await expect(markOwnContactMessagesViewed(supabase)).resolves.toBeUndefined();
+
+    expect(update).toHaveBeenCalledOnce();
+    const updatePayload = update.mock.calls[0]?.[0] as {
+      last_viewed_at: string;
+    };
+    expect(typeof updatePayload.last_viewed_at).toBe("string");
+    expect(neq).toHaveBeenCalledWith(
+      "id",
+      "00000000-0000-0000-0000-000000000000",
+    );
   });
 
   it("throws query errors", async () => {
