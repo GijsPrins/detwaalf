@@ -29,7 +29,6 @@ import {
   fetchOwnContactMessagesCount,
   fetchUnreadOwnContactRepliesCount,
   fetchUnreadContactMessagesCount,
-  insertContactMessage,
   insertContactMessageReply,
   markOwnContactMessagesViewed,
   markMessageRead,
@@ -115,7 +114,6 @@ vi.mock("~/queries/contactMessages", () => ({
   fetchOwnContactMessagesCount: vi.fn(),
   fetchUnreadOwnContactRepliesCount: vi.fn(),
   fetchUnreadContactMessagesCount: vi.fn(),
-  insertContactMessage: vi.fn(),
   insertContactMessageReply: vi.fn(),
   markOwnContactMessagesViewed: vi.fn(),
   markMessageRead: vi.fn(),
@@ -141,6 +139,7 @@ describe("composables", () => {
   const supabase = {
     auth: {
       getUser: vi.fn(),
+      getSession: vi.fn(),
     },
     from: vi.fn(),
     rpc: vi.fn(),
@@ -161,9 +160,14 @@ describe("composables", () => {
     ).useSupabaseUser = vi.fn(() =>
       ref({ id: "user-1", email: "user@example.com" }),
     );
+    (globalThis as { $fetch: ReturnType<typeof vi.fn> }).$fetch = vi.fn();
 
     supabase.auth.getUser.mockResolvedValue({
       data: { user: { id: "user-1", email: "user@example.com" } },
+      error: null,
+    });
+    supabase.auth.getSession.mockResolvedValue({
+      data: { session: { access_token: "session-token-1" } },
       error: null,
     });
     supabase.rpc.mockResolvedValue({ data: false });
@@ -451,7 +455,6 @@ describe("composables", () => {
     vi.mocked(fetchOwnContactMessagesCount).mockResolvedValue(1 as never);
     vi.mocked(fetchUnreadOwnContactRepliesCount).mockResolvedValue(1 as never);
     vi.mocked(fetchUnreadContactMessagesCount).mockResolvedValue(0 as never);
-    vi.mocked(insertContactMessage).mockResolvedValue(undefined as never);
     vi.mocked(insertContactMessageReply).mockResolvedValue(undefined as never);
     vi.mocked(archiveContactMessage).mockResolvedValue(undefined as never);
     vi.mocked(archiveOwnContactMessage).mockResolvedValue(undefined as never);
@@ -507,7 +510,17 @@ describe("composables", () => {
     expect(fetchOwnContactMessagesCount).toHaveBeenCalledWith(supabase);
     expect(fetchUnreadOwnContactRepliesCount).toHaveBeenCalledWith(supabase);
     expect(fetchUnreadContactMessagesCount).toHaveBeenCalledWith(supabase);
-    expect(insertContactMessage).toHaveBeenCalled();
+    expect(globalThis.$fetch).toHaveBeenCalledWith("/api/contact-messages", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        Authorization: "Bearer session-token-1",
+      },
+      body: {
+        type: "general",
+        message: "hello",
+      },
+    });
     expect(insertContactMessageReply).toHaveBeenCalledWith(supabase, {
       contactMessageId: "msg-1",
       authorId: "user-1",
