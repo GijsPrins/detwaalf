@@ -4,6 +4,14 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2026-04-02",
   devtools: { enabled: process.env.NODE_ENV !== "production" },
+  runtimeConfig: {
+    brevoApiKey: process.env.BREVO_API_KEY || "",
+    contactNotificationFrom:
+      process.env.CONTACT_NOTIFICATION_FROM ||
+      "notificaties@mail.twaalfprovincies.run",
+    contactNotificationTo:
+      process.env.CONTACT_NOTIFICATION_TO || "info@twaalfprovincies.run",
+  },
   css: ["~/assets/css/main.css"],
   app: {
     head: {

@@ -9,7 +9,6 @@ import {
   fetchOwnContactMessagesCount,
   fetchUnreadOwnContactRepliesCount,
   fetchUnreadContactMessagesCount,
-  insertContactMessage,
   insertContactMessageReply,
   markOwnContactMessagesViewed,
   markMessageRead,
@@ -95,7 +94,6 @@ export function useUnreadContactMessagesCount(options?: {
 }
 
 export function useSubmitContactMessage() {
-  const supabase = useSupabaseClient<Database>();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -104,20 +102,9 @@ export function useSubmitContactMessage() {
       message: string;
       email?: string;
     }) => {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error || !user) {
-        throw error ?? new Error("Not authenticated");
-      }
-
-      return insertContactMessage(supabase, {
-        userId: user.id,
-        email: payload.email ?? user.email ?? "",
-        type: payload.type,
-        message: payload.message,
+      return $fetch("/api/contact-messages", {
+        method: "POST",
+        body: payload,
       });
     },
     onSuccess: () => {
