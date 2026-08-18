@@ -57,6 +57,7 @@ export async function sendContactMessageNotification(
 
   await $fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
+    timeout: 3000,
     headers: {
       accept: "application/json",
       "api-key": apiKey,

@@ -507,6 +507,7 @@ describe("composables", () => {
     expect(fetchUnreadContactMessagesCount).toHaveBeenCalledWith(supabase);
     expect(globalThis.$fetch).toHaveBeenCalledWith("/api/contact-messages", {
       method: "POST",
+      credentials: "include",
       body: {
         type: "general",
         message: "hello",

@@ -104,6 +104,7 @@ export function useSubmitContactMessage() {
     }) => {
       return $fetch("/api/contact-messages", {
         method: "POST",
+        credentials: "include",
         body: payload,
       });
     },
