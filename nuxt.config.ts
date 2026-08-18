@@ -45,6 +45,8 @@ export default defineNuxtConfig({
         "/",
         "/login",
         "/register",
+        "/forgot-password",
+        "/update-password",
         "/confirm",
         "/events",
         "/events/*",
