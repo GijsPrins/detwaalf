@@ -139,6 +139,7 @@ describe("composables", () => {
   const supabase = {
     auth: {
       getUser: vi.fn(),
+      getSession: vi.fn(),
     },
     from: vi.fn(),
     rpc: vi.fn(),
@@ -163,6 +164,10 @@ describe("composables", () => {
 
     supabase.auth.getUser.mockResolvedValue({
       data: { user: { id: "user-1", email: "user@example.com" } },
+      error: null,
+    });
+    supabase.auth.getSession.mockResolvedValue({
+      data: { session: { access_token: "session-token-1" } },
       error: null,
     });
     supabase.rpc.mockResolvedValue({ data: false });
@@ -508,6 +513,9 @@ describe("composables", () => {
     expect(globalThis.$fetch).toHaveBeenCalledWith("/api/contact-messages", {
       method: "POST",
       credentials: "include",
+      headers: {
+        Authorization: "Bearer session-token-1",
+      },
       body: {
         type: "general",
         message: "hello",

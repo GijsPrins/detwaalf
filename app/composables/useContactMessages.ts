@@ -94,6 +94,7 @@ export function useUnreadContactMessagesCount(options?: {
 }
 
 export function useSubmitContactMessage() {
+  const supabase = useSupabaseClient<Database>();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -102,9 +103,21 @@ export function useSubmitContactMessage() {
       message: string;
       email?: string;
     }) => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        throw error ?? new Error("Not authenticated");
+      }
+
       return $fetch("/api/contact-messages", {
         method: "POST",
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: payload,
       });
     },
