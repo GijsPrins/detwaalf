@@ -1,6 +1,7 @@
 import type { Database, Tables } from "~/types/database.types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-type Client = ReturnType<typeof useSupabaseClient<Database>>;
+type Client = SupabaseClient<Database>;
 
 export type ContactMessageRow = Tables<"contact_messages">;
 export type ContactMessageReplyRow = Tables<"contact_message_replies">;
@@ -89,12 +90,14 @@ export async function insertContactMessage(
     message: string;
   },
 ): Promise<void> {
-  const { error } = await supabase.from("contact_messages").insert({
-    user_id: payload.userId,
-    email: payload.email,
-    type: payload.type,
-    message: payload.message,
-  });
+  const { error } = await supabase
+    .from("contact_messages")
+    .insert({
+      user_id: payload.userId,
+      email: payload.email,
+      type: payload.type,
+      message: payload.message,
+    });
 
   if (error) throw error;
 }

@@ -34,6 +34,15 @@ is not set up, use the staging Supabase project rather than production.
 Never put the Supabase service-role key in `.env`; the Nuxt app only needs the
 anon/publishable key.
 
+Contact form notifications are sent server-side through Brevo. Set these only
+in local `.env` or deployment environment variables, never in source code:
+
+```bash
+BREVO_API_KEY=
+CONTACT_NOTIFICATION_FROM=notificaties@mail.twaalfprovincies.run
+CONTACT_NOTIFICATION_TO=info@twaalfprovincies.run
+```
+
 ## Supabase CLI
 
 The local Supabase CLI should be linked to the staging project, not production.
