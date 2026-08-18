@@ -88,7 +88,10 @@ async function login() {
       </button>
     </form>
 
-    <div class="mt-6 text-center">
+    <div class="mt-6 flex flex-col items-center gap-3 text-center">
+      <NuxtLink to="/forgot-password" class="text-sm text-gray-500 hover:text-orange-600 transition-colors">
+        {{ t('auth.login.forgotPassword') }}
+      </NuxtLink>
       <NuxtLink to="/register" class="text-sm text-gray-500 hover:text-orange-600 transition-colors">
         {{ t('auth.login.noAccount') }}
       </NuxtLink>

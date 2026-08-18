@@ -48,6 +48,8 @@ export default {
     dashboard: "Dashboard",
     login: "Inloggen",
     register: "Registreren",
+    forgotPassword: "Wachtwoord herstellen",
+    updatePassword: "Nieuw wachtwoord instellen",
     onboarding: "Hoe werkt het?",
     profile: "Mijn profiel",
     messages: "Berichten",
@@ -453,11 +455,41 @@ export default {
       password: "Wachtwoord",
       submit: "Inloggen",
       loading: "Bezig met inloggen…",
+      forgotPassword: "Wachtwoord vergeten?",
       noAccount: "Nog geen account? Registreer hier.",
       errors: {
         invalidCredentials: "E-mailadres of wachtwoord is onjuist.",
         emailNotConfirmed: "Bevestig je e-mailadres voordat je inlogt.",
         generic: "Er is iets misgegaan. Probeer het opnieuw.",
+      },
+    },
+    forgotPassword: {
+      title: "Wachtwoord herstellen",
+      subtitle:
+        "Vul je e-mailadres in. We sturen je een link waarmee je een nieuw wachtwoord kunt instellen.",
+      email: "E-mailadres",
+      submit: "Herstellink versturen",
+      loading: "Link versturen…",
+      success: "Als dit e-mailadres bekend is, ontvang je zo een herstellink.",
+      backToLogin: "Terug naar inloggen",
+      errors: {
+        generic: "We konden geen herstellink versturen. Probeer het opnieuw.",
+      },
+    },
+    updatePassword: {
+      title: "Nieuw wachtwoord instellen",
+      subtitle: "Kies een nieuw wachtwoord voor je account.",
+      password: "Nieuw wachtwoord",
+      passwordConfirm: "Herhaal nieuw wachtwoord",
+      submit: "Wachtwoord opslaan",
+      loading: "Opslaan…",
+      success: "Je wachtwoord is aangepast. Je kunt nu inloggen.",
+      backToLogin: "Naar inloggen",
+      errors: {
+        mismatch: "De wachtwoorden komen niet overeen.",
+        noSession:
+          "Deze herstellink is ongeldig of verlopen. Vraag een nieuwe link aan.",
+        generic: "We konden je wachtwoord niet aanpassen. Probeer het opnieuw.",
       },
     },
     register: {
