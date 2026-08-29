@@ -308,8 +308,11 @@ describe("composables", () => {
     });
 
     expect(saveParticipation).toHaveBeenCalled();
-    expect(queryClient.setQueriesData).toHaveBeenCalled();
-    expect(queryClient.refetchQueries).toHaveBeenCalled();
+    expect(queryClient.setQueryData).toHaveBeenCalledWith(
+      ["eventParticipation", "ev-1", "user-1"],
+      expect.objectContaining({ id: "p-1" }),
+    );
+    expect(queryClient.setQueriesData).not.toHaveBeenCalled();
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["eventParticipations"],
     });
@@ -319,16 +322,19 @@ describe("composables", () => {
     vi.mocked(deleteParticipation).mockResolvedValue(undefined as never);
     const mutation = useClearParticipation(ref("ev-2"));
 
-    await (mutation.mutationFn as () => Promise<unknown>)();
-    (mutation.onSuccess as () => void)();
+    const data = await (mutation.mutationFn as () => Promise<unknown>)();
+    (mutation.onSuccess as (data: unknown) => void)(data);
 
     expect(deleteParticipation).toHaveBeenCalledWith(
       supabase,
       "ev-2",
       "user-1",
     );
-    expect(queryClient.setQueriesData).toHaveBeenCalled();
-    expect(queryClient.refetchQueries).toHaveBeenCalled();
+    expect(queryClient.setQueryData).toHaveBeenCalledWith(
+      ["eventParticipation", "ev-2", "user-1"],
+      null,
+    );
+    expect(queryClient.setQueriesData).not.toHaveBeenCalled();
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["eventParticipations"],
     });
@@ -338,7 +344,9 @@ describe("composables", () => {
     vi.mocked(saveParticipation).mockResolvedValue({ id: "p-3" } as never);
     const mutation = useCompleteParticipation();
 
-    await (mutation.mutationFn as (payload: unknown) => Promise<unknown>)({
+    const data = await (
+      mutation.mutationFn as (payload: unknown) => Promise<unknown>
+    )({
       eventId: "ev-3",
       eventDistanceId: "dist-3",
       status: "completed",
@@ -360,13 +368,16 @@ describe("composables", () => {
       "user-1",
     );
 
-    (mutation.onSuccess as (_data: unknown, variables: { eventId: string }) => void)(
-      {},
-      { eventId: "ev-3" },
+    (
+      mutation.onSuccess as (
+        data: unknown,
+        variables: { eventId: string },
+      ) => void
+    )(data, { eventId: "ev-3" });
+    expect(queryClient.setQueryData).toHaveBeenCalledWith(
+      ["eventParticipation", "ev-3", "user-1"],
+      { id: "p-3" },
     );
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["eventParticipation", "ev-3"],
-    });
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["eventParticipations"],
     });

@@ -16,27 +16,19 @@ export function useSetParticipation(eventId: MaybeRef<string>) {
     mutationFn: async ({ status, eventDistanceId }: SetParticipationInput) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-      return saveParticipation(supabase, {
+      const participation = await saveParticipation(supabase, {
         event_id: toValue(eventId),
         status,
         event_distance_id: eventDistanceId ?? null,
       }, user.id);
+      return { participation, userId: user.id };
     },
-    onSuccess: (data, variables) => {
+    onSuccess: ({ participation, userId }) => {
       const evId = toValue(eventId);
-      const participationKeyPrefix = ["eventParticipation", evId];
-
-      queryClient.setQueriesData(
-        { queryKey: participationKeyPrefix },
-        {
-          id: data.id,
-          event_id: data.event_id,
-          event_distance_id: data.event_distance_id,
-          status: variables.status,
-        },
+      queryClient.setQueryData(
+        ["eventParticipation", evId, userId],
+        participation,
       );
-
-      queryClient.refetchQueries({ queryKey: participationKeyPrefix });
 
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
       queryClient.invalidateQueries({ queryKey: ["eventCancellationSignals"] });

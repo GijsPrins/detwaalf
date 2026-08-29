@@ -11,15 +11,12 @@ export function useClearParticipation(eventId: MaybeRef<string>) {
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-      return deleteParticipation(supabase, toValue(eventId), user.id);
+      await deleteParticipation(supabase, toValue(eventId), user.id);
+      return { userId: user.id };
     },
-    onSuccess: () => {
+    onSuccess: ({ userId }) => {
       const evId = toValue(eventId);
-      const participationKeyPrefix = ["eventParticipation", evId];
-
-      queryClient.setQueriesData({ queryKey: participationKeyPrefix }, null);
-
-      queryClient.refetchQueries({ queryKey: participationKeyPrefix });
+      queryClient.setQueryData(["eventParticipation", evId, userId], null);
 
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
       queryClient.invalidateQueries({ queryKey: ["eventCancellationSignals"] });
