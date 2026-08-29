@@ -14,9 +14,13 @@ export function useClearParticipation(eventId: MaybeRef<string>) {
       await deleteParticipation(supabase, toValue(eventId), user.id);
       return { userId: user.id };
     },
-    onSuccess: ({ userId }) => {
+    onSuccess: async ({ userId }) => {
       const evId = toValue(eventId);
       queryClient.setQueryData(["eventParticipation", evId, userId], null);
+      await queryClient.refetchQueries({
+        queryKey: ["eventParticipation", evId],
+        type: "active",
+      });
 
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
       queryClient.invalidateQueries({ queryKey: ["eventCancellationSignals"] });

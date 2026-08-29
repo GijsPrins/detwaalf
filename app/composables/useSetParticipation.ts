@@ -23,12 +23,16 @@ export function useSetParticipation(eventId: MaybeRef<string>) {
       }, user.id);
       return { participation, userId: user.id };
     },
-    onSuccess: ({ participation, userId }) => {
+    onSuccess: async ({ participation, userId }) => {
       const evId = toValue(eventId);
       queryClient.setQueryData(
         ["eventParticipation", evId, userId],
         participation,
       );
+      await queryClient.refetchQueries({
+        queryKey: ["eventParticipation", evId],
+        type: "active",
+      });
 
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
       queryClient.invalidateQueries({ queryKey: ["eventCancellationSignals"] });
