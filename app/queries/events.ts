@@ -215,13 +215,20 @@ export async function saveParticipation(
   },
   userId: string,
 ): Promise<Tables<"event_participations">> {
-  const updatePayload = {
+  const updatePayload: TablesUpdate<"event_participations"> = {
     status: participation.status,
     event_distance_id: participation.event_distance_id ?? null,
-    finish_time_seconds: participation.finish_time_seconds ?? null,
-    timing_url: participation.timing_url ?? null,
-    notes: participation.notes ?? null,
   };
+
+  if (participation.finish_time_seconds !== undefined) {
+    updatePayload.finish_time_seconds = participation.finish_time_seconds;
+  }
+  if (participation.timing_url !== undefined) {
+    updatePayload.timing_url = participation.timing_url;
+  }
+  if (participation.notes !== undefined) {
+    updatePayload.notes = participation.notes;
+  }
 
   const { data: updatedRows, error: updateError } = await supabase
     .from("event_participations")
