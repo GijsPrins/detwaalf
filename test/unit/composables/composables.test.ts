@@ -305,7 +305,7 @@ describe("composables", () => {
       eventDistanceId: "dist-1",
     });
 
-    (mutation.onSuccess as (d: any, v: any) => void)(data, {
+    await (mutation.onSuccess as (d: any, v: any) => Promise<void>)(data, {
       status: "interested",
     });
 
@@ -315,6 +315,10 @@ describe("composables", () => {
       expect.objectContaining({ id: "p-1" }),
     );
     expect(queryClient.setQueriesData).not.toHaveBeenCalled();
+    expect(queryClient.refetchQueries).toHaveBeenCalledWith({
+      queryKey: ["eventParticipation", "ev-1"],
+      type: "active",
+    });
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["eventParticipations"],
     });
@@ -325,7 +329,7 @@ describe("composables", () => {
     const mutation = useClearParticipation(ref("ev-2"));
 
     const data = await (mutation.mutationFn as () => Promise<unknown>)();
-    (mutation.onSuccess as (data: unknown) => void)(data);
+    await (mutation.onSuccess as (data: unknown) => Promise<void>)(data);
 
     expect(deleteParticipation).toHaveBeenCalledWith(
       supabase,
@@ -337,6 +341,10 @@ describe("composables", () => {
       null,
     );
     expect(queryClient.setQueriesData).not.toHaveBeenCalled();
+    expect(queryClient.refetchQueries).toHaveBeenCalledWith({
+      queryKey: ["eventParticipation", "ev-2"],
+      type: "active",
+    });
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["eventParticipations"],
     });
@@ -370,16 +378,20 @@ describe("composables", () => {
       "user-1",
     );
 
-    (
+    await (
       mutation.onSuccess as (
         data: unknown,
         variables: { eventId: string },
-      ) => void
+      ) => Promise<void>
     )(data, { eventId: "ev-3" });
     expect(queryClient.setQueryData).toHaveBeenCalledWith(
       ["eventParticipation", "ev-3", "user-1"],
       { id: "p-3" },
     );
+    expect(queryClient.refetchQueries).toHaveBeenCalledWith({
+      queryKey: ["eventParticipation", "ev-3"],
+      type: "active",
+    });
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["eventParticipations"],
     });

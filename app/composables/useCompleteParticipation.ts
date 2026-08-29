@@ -29,11 +29,15 @@ export function useCompleteParticipation() {
       }, user.id);
       return { participation, userId: user.id };
     },
-    onSuccess: ({ participation, userId }, variables) => {
+    onSuccess: async ({ participation, userId }, variables) => {
       queryClient.setQueryData(
         ["eventParticipation", variables.eventId, userId],
         participation,
       );
+      await queryClient.refetchQueries({
+        queryKey: ["eventParticipation", variables.eventId],
+        type: "active",
+      });
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
       queryClient.invalidateQueries({ queryKey: ["eventCancellationSignals"] });
     },
