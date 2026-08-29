@@ -2,7 +2,7 @@
 const { t } = useI18n();
 useHead(() => ({ title: t("page.adminMessages") }));
 
-const { data: canManage } = useCanManageEvents();
+const { data: canManage } = useHasRole("admin");
 const messagesEnabled = computed(() => !!canManage.value);
 const {
   data: messages,

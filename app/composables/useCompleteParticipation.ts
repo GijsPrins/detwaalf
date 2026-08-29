@@ -19,18 +19,29 @@ export function useCompleteParticipation() {
     mutationFn: async (input: CompleteParticipationInput) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-      return saveParticipation(supabase, {
+      const resultDetails = input.status === "completed"
+        ? {
+            finish_time_seconds: input.finishTimeSeconds,
+            timing_url: input.timingUrl,
+          }
+        : {};
+      const participation = await saveParticipation(supabase, {
         event_id: input.eventId,
         event_distance_id: input.eventDistanceId,
         status: input.status,
-        finish_time_seconds: input.finishTimeSeconds,
-        timing_url: input.timingUrl,
         notes: input.notes,
+        ...resultDetails,
       }, user.id);
+      return { participation, userId: user.id };
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
+    onSuccess: async ({ participation, userId }, variables) => {
+      queryClient.setQueryData(
+        ["eventParticipation", variables.eventId, userId],
+        participation,
+      );
+      await queryClient.refetchQueries({
         queryKey: ["eventParticipation", variables.eventId],
+        type: "active",
       });
       queryClient.invalidateQueries({ queryKey: ["eventParticipations"] });
       queryClient.invalidateQueries({ queryKey: ["eventCancellationSignals"] });

@@ -4,6 +4,7 @@ definePageMeta({ layout: 'auth' })
 const { t } = useI18n()
 useHead(() => ({ title: t('page.register') }))
 const supabase = useSupabaseClient()
+const runtimeConfig = useRuntimeConfig()
 const user = useSupabaseUser()
 
 watchEffect(() => {
@@ -31,7 +32,7 @@ async function register() {
       data: {
         display_name: name.value,
       },
-      emailRedirectTo: `${window.location.origin}/confirm`,
+    emailRedirectTo: new URL('/confirm', runtimeConfig.public.siteUrl).toString(),
     }
   })
 

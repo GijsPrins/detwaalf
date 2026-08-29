@@ -1,20 +1,22 @@
-import { useQuery } from '@tanstack/vue-query'
-import type { Database } from '~/types/database.types'
+import { useQuery } from "@tanstack/vue-query";
+import type { Database } from "~/types/database.types";
 
 export function useCanManageEvents() {
-  const supabase = useSupabaseClient<Database>()
-  const user = useSupabaseUser()
+  const supabase = useSupabaseClient<Database>();
+  const user = useSupabaseUser();
 
   return useQuery({
-    queryKey: computed(() => ['canManageEvents', user.value?.id]),
+    queryKey: computed(() => ["canManageEvents", user.value?.sub]),
     queryFn: async () => {
-      const { data: isAdmin, error: adminError } = await supabase.rpc('has_role', { role_name: 'admin' })
-      if (adminError) throw adminError
-      if (isAdmin) return true
-      const { data: isManager, error: managerError } = await supabase.rpc('has_role', { role_name: 'event_manager' })
-      if (managerError) throw managerError
-      return !!isManager
+      if (!user.value) return false;
+
+      const [adminResult, managerResult] = await Promise.all([
+        supabase.rpc("has_role", { role_name: "admin" }),
+        supabase.rpc("has_role", { role_name: "event_manager" }),
+      ]);
+      if (adminResult.error) throw adminResult.error;
+      if (managerResult.error) throw managerResult.error;
+      return !!adminResult.data || !!managerResult.data;
     },
-    enabled: computed(() => !!user.value),
-  })
+  });
 }

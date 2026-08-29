@@ -4,6 +4,7 @@ import type { Enums } from "~/types/database.types";
 import type { EventViewModel, EventDistanceViewModel } from "~/mappers/events";
 import { formatEventDistanceLabel } from "~/utils/eventDistances";
 import { getEventRegistrationCta } from "~/utils/eventRegistrationCta";
+import { formatDateOnly } from "~/utils/localDate";
 import { PARTICIPATION_STATUS_BADGE_CLASS } from "~/constants/participation";
 
 const { t } = useI18n();
@@ -36,11 +37,18 @@ const requiresAction = computed(() => registrationCta.value.type === "open");
 const futureRegistrationDate = computed(() => {
   if (registrationCta.value.type !== "future") return null;
 
-  return new Date(registrationCta.value.opensOn).toLocaleDateString("nl-NL", {
+  return formatDateOnly(registrationCta.value.opensOn, {
     day: "numeric",
     month: "short",
   });
 });
+
+const eventMonth = computed(() =>
+  formatDateOnly(props.event.eventDate, { month: "short" }).replace(".", ""),
+);
+const eventDay = computed(() =>
+  formatDateOnly(props.event.eventDate, { day: "numeric" }),
+);
 
 const eventTarget = computed(() => {
   const query = new URLSearchParams();
@@ -66,10 +74,10 @@ const eventTarget = computed(() => {
     <!-- Calendar Left Anchor -->
     <div class="flex flex-col items-center justify-center bg-gray-50 rounded-lg w-14 py-2 border border-gray-100 shrink-0">
       <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest -mb-0.5">
-        {{ new Date(event.eventDate).toLocaleDateString("nl-NL", { month: "short" }).replace('.', '') }}
+        {{ eventMonth }}
       </span>
       <span class="text-xl font-black text-gray-900 mt-1">
-        {{ new Date(event.eventDate).getDate() }}
+        {{ eventDay }}
       </span>
     </div>
 

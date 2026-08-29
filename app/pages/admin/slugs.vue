@@ -6,7 +6,7 @@ type BulkDelimiter = "newline" | "comma" | "semicolon" | "pipe";
 const { t } = useI18n();
 useHead(() => ({ title: t("page.adminSlugs") }));
 
-const { data: canManage } = useCanManageEvents();
+const { data: canManage } = useHasRole("admin");
 const slugWordsEnabled = computed(() => !!canManage.value);
 const {
   data: words,

@@ -7,7 +7,7 @@ export function useEventCancellationSignals() {
   const user = useSupabaseUser();
 
   return useQuery({
-    queryKey: computed(() => ["eventCancellationSignals", user.value?.id]),
+    queryKey: computed(() => ["eventCancellationSignals", user.value?.sub]),
     queryFn: async () => {
       const {
         data: { user },

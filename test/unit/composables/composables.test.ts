@@ -39,6 +39,7 @@ import {
 } from "~/queries/profiles";
 import { mapEvent } from "~/mappers/events";
 import { useAddEvent } from "~/composables/useAddEvent";
+import { useCanEditEvent } from "~/composables/useCanEditEvent";
 import { useCanManageEvents } from "~/composables/useCanManageEvents";
 import { useClearParticipation } from "~/composables/useClearParticipation";
 import { useCompleteParticipation } from "~/composables/useCompleteParticipation";
@@ -73,6 +74,7 @@ import {
   useUpdateSlugWord,
 } from "~/composables/useSlugWords";
 import { useUpdateEvent } from "~/composables/useUpdateEvent";
+import { useHasRole } from "~/composables/useHasRole";
 
 vi.mock("@tanstack/vue-query", () => ({
   useQuery: vi.fn(),
@@ -154,7 +156,7 @@ describe("composables", () => {
     (
       globalThis as { useSupabaseUser: ReturnType<typeof vi.fn> }
     ).useSupabaseUser = vi.fn(() =>
-      ref({ id: "user-1", email: "user@example.com" }),
+      ref({ sub: "user-1", email: "user@example.com" }),
     );
     (globalThis as { $fetch: ReturnType<typeof vi.fn> }).$fetch = vi.fn();
 
@@ -303,13 +305,20 @@ describe("composables", () => {
       eventDistanceId: "dist-1",
     });
 
-    (mutation.onSuccess as (d: any, v: any) => void)(data, {
+    await (mutation.onSuccess as (d: any, v: any) => Promise<void>)(data, {
       status: "interested",
     });
 
     expect(saveParticipation).toHaveBeenCalled();
-    expect(queryClient.setQueriesData).toHaveBeenCalled();
-    expect(queryClient.refetchQueries).toHaveBeenCalled();
+    expect(queryClient.setQueryData).toHaveBeenCalledWith(
+      ["eventParticipation", "ev-1", "user-1"],
+      expect.objectContaining({ id: "p-1" }),
+    );
+    expect(queryClient.setQueriesData).not.toHaveBeenCalled();
+    expect(queryClient.refetchQueries).toHaveBeenCalledWith({
+      queryKey: ["eventParticipation", "ev-1"],
+      type: "active",
+    });
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["eventParticipations"],
     });
@@ -319,16 +328,23 @@ describe("composables", () => {
     vi.mocked(deleteParticipation).mockResolvedValue(undefined as never);
     const mutation = useClearParticipation(ref("ev-2"));
 
-    await (mutation.mutationFn as () => Promise<unknown>)();
-    (mutation.onSuccess as () => void)();
+    const data = await (mutation.mutationFn as () => Promise<unknown>)();
+    await (mutation.onSuccess as (data: unknown) => Promise<void>)(data);
 
     expect(deleteParticipation).toHaveBeenCalledWith(
       supabase,
       "ev-2",
       "user-1",
     );
-    expect(queryClient.setQueriesData).toHaveBeenCalled();
-    expect(queryClient.refetchQueries).toHaveBeenCalled();
+    expect(queryClient.setQueryData).toHaveBeenCalledWith(
+      ["eventParticipation", "ev-2", "user-1"],
+      null,
+    );
+    expect(queryClient.setQueriesData).not.toHaveBeenCalled();
+    expect(queryClient.refetchQueries).toHaveBeenCalledWith({
+      queryKey: ["eventParticipation", "ev-2"],
+      type: "active",
+    });
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["eventParticipations"],
     });
@@ -338,7 +354,9 @@ describe("composables", () => {
     vi.mocked(saveParticipation).mockResolvedValue({ id: "p-3" } as never);
     const mutation = useCompleteParticipation();
 
-    await (mutation.mutationFn as (payload: unknown) => Promise<unknown>)({
+    const data = await (
+      mutation.mutationFn as (payload: unknown) => Promise<unknown>
+    )({
       eventId: "ev-3",
       eventDistanceId: "dist-3",
       status: "completed",
@@ -360,16 +378,48 @@ describe("composables", () => {
       "user-1",
     );
 
-    (mutation.onSuccess as (_data: unknown, variables: { eventId: string }) => void)(
-      {},
-      { eventId: "ev-3" },
+    await (
+      mutation.onSuccess as (
+        data: unknown,
+        variables: { eventId: string },
+      ) => Promise<void>
+    )(data, { eventId: "ev-3" });
+    expect(queryClient.setQueryData).toHaveBeenCalledWith(
+      ["eventParticipation", "ev-3", "user-1"],
+      { id: "p-3" },
     );
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+    expect(queryClient.refetchQueries).toHaveBeenCalledWith({
       queryKey: ["eventParticipation", "ev-3"],
+      type: "active",
     });
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["eventParticipations"],
     });
+  });
+
+  it("preserves finish details when changing to a non-completed outcome", async () => {
+    vi.mocked(saveParticipation).mockResolvedValue({ id: "p-3" } as never);
+    const mutation = useCompleteParticipation();
+
+    await (mutation.mutationFn as (payload: unknown) => Promise<unknown>)({
+      eventId: "ev-3",
+      eventDistanceId: "dist-3",
+      status: "dnf",
+      finishTimeSeconds: null,
+      timingUrl: null,
+      notes: "injury",
+    });
+
+    expect(saveParticipation).toHaveBeenCalledWith(
+      supabase,
+      {
+        event_id: "ev-3",
+        event_distance_id: "dist-3",
+        status: "dnf",
+        notes: "injury",
+      },
+      "user-1",
+    );
   });
 
   it("useDeleteEvent deletes and navigates", async () => {
@@ -578,7 +628,7 @@ describe("composables", () => {
     expect(deleteSlugWord).toHaveBeenCalledWith(supabase, 1);
   });
 
-  it("useCanManageEvents checks admin then event_manager roles", async () => {
+  it("useCanManageEvents checks both event management roles", async () => {
     supabase.rpc
       .mockResolvedValueOnce({ data: false })
       .mockResolvedValueOnce({ data: true });
@@ -593,6 +643,24 @@ describe("composables", () => {
     expect(supabase.rpc).toHaveBeenCalledWith("has_role", {
       role_name: "event_manager",
     });
+  });
+
+  it("useHasRole checks the requested capability", async () => {
+    supabase.rpc.mockResolvedValueOnce({ data: true, error: null });
+
+    const query = useHasRole("admin");
+    const result = await (query.queryFn as () => Promise<unknown>)();
+
+    expect(result).toBe(true);
+    expect(supabase.rpc).toHaveBeenCalledWith("has_role", {
+      role_name: "admin",
+    });
+  });
+
+  it("lets an event owner edit without a management role", () => {
+    const canEdit = useCanEditEvent(ref({ createdBy: "user-1" }));
+
+    expect(canEdit.value).toBe(true);
   });
 
   it("usePublicProfile derives completed province sets and privacy flags", async () => {

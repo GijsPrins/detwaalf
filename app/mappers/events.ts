@@ -6,6 +6,7 @@ import type {
 } from "~/queries/events";
 import type { EventDistanceInput } from "~/types/events";
 import { EVENT_DISTANCE_ORDER } from "~/constants/distances";
+import { formatDateOnly } from "~/utils/localDate";
 
 export interface EventDistanceViewModel extends EventDistanceInput {
   id: string;
@@ -77,7 +78,7 @@ export function mapEvents(
 }
 
 export function formatEventDate(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString("nl-NL", {
+  return formatDateOnly(isoDate, {
     day: "numeric",
     month: "long",
     year: "numeric",

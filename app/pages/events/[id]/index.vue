@@ -7,7 +7,8 @@ import {
   getDistanceCategoryLabel,
   getEventDistanceLabel,
 } from "~/utils/eventDistances";
-import { getLocalDateString } from "~/utils/localDate";
+import { getDateOnlyString, getLocalDateString } from "~/utils/localDate";
+import { getEventRegistrationCta } from "~/utils/eventRegistrationCta";
 import { formatFinishTime } from "~/utils/finishTime";
 import type {
   CompleteModalEvent,
@@ -31,7 +32,7 @@ const showCreatedHint = computed(
 const user = useSupabaseUser();
 const { data: event, isPending, isError } = useEvent(eventId);
 const { data: participation } = useEventParticipation(eventId);
-const { data: canEdit } = useCanManageEvents();
+const canEdit = useCanEditEvent(event);
 const { mutate: setStatus, isPending: isSettingStatus } =
   useSetParticipation(eventId);
 const { mutate: clearStatus, isPending: isClearingStatus } =
@@ -105,14 +106,16 @@ watch(
 
 const rawCurrentParticipationStatus = computed(
   () =>
-    optimisticParticipationStatus.value ?? participation.value?.status ?? null,
+    optimisticParticipationStatus.value !== undefined
+      ? optimisticParticipationStatus.value
+      : (participation.value?.status ?? null),
 );
 
 const currentParticipationDistanceId = computed(
   () =>
-    optimisticParticipationDistanceId.value ??
-    participation.value?.event_distance_id ??
-    null,
+    optimisticParticipationDistanceId.value !== undefined
+      ? optimisticParticipationDistanceId.value
+      : (participation.value?.event_distance_id ?? null),
 );
 
 const participationNeedsMissingDistance = computed(() => {
@@ -366,7 +369,10 @@ const participationDistanceError = ref(false);
 
 function buildCompleteModalEvent(): CompleteModalEvent | null {
   if (!event.value) return null;
-  const selectedDistanceId = selectedParticipationDistanceId.value;
+  const selectedDistanceId =
+    currentParticipationStatus.value === "completed"
+      ? (participation.value?.event_distance_id ?? null)
+      : selectedParticipationDistanceId.value;
   const distanceLabel = selectedDistanceId
     ? (participationDistanceOptions.value.find(
         (option) => option.id === selectedDistanceId,
@@ -465,8 +471,7 @@ async function handleCompleteConfirm(result: CompleteModalResult) {
   const previousDistanceId = currentParticipationDistanceId.value;
 
   optimisticParticipationStatus.value = result.status;
-  const eventDistanceId =
-    result.status === "completed" ? modalEvent.value.eventDistanceId : null;
+  const eventDistanceId = modalEvent.value.eventDistanceId;
   optimisticParticipationDistanceId.value = eventDistanceId;
 
   try {
@@ -510,31 +515,26 @@ function clearParticipationStatus() {
 const registrationStatus = computed(() => {
   if (!event.value) return null;
 
-  const now = new Date();
-  const opens = event.value.registrationOpens
-    ? new Date(event.value.registrationOpens)
-    : null;
-  const deadline = event.value.registrationDeadline
-    ? new Date(event.value.registrationDeadline)
-    : null;
+  const today = getLocalDateString();
+  const registrationCta = getEventRegistrationCta(event.value, today);
 
-  if (deadline && deadline < now) {
+  if (registrationCta.type === "none") {
     return {
       tone: "text-gray-500",
       text: t("eventDetail.registrationStatus.closed"),
     };
   }
 
-  if (opens && opens > now) {
+  if (registrationCta.type === "future") {
     return {
       tone: "text-gray-500",
       text: t("eventDetail.registrationStatus.opensOn", {
-        date: formatEventDate(event.value.registrationOpens!),
+        date: formatEventDate(registrationCta.opensOn),
       }),
     };
   }
 
-  if (deadline) {
+  if (event.value.registrationDeadline) {
     return {
       tone: "text-orange-600",
       text: t("eventDetail.registrationStatus.openUntil", {
@@ -543,7 +543,11 @@ const registrationStatus = computed(() => {
     };
   }
 
-  if (event.value.registrationUrl) {
+  if (
+    event.value.registrationUrl ||
+    (event.value.registrationOpens &&
+      getDateOnlyString(event.value.registrationOpens) <= today)
+  ) {
     return {
       tone: "text-orange-600",
       text: t("eventDetail.registrationStatus.open"),

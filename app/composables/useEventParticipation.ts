@@ -10,7 +10,7 @@ export function useEventParticipation(eventId: MaybeRef<string>) {
   return useQuery({
     // Include userId in cache key so two users on the same browser never share cached participation data.
     // useSupabaseUser() may be null briefly on hydration; the queryFn resolves the authoritative user.
-    queryKey: computed(() => ["eventParticipation", toValue(eventId), user.value?.id ?? null]),
+    queryKey: computed(() => ["eventParticipation", toValue(eventId), user.value?.sub ?? null]),
     enabled: computed(() => Boolean(toValue(eventId))),
     staleTime: 0,
     refetchOnMount: "always",
