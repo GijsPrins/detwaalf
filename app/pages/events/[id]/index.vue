@@ -106,14 +106,16 @@ watch(
 
 const rawCurrentParticipationStatus = computed(
   () =>
-    optimisticParticipationStatus.value ?? participation.value?.status ?? null,
+    optimisticParticipationStatus.value !== undefined
+      ? optimisticParticipationStatus.value
+      : (participation.value?.status ?? null),
 );
 
 const currentParticipationDistanceId = computed(
   () =>
-    optimisticParticipationDistanceId.value ??
-    participation.value?.event_distance_id ??
-    null,
+    optimisticParticipationDistanceId.value !== undefined
+      ? optimisticParticipationDistanceId.value
+      : (participation.value?.event_distance_id ?? null),
 );
 
 const participationNeedsMissingDistance = computed(() => {
@@ -367,7 +369,10 @@ const participationDistanceError = ref(false);
 
 function buildCompleteModalEvent(): CompleteModalEvent | null {
   if (!event.value) return null;
-  const selectedDistanceId = selectedParticipationDistanceId.value;
+  const selectedDistanceId =
+    currentParticipationStatus.value === "completed"
+      ? (participation.value?.event_distance_id ?? null)
+      : selectedParticipationDistanceId.value;
   const distanceLabel = selectedDistanceId
     ? (participationDistanceOptions.value.find(
         (option) => option.id === selectedDistanceId,
