@@ -2,7 +2,7 @@
 import type { Enums } from "~/types/database.types";
 import { PARTICIPATION_STATUS_BADGE_CLASS } from "~/constants/participation";
 import { mapEvents } from "~/mappers/events";
-import { getLocalDateString } from "~/utils/localDate";
+import { formatDateOnly, getLocalDateString } from "~/utils/localDate";
 import { matchesEventSearch } from "~/utils/eventSearch";
 import EventCardRow from "~/components/event/EventCardRow.vue";
 
@@ -117,8 +117,7 @@ function groupEventList(list: typeof filteredEvents.value) {
   if (sortBy.value === "date") {
     const map = new Map<string, typeof list>();
     for (const e of list) {
-      const date = new Date(e.eventDate);
-      const label = date.toLocaleDateString("nl-NL", {
+      const label = formatDateOnly(e.eventDate, {
         month: "long",
         year: "numeric",
       });

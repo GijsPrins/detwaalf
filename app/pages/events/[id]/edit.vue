@@ -38,12 +38,14 @@ const normalizedDistances = computed(() =>
 const hasDuplicateDistances = computed(() =>
   hasDuplicateEventDistances(form.distances),
 );
+const populatedEventId = ref<string | null>(null);
 
 // Populate form once event data loads
 watch(
   event,
   (e) => {
-    if (!e) return;
+    if (!e || populatedEventId.value === e.id) return;
+    populatedEventId.value = e.id;
     form.name = e.name;
     form.eventDate = e.eventDate;
     form.distances =

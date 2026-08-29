@@ -13,8 +13,10 @@ describe("finish time utilities", () => {
   });
 
   it("rejects invalid result inputs", () => {
-    expect(parseFinishTime("1:30")).toBe(90);
     expect(parseFinishTime("invalid")).toBeNull();
+    expect(parseFinishTime("1:2")).toBeNull();
+    expect(parseFinishTime("1:60")).toBeNull();
+    expect(parseFinishTime("1:60:00")).toBeNull();
     expect(parseFinishTime("1:2:3:4")).toBeNull();
   });
 });

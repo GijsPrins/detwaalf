@@ -631,7 +631,7 @@ export default {
         newline: "Nieuwe regel",
         comma: "Komma (,)",
         semicolon: "Puntkomma (;)",
-        pipe: "Pipe (\\|)",
+        pipe: "Pipe ({'|'})",
       },
     },
   },
