@@ -26,6 +26,7 @@ Use the Supabase variables for the environment you are running against:
 ```bash
 SUPABASE_URL=
 SUPABASE_KEY=
+NUXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 For local development, prefer local Supabase when available. If local Supabase
@@ -42,6 +43,9 @@ BREVO_API_KEY=
 CONTACT_NOTIFICATION_FROM=notificaties@mail.twaalfprovincies.run
 CONTACT_NOTIFICATION_TO=info@twaalfprovincies.run
 ```
+
+`NUXT_PUBLIC_SITE_URL` must be the canonical URL for the environment. It is
+used for Supabase auth redirects and links in contact notification emails.
 
 ## Supabase CLI
 
