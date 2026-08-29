@@ -9,11 +9,7 @@ import {
   fetchEvents,
   fetchProvinces,
   fetchUserParticipations,
-  insertEvent,
-  insertParticipation,
-  replaceEventDistances,
   saveParticipation,
-  updateEvent,
   updateEventWithDistances,
 } from "~/queries/events";
 
@@ -76,55 +72,6 @@ describe("events queries", () => {
     expect(eq).toHaveBeenCalledWith("id", "ev-1");
   });
 
-  it("replaceEventDistances deletes existing rows and inserts mapped rows", async () => {
-    const deleteEq = vi.fn().mockResolvedValue({ error: null });
-    const deleteFn = vi.fn(() => ({ eq: deleteEq }));
-    const insert = vi.fn().mockResolvedValue({ error: null });
-
-    const from = vi
-      .fn()
-      .mockReturnValueOnce({ delete: deleteFn })
-      .mockReturnValueOnce({ insert });
-
-    const supabase = { from } as never;
-
-    await replaceEventDistances(supabase, "ev-1", [
-      { distance: "10k", distanceCategory: "10k" },
-      { distance: "half_marathon", distanceCategory: "half" },
-    ]);
-
-    expect(deleteEq).toHaveBeenCalledWith("event_id", "ev-1");
-    expect(insert).toHaveBeenCalledWith([
-      {
-        event_id: "ev-1",
-        distance: "10k",
-        distance_category: "10k",
-        sort_order: 0,
-      },
-      {
-        event_id: "ev-1",
-        distance: "half_marathon",
-        distance_category: "half",
-        sort_order: 1,
-      },
-    ]);
-  });
-
-  it("replaceEventDistances skips insert when no distances are provided", async () => {
-    const deleteEq = vi.fn().mockResolvedValue({ error: null });
-    const deleteFn = vi.fn(() => ({ eq: deleteEq }));
-    const insert = vi.fn();
-    const from = vi
-      .fn()
-      .mockReturnValueOnce({ delete: deleteFn })
-      .mockReturnValueOnce({ insert });
-
-    const supabase = { from } as never;
-
-    await replaceEventDistances(supabase, "ev-1", []);
-    expect(insert).not.toHaveBeenCalled();
-  });
-
   it("createEventWithDistances calls the atomic create RPC", async () => {
     const rpc = vi.fn().mockResolvedValue({ data: "ev-rpc", error: null });
     const supabase = { rpc } as never;
@@ -152,7 +99,7 @@ describe("events queries", () => {
       p_registration_url: null,
       p_registration_opens: null,
       p_registration_deadline: null,
-      p_distances: [{ distance: "10k", distanceCategory: "10k" }],
+      p_distances: [{ distance: "10k" }],
     });
   });
 
@@ -184,7 +131,7 @@ describe("events queries", () => {
       p_registration_url: null,
       p_registration_opens: null,
       p_registration_deadline: null,
-      p_distances: [{ distance: "marathon", distanceCategory: "marathon" }],
+      p_distances: [{ distance: "marathon" }],
     });
   });
 
@@ -201,23 +148,6 @@ describe("events queries", () => {
     ).resolves.toBeNull();
     expect(eqEvent).toHaveBeenCalledWith("event_id", "ev-1");
     expect(eqUser).toHaveBeenCalledWith("user_id", "user-1");
-  });
-
-  it("updateEvent updates and returns a single row", async () => {
-    const single = vi
-      .fn()
-      .mockResolvedValue({ data: { id: "ev-1" }, error: null });
-    const select = vi.fn(() => ({ single }));
-    const eq = vi.fn(() => ({ select }));
-    const update = vi.fn(() => ({ eq }));
-    const from = vi.fn(() => ({ update }));
-    const supabase = { from } as never;
-
-    await expect(
-      updateEvent(supabase, "ev-1", { name: "New" }),
-    ).resolves.toEqual({
-      id: "ev-1",
-    });
   });
 
   it("deleteEvent deletes by id", async () => {
@@ -299,41 +229,6 @@ describe("events queries", () => {
       timing_url: null,
       notes: null,
     });
-  });
-
-  it("insertEvent and insertParticipation return inserted rows", async () => {
-    const singleEvent = vi
-      .fn()
-      .mockResolvedValue({ data: { id: "ev-3" }, error: null });
-    const selectEvent = vi.fn(() => ({ single: singleEvent }));
-    const insertEventFn = vi.fn(() => ({ select: selectEvent }));
-
-    const singleParticipation = vi
-      .fn()
-      .mockResolvedValue({ data: { id: "p-3" }, error: null });
-    const selectParticipation = vi.fn(() => ({ single: singleParticipation }));
-    const insertParticipationFn = vi.fn(() => ({
-      select: selectParticipation,
-    }));
-
-    const from = vi
-      .fn()
-      .mockReturnValueOnce({ insert: insertEventFn })
-      .mockReturnValueOnce({ insert: insertParticipationFn });
-
-    const supabase = { from } as never;
-
-    await expect(
-      insertEvent(supabase, { name: "Run" } as never),
-    ).resolves.toEqual({
-      id: "ev-3",
-    });
-    await expect(
-      insertParticipation(supabase, {
-        event_id: "ev-3",
-        status: "interested",
-      } as never),
-    ).resolves.toEqual({ id: "p-3" });
   });
 
   it("deleteParticipation targets event and user", async () => {

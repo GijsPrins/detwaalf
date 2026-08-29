@@ -1,10 +1,4 @@
-import type {
-  Database,
-  Json,
-  Tables,
-  TablesInsert,
-  TablesUpdate,
-} from "~/types/database.types";
+import type { Database, Json, Tables, TablesInsert } from "~/types/database.types";
 import type { EventDistanceInput } from "~/types/events";
 
 // Derive the client type from the Nuxt composable so we don't need
@@ -41,7 +35,6 @@ export interface EventCancellationSignalRow {
 
 type EventDistanceRpcInput = {
   distance: EventDistanceInput["distance"];
-  distanceCategory: EventDistanceInput["distanceCategory"];
 };
 
 type EventWriteInput = Pick<
@@ -61,7 +54,6 @@ type EventWriteInput = Pick<
 function toEventDistancesJson(distances: EventDistanceInput[]): Json {
   return distances.map<EventDistanceRpcInput>((distance) => ({
     distance: distance.distance,
-    distanceCategory: distance.distanceCategory,
   })) as Json;
 }
 
@@ -129,33 +121,6 @@ export async function fetchEvent(
 
   if (error) throw error;
   return data as EventRow;
-}
-
-export async function replaceEventDistances(
-  supabase: Client,
-  eventId: string,
-  distances: EventDistanceInput[],
-): Promise<void> {
-  const { error: delError } = await supabase
-    .from("event_distances")
-    .delete()
-    .eq("event_id", eventId);
-
-  if (delError) throw delError;
-  if (distances.length === 0) return;
-
-  const rows = distances.map((distance, index) => ({
-    event_id: eventId,
-    distance: distance.distance,
-    distance_category: distance.distanceCategory,
-    sort_order: index,
-  }));
-
-  const { error: insError } = await supabase
-    .from("event_distances")
-    .insert(rows);
-
-  if (insError) throw insError;
 }
 
 export async function createEventWithDistances(
@@ -234,27 +199,10 @@ export async function fetchEventParticipation(
   return data as DetailParticipationRow | null;
 }
 
-export async function updateEvent(
-  supabase: Client,
-  id: string,
-  event: TablesUpdate<"events">,
-): Promise<Tables<"events">> {
-  const { data, error } = await supabase
-    .from("events")
-    .update(event)
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
 export async function deleteEvent(supabase: Client, id: string): Promise<void> {
   const { error } = await supabase.from("events").delete().eq("id", id);
   if (error) throw error;
 }
-
 export async function saveParticipation(
   supabase: Client,
   participation: Pick<
@@ -304,20 +252,6 @@ export async function saveParticipation(
   return insertedData;
 }
 
-export async function insertEvent(
-  supabase: Client,
-  event: TablesInsert<"events">,
-): Promise<Tables<"events">> {
-  const { data, error } = await supabase
-    .from("events")
-    .insert(event)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
 export async function deleteParticipation(
   supabase: Client,
   eventId: string,
@@ -330,18 +264,4 @@ export async function deleteParticipation(
     .eq("user_id", userId);
 
   if (error) throw error;
-}
-
-export async function insertParticipation(
-  supabase: Client,
-  participation: TablesInsert<"event_participations">,
-): Promise<Tables<"event_participations">> {
-  const { data, error } = await supabase
-    .from("event_participations")
-    .insert(participation)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
 }
