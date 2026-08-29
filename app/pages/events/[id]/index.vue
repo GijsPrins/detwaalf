@@ -8,6 +8,7 @@ import {
   getEventDistanceLabel,
 } from "~/utils/eventDistances";
 import { getLocalDateString } from "~/utils/localDate";
+import { formatFinishTime } from "~/utils/finishTime";
 import type {
   CompleteModalEvent,
   CompleteModalResult,
@@ -164,15 +165,6 @@ const hasDetails = computed(
 
 function getDistanceLabel(distance: { distance: Enums<"event_distance"> }) {
   return getEventDistanceLabel(distance.distance, t);
-}
-
-function formatFinishTime(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  const mm = String(m).padStart(2, "0");
-  const ss = String(s).padStart(2, "0");
-  return h > 0 ? `${h}:${mm}:${ss}` : `${m}:${ss}`;
 }
 
 function getDistanceCategoryBadgeClass(distance: {
@@ -387,6 +379,9 @@ function buildCompleteModalEvent(): CompleteModalEvent | null {
     eventName: event.value.name,
     province: event.value.provinceName,
     distance: distanceLabel,
+    finishTimeSeconds: participation.value?.finish_time_seconds ?? null,
+    timingUrl: participation.value?.timing_url ?? null,
+    notes: participation.value?.notes ?? null,
   };
 }
 

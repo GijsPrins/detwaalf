@@ -8,6 +8,7 @@ import {
 } from "~/constants/distances";
 import { PROVINCE_COUNT } from "~/constants/provinces";
 import { getLocalDateString } from "~/utils/localDate";
+import { formatFinishTime } from "~/utils/finishTime";
 import type {
   CompleteModalEvent,
   CompleteModalResult,
@@ -160,15 +161,6 @@ interface ProvinceEventInfo {
   sortDate: string;
   date: string;
   finishTimeSeconds: number | null;
-}
-
-function formatFinishTime(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  const mm = String(m).padStart(2, "0");
-  const ss = String(s).padStart(2, "0");
-  return h > 0 ? `${h}:${mm}:${ss}` : `${m}:${ss}`;
 }
 
 function formatEventDate(dateStr: string): string {

@@ -188,7 +188,44 @@ describe("events queries", () => {
       ),
     ).resolves.toEqual({ id: "p-1", event_id: "ev-1" });
 
+    expect(update).toHaveBeenCalledWith({
+      status: "interested",
+      event_distance_id: "dist-1",
+    });
     expect(insert).not.toHaveBeenCalled();
+  });
+
+  it("saveParticipation updates explicitly supplied result fields", async () => {
+    const selectUpdate = vi.fn().mockResolvedValue({
+      data: [{ id: "p-1", event_id: "ev-1" }],
+      error: null,
+    });
+    const eqUser = vi.fn(() => ({ select: selectUpdate }));
+    const eqEvent = vi.fn(() => ({ eq: eqUser }));
+    const update = vi.fn(() => ({ eq: eqEvent }));
+    const from = vi.fn(() => ({ update }));
+    const supabase = { from } as never;
+
+    await saveParticipation(
+      supabase,
+      {
+        event_id: "ev-1",
+        status: "completed",
+        event_distance_id: "dist-1",
+        finish_time_seconds: 6330,
+        timing_url: null,
+        notes: null,
+      },
+      "user-1",
+    );
+
+    expect(update).toHaveBeenCalledWith({
+      status: "completed",
+      event_distance_id: "dist-1",
+      finish_time_seconds: 6330,
+      timing_url: null,
+      notes: null,
+    });
   });
 
   it("saveParticipation inserts when update matches no rows", async () => {
