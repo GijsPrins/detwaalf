@@ -12,7 +12,7 @@ export function useCanEditEvent(
     const currentEvent = toValue(event);
     return (
       !!canManageEvents.value ||
-      (!!user.value && currentEvent?.createdBy === user.value.id)
+      (!!user.value && currentEvent?.createdBy === user.value.sub)
     );
   });
 }

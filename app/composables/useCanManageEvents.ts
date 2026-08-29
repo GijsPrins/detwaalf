@@ -6,7 +6,7 @@ export function useCanManageEvents() {
   const user = useSupabaseUser();
 
   return useQuery({
-    queryKey: computed(() => ["canManageEvents", user.value?.id]),
+    queryKey: computed(() => ["canManageEvents", user.value?.sub]),
     queryFn: async () => {
       if (!user.value) return false;
 
