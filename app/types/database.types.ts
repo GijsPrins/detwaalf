@@ -130,24 +130,30 @@ export type Database = {
           created_at: string
           distance: Database["public"]["Enums"]["event_distance"]
           distance_category: Database["public"]["Enums"]["distance_category"]
+          distance_meters: number
           event_id: string
           id: string
+          medal_category: Database["public"]["Enums"]["distance_category"]
           sort_order: number
         }
         Insert: {
           created_at?: string
           distance: Database["public"]["Enums"]["event_distance"]
           distance_category: Database["public"]["Enums"]["distance_category"]
+          distance_meters: number
           event_id: string
           id?: string
+          medal_category?: never
           sort_order?: number
         }
         Update: {
           created_at?: string
           distance?: Database["public"]["Enums"]["event_distance"]
           distance_category?: Database["public"]["Enums"]["distance_category"]
+          distance_meters?: number
           event_id?: string
           id?: string
+          medal_category?: never
           sort_order?: number
         }
         Relationships: [
@@ -418,6 +424,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      event_distance_meters: {
+        Args: { p_distance: Database["public"]["Enums"]["event_distance"] }
+        Returns: number
+      }
       generate_profile_slug: { Args: { p_locale: string }; Returns: string }
       get_medal: { Args: { p_distance_km: number }; Returns: string }
       get_event_cancellation_signals: {
@@ -437,6 +447,10 @@ export type Database = {
         }[]
       }
       has_role: { Args: { role_name: string }; Returns: boolean }
+      medal_category_for_distance_meters: {
+        Args: { p_distance_meters: number }
+        Returns: Database["public"]["Enums"]["distance_category"]
+      }
     }
     Enums: {
       distance_category: "10k" | "half" | "marathon"
