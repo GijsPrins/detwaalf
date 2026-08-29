@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import { formatFinishTime, parseFinishTime } from "~/utils/finishTime";
+
 export interface CompleteModalEvent {
   eventId: string;
   eventDistanceId: string | null;
   eventName: string;
   province: string;
   distance: string;
+  finishTimeSeconds?: number | null;
+  timingUrl?: string | null;
+  notes?: string | null;
 }
 
 export interface CompleteModalResult {
@@ -36,11 +41,14 @@ const timeError = ref<string | null>(null);
 
 watch(
   () => props.event,
-  () => {
+  (event) => {
     outcome.value = props.initialOutcome ?? null;
-    finishTimeInput.value = "";
-    timingUrl.value = "";
-    notes.value = "";
+    finishTimeInput.value =
+      event?.finishTimeSeconds != null
+        ? formatFinishTime(event.finishTimeSeconds)
+        : "";
+    timingUrl.value = event?.timingUrl ?? "";
+    notes.value = event?.notes ?? "";
     timeError.value = null;
   },
 );
@@ -65,14 +73,6 @@ const notesPlaceholder = computed(() =>
 );
 
 const canConfirm = computed(() => outcome.value !== null);
-
-function parseFinishTime(input: string): number | null {
-  const parts = input.trim().split(":").map(Number);
-  if (parts.some((n) => isNaN(n) || n < 0)) return null;
-  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  if (parts.length === 2) return parts[0] * 60 + parts[1];
-  return null;
-}
 
 function handleConfirm() {
   if (!canConfirm.value) return;
