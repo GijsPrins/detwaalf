@@ -91,10 +91,6 @@ vi.mock("~/queries/events", () => ({
   deleteParticipation: vi.fn(),
   deleteEvent: vi.fn(),
   createEventWithDistances: vi.fn(),
-  insertEvent: vi.fn(),
-  replaceEventDistances: vi.fn(),
-  insertParticipation: vi.fn(),
-  updateEvent: vi.fn(),
   updateEventWithDistances: vi.fn(),
 }));
 
