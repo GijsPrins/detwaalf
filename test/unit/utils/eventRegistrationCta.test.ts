@@ -40,6 +40,18 @@ describe("getEventRegistrationCta", () => {
     ).toEqual({ type: "none" });
   });
 
+  it("keeps registration open through the deadline day", () => {
+    expect(
+      getEventRegistrationCta(
+        {
+          eventDate: "2026-06-01",
+          registrationDeadline: today,
+        },
+        today,
+      ),
+    ).toEqual({ type: "open" });
+  });
+
   it("hides the CTA for past events", () => {
     expect(
       getEventRegistrationCta({ eventDate: "2026-05-16" }, today),

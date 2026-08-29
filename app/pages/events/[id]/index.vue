@@ -7,7 +7,8 @@ import {
   getDistanceCategoryLabel,
   getEventDistanceLabel,
 } from "~/utils/eventDistances";
-import { getLocalDateString } from "~/utils/localDate";
+import { getDateOnlyString, getLocalDateString } from "~/utils/localDate";
+import { getEventRegistrationCta } from "~/utils/eventRegistrationCta";
 import { formatFinishTime } from "~/utils/finishTime";
 import type {
   CompleteModalEvent,
@@ -510,31 +511,26 @@ function clearParticipationStatus() {
 const registrationStatus = computed(() => {
   if (!event.value) return null;
 
-  const now = new Date();
-  const opens = event.value.registrationOpens
-    ? new Date(event.value.registrationOpens)
-    : null;
-  const deadline = event.value.registrationDeadline
-    ? new Date(event.value.registrationDeadline)
-    : null;
+  const today = getLocalDateString();
+  const registrationCta = getEventRegistrationCta(event.value, today);
 
-  if (deadline && deadline < now) {
+  if (registrationCta.type === "none") {
     return {
       tone: "text-gray-500",
       text: t("eventDetail.registrationStatus.closed"),
     };
   }
 
-  if (opens && opens > now) {
+  if (registrationCta.type === "future") {
     return {
       tone: "text-gray-500",
       text: t("eventDetail.registrationStatus.opensOn", {
-        date: formatEventDate(event.value.registrationOpens!),
+        date: formatEventDate(registrationCta.opensOn),
       }),
     };
   }
 
-  if (deadline) {
+  if (event.value.registrationDeadline) {
     return {
       tone: "text-orange-600",
       text: t("eventDetail.registrationStatus.openUntil", {
@@ -543,7 +539,11 @@ const registrationStatus = computed(() => {
     };
   }
 
-  if (event.value.registrationUrl) {
+  if (
+    event.value.registrationUrl ||
+    (event.value.registrationOpens &&
+      getDateOnlyString(event.value.registrationOpens) <= today)
+  ) {
     return {
       tone: "text-orange-600",
       text: t("eventDetail.registrationStatus.open"),
