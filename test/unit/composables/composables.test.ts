@@ -156,7 +156,7 @@ describe("composables", () => {
     (
       globalThis as { useSupabaseUser: ReturnType<typeof vi.fn> }
     ).useSupabaseUser = vi.fn(() =>
-      ref({ id: "user-1", email: "user@example.com" }),
+      ref({ sub: "user-1", email: "user@example.com" }),
     );
     (globalThis as { $fetch: ReturnType<typeof vi.fn> }).$fetch = vi.fn();
 

@@ -208,7 +208,7 @@ function clearFilters() {
 }
 
 watch(
-  () => [route.query.period, route.query.tab, user.value?.id],
+  () => [route.query.period, route.query.tab, user.value?.sub],
   () => {
     activeTab.value = getTabFromRoute();
   },

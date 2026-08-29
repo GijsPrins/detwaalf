@@ -6,7 +6,7 @@ export function useHasRole(role: string) {
   const user = useSupabaseUser();
 
   return useQuery({
-    queryKey: computed(() => ["hasRole", role, user.value?.id]),
+    queryKey: computed(() => ["hasRole", role, user.value?.sub]),
     queryFn: async () => {
       if (!user.value) return false;
 

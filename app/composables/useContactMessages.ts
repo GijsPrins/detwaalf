@@ -30,7 +30,7 @@ export function useOwnContactMessages() {
   const user = useSupabaseUser();
 
   return useQuery({
-    queryKey: computed(() => ["contactMessages", "own", user.value?.id ?? null]),
+    queryKey: computed(() => ["contactMessages", "own", user.value?.sub ?? null]),
     queryFn: async () => {
       const {
         data: { user: authUser },
@@ -49,7 +49,7 @@ export function useOwnContactMessagesCount() {
     queryKey: computed(() => [
       "contactMessages",
       "ownCount",
-      user.value?.id ?? null,
+      user.value?.sub ?? null,
     ]),
     queryFn: async () => {
       const {
@@ -69,7 +69,7 @@ export function useUnreadOwnContactRepliesCount() {
     queryKey: computed(() => [
       "contactMessages",
       "ownUnreadReplies",
-      user.value?.id ?? null,
+      user.value?.sub ?? null,
     ]),
     queryFn: async () => {
       const {
