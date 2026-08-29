@@ -39,6 +39,7 @@ import {
 } from "~/queries/profiles";
 import { mapEvent } from "~/mappers/events";
 import { useAddEvent } from "~/composables/useAddEvent";
+import { useCanEditEvent } from "~/composables/useCanEditEvent";
 import { useCanManageEvents } from "~/composables/useCanManageEvents";
 import { useClearParticipation } from "~/composables/useClearParticipation";
 import { useCompleteParticipation } from "~/composables/useCompleteParticipation";
@@ -73,6 +74,7 @@ import {
   useUpdateSlugWord,
 } from "~/composables/useSlugWords";
 import { useUpdateEvent } from "~/composables/useUpdateEvent";
+import { useHasRole } from "~/composables/useHasRole";
 
 vi.mock("@tanstack/vue-query", () => ({
   useQuery: vi.fn(),
@@ -578,7 +580,7 @@ describe("composables", () => {
     expect(deleteSlugWord).toHaveBeenCalledWith(supabase, 1);
   });
 
-  it("useCanManageEvents checks admin then event_manager roles", async () => {
+  it("useCanManageEvents checks both event management roles", async () => {
     supabase.rpc
       .mockResolvedValueOnce({ data: false })
       .mockResolvedValueOnce({ data: true });
@@ -593,6 +595,24 @@ describe("composables", () => {
     expect(supabase.rpc).toHaveBeenCalledWith("has_role", {
       role_name: "event_manager",
     });
+  });
+
+  it("useHasRole checks the requested capability", async () => {
+    supabase.rpc.mockResolvedValueOnce({ data: true, error: null });
+
+    const query = useHasRole("admin");
+    const result = await (query.queryFn as () => Promise<unknown>)();
+
+    expect(result).toBe(true);
+    expect(supabase.rpc).toHaveBeenCalledWith("has_role", {
+      role_name: "admin",
+    });
+  });
+
+  it("lets an event owner edit without a management role", () => {
+    const canEdit = useCanEditEvent(ref({ createdBy: "user-1" }));
+
+    expect(canEdit.value).toBe(true);
   });
 
   it("usePublicProfile derives completed province sets and privacy flags", async () => {
