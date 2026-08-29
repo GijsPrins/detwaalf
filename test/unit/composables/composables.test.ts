@@ -397,6 +397,31 @@ describe("composables", () => {
     });
   });
 
+  it("preserves finish details when changing to a non-completed outcome", async () => {
+    vi.mocked(saveParticipation).mockResolvedValue({ id: "p-3" } as never);
+    const mutation = useCompleteParticipation();
+
+    await (mutation.mutationFn as (payload: unknown) => Promise<unknown>)({
+      eventId: "ev-3",
+      eventDistanceId: "dist-3",
+      status: "dnf",
+      finishTimeSeconds: null,
+      timingUrl: null,
+      notes: "injury",
+    });
+
+    expect(saveParticipation).toHaveBeenCalledWith(
+      supabase,
+      {
+        event_id: "ev-3",
+        event_distance_id: "dist-3",
+        status: "dnf",
+        notes: "injury",
+      },
+      "user-1",
+    );
+  });
+
   it("useDeleteEvent deletes and navigates", async () => {
     vi.mocked(deleteEvent).mockResolvedValue(undefined as never);
     const mutation = useDeleteEvent(ref("ev-4"));

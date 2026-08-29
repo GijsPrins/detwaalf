@@ -19,13 +19,18 @@ export function useCompleteParticipation() {
     mutationFn: async (input: CompleteParticipationInput) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
+      const resultDetails = input.status === "completed"
+        ? {
+            finish_time_seconds: input.finishTimeSeconds,
+            timing_url: input.timingUrl,
+          }
+        : {};
       const participation = await saveParticipation(supabase, {
         event_id: input.eventId,
         event_distance_id: input.eventDistanceId,
         status: input.status,
-        finish_time_seconds: input.finishTimeSeconds,
-        timing_url: input.timingUrl,
         notes: input.notes,
+        ...resultDetails,
       }, user.id);
       return { participation, userId: user.id };
     },

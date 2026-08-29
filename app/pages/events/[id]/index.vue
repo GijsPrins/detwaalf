@@ -471,8 +471,7 @@ async function handleCompleteConfirm(result: CompleteModalResult) {
   const previousDistanceId = currentParticipationDistanceId.value;
 
   optimisticParticipationStatus.value = result.status;
-  const eventDistanceId =
-    result.status === "completed" ? modalEvent.value.eventDistanceId : null;
+  const eventDistanceId = modalEvent.value.eventDistanceId;
   optimisticParticipationDistanceId.value = eventDistanceId;
 
   try {
