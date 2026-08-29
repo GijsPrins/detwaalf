@@ -32,7 +32,7 @@ const showCreatedHint = computed(
 const user = useSupabaseUser();
 const { data: event, isPending, isError } = useEvent(eventId);
 const { data: participation } = useEventParticipation(eventId);
-const { data: canEdit } = useCanManageEvents();
+const canEdit = useCanEditEvent(event);
 const { mutate: setStatus, isPending: isSettingStatus } =
   useSetParticipation(eventId);
 const { mutate: clearStatus, isPending: isClearingStatus } =

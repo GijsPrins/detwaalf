@@ -12,7 +12,7 @@ const route = useRoute();
 const eventId = computed(() => route.params.id as string);
 
 const { data: event, isPending: isLoadingEvent } = useEvent(eventId);
-const { data: canEdit } = useCanManageEvents();
+const canEdit = useCanEditEvent(event);
 const { data: provinces } = useProvinces();
 const { mutate, isPending, isError } = useUpdateEvent(eventId);
 

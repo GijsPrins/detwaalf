@@ -13,7 +13,7 @@ These must be completed before the app is opened to the public.
 |---|---|---|
 | Security review | Audit RLS policies, auth flows, exposed secrets, input validation, XSS/injection risks | **Must** |
 | GDPR compliance | Privacy policy, right to erasure (account + all data), cookie notice if needed | **Must** |
-| ~~Email verification~~ | ~~Require email verification before a user can log any data~~ | Done — global middleware redirects unverified users to `/verify-email` |
+| ~~Email verification~~ | ~~Require email verification before a user can log any data~~ | Done — Supabase Auth enforces verification; global middleware handles the UX redirect |
 | ~~Onboarding page~~ | ~~Explain the challenge rules, distances, medal tiers, how the app works~~ | Done |
 | ~~Error monitoring~~ | ~~Set up Sentry or similar for frontend errors; review Supabase rate limits~~ | ~~Should~~ — skipped; small invite-only audience, prefer not to add a paid service |
 | Unit + E2E tests | Vitest for logic/composables, Playwright for critical flows (login, add event, map view) | **Should** |
@@ -25,6 +25,7 @@ These must be completed before the app is opened to the public.
 | Feature | Description | Priority |
 |---|---|---|
 | Public registration | Open sign-up flow once product is mature enough for public users | **Should** |
+| Event moderation | Optionally add a review state and admin approval queue for user-submitted events | **Could** |
 | Profile page | Display name, optional avatar, short bio; user can edit own profile | **Should** |
 | Progress sharing | Share progress to social media, e.g. "Ik sta op 7/12 voor zilver!" | **Could** |
 | OG / social meta tags | Add per-page Open Graph title, description and image so shared links look good. Default static `og-image.png` is already in place. Next step: per-URL images — e.g. province outline on the event detail page. Simple approach: 12 pre-generated province PNGs as static assets. More powerful: `@nuxtjs/og-image` module for fully dynamic images including event name/date. Candidate pages: event detail, province detail. | **Could** |

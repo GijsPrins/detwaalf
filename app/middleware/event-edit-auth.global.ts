@@ -1,7 +1,8 @@
 function isProtectedEventRoute(path: string) {
-  if (path === "/events/new") return true;
+  const normalizedPath = path.replace(/\/+$/, "") || "/";
+  if (normalizedPath === "/events/new") return true;
 
-  const segments = path.split("/").filter(Boolean);
+  const segments = normalizedPath.split("/").filter(Boolean);
   return (
     segments.length === 3 &&
     segments[0] === "events" &&
