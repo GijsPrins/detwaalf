@@ -83,8 +83,11 @@ export default defineNuxtConfig({
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",
         "Referrer-Policy": "strict-origin-when-cross-origin",
-        // Start with 5-minute max-age; increase to 1 year once verified stable in prod
-        "Strict-Transport-Security": "max-age=300; includeSubDomains",
+        // Host-only: other subdomains may belong to mail or external providers.
+        "Strict-Transport-Security": "max-age=31536000",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        "Content-Security-Policy": "base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'",
+        // SSR pages receive the full nonce policy from app/plugins/csp.server.ts.
       },
     },
   },

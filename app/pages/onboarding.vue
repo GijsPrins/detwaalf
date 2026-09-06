@@ -165,6 +165,23 @@ useHead(() => ({ title: t("page.onboarding") }));
         </div>
       </div>
 
+      <section class="mt-16 border-t border-gray-100 pt-8 lg:ml-20">
+        <h2 class="text-lg font-semibold text-gray-900">
+          {{ t("onboarding.attribution.title") }}
+        </h2>
+        <p class="mt-2 max-w-xl text-sm leading-6 text-gray-500">
+          {{ t("onboarding.attribution.body") }}
+        </p>
+        <a
+          href="https://www.prorun.nl/de-twaalf-provincies/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mt-3 inline-flex text-sm font-medium text-orange-700 transition-colors hover:text-orange-800"
+        >
+          {{ t("onboarding.attribution.link") }} &rarr;
+        </a>
+      </section>
+
       <!-- CTA -->
       <div class="mt-20 lg:pl-20 animate-fade-in-up delay-500">
         <NuxtLink

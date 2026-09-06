@@ -9,6 +9,7 @@ import {
 import { PROVINCE_COUNT } from "~/constants/provinces";
 import { formatDateOnly, getLocalDateString } from "~/utils/localDate";
 import { formatFinishTime } from "~/utils/finishTime";
+import { getProvinceMilestone } from "~/utils/provinceProgress";
 import type {
   CompleteModalEvent,
   CompleteModalResult,
@@ -366,6 +367,7 @@ const modalEvent = ref<CompleteModalEvent | null>(null);
 const modalInitialOutcome = ref<CompleteModalResult["status"] | null>(null);
 const celebrationMedal = ref<DistanceCategory | null>(null);
 const celebrationProvince = ref("");
+const celebrationCompletedCount = ref(0);
 
 const cancellationSignalMap = computed(() => {
   const map = new Map<string, number>();
@@ -436,10 +438,14 @@ async function handleConfirm(result: CompleteModalResult) {
     (e) => e.eventId === modalEvent.value!.eventId,
   );
 
-  const isNewMedal =
-    result.status === "completed" &&
-    pending?.distanceCategory != null &&
-    !completedProvinces.value[pending.distanceCategory].has(pending.provinceId);
+  const milestone =
+    result.status === "completed" && pending?.distanceCategory != null
+      ? getProvinceMilestone(
+          completedProvinces.value,
+          pending.distanceCategory,
+          pending.provinceId,
+        )
+      : null;
 
   await completeParticipation({
     eventId: modalEvent.value.eventId,
@@ -453,9 +459,10 @@ async function handleConfirm(result: CompleteModalResult) {
   modalEvent.value = null;
   modalInitialOutcome.value = null;
 
-  if (isNewMedal && pending?.distanceCategory) {
+  if (milestone?.isNewProvince && pending?.distanceCategory) {
     celebrationMedal.value = pending.distanceCategory;
     celebrationProvince.value = pending.province;
+    celebrationCompletedCount.value = milestone.completedCount;
   }
 }
 </script>
@@ -654,6 +661,7 @@ async function handleConfirm(result: CompleteModalResult) {
       v-if="celebrationMedal"
       :medal="celebrationMedal"
       :province="celebrationProvince"
+      :completed-count="celebrationCompletedCount"
       @close="celebrationMedal = null"
     />
   </div>
