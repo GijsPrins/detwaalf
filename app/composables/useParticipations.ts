@@ -7,7 +7,7 @@ export function useParticipations() {
   const user = useSupabaseUser();
 
   return useQuery({
-    queryKey: computed(() => ["eventParticipations", user.value?.id]),
+    queryKey: computed(() => ["eventParticipations", user.value?.sub]),
     queryFn: async () => {
       const {
         data: { user },

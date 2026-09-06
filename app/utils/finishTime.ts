@@ -11,9 +11,14 @@ export function formatFinishTime(seconds: number): string {
 }
 
 export function parseFinishTime(input: string): number | null {
-  const parts = input.trim().split(":").map(Number);
-  if (parts.some((part) => Number.isNaN(part) || part < 0)) return null;
-  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  const value = input.trim();
+  if (/^\d+:[0-5]\d$/.test(value)) {
+    const [minutes, seconds] = value.split(":").map(Number);
+    return minutes! * 60 + seconds!;
+  }
+  if (/^\d+:[0-5]\d:[0-5]\d$/.test(value)) {
+    const [hours, minutes, seconds] = value.split(":").map(Number);
+    return hours! * 3600 + minutes! * 60 + seconds!;
+  }
   return null;
 }

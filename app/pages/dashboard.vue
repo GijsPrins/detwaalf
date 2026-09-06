@@ -7,7 +7,7 @@ import {
   DISTANCE_BADGE_CLASS,
 } from "~/constants/distances";
 import { PROVINCE_COUNT } from "~/constants/provinces";
-import { getLocalDateString } from "~/utils/localDate";
+import { formatDateOnly, getLocalDateString } from "~/utils/localDate";
 import { formatFinishTime } from "~/utils/finishTime";
 import type {
   CompleteModalEvent,
@@ -164,10 +164,10 @@ interface ProvinceEventInfo {
 }
 
 function formatEventDate(dateStr: string): string {
-  return new Intl.DateTimeFormat("nl-NL", {
+  return formatDateOnly(dateStr, {
     day: "numeric",
     month: "long",
-  }).format(new Date(dateStr));
+  });
 }
 
 const upcomingEvents = computed<UpcomingEvent[]>(() => {

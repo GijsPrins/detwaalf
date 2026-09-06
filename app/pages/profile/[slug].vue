@@ -10,6 +10,7 @@ import type {
   PublicParticipationRow,
   ProfileWithSlug,
 } from "~/queries/profiles";
+import { formatDateOnly } from "~/utils/localDate";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -38,11 +39,11 @@ const selectedProvinceName = computed(() =>
 );
 
 function formatEventDate(dateStr: string): string {
-  return new Intl.DateTimeFormat("nl-NL", {
+  return formatDateOnly(dateStr, {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(new Date(dateStr));
+  });
 }
 
 interface ProvinceEventInfo {

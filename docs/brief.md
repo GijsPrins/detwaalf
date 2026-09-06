@@ -64,9 +64,9 @@ Initially the app will be used by a small, invitation-only group of runners. The
 
 - RLS enabled on every table — no table is accessible without an explicit policy
 - `has_role()` helper function drives all access control (roles: admin, event_manager)
-- Events are admin/event_manager only — regular users cannot create events
+- Every authenticated user can add events; owners can maintain their own events and admins/event managers can maintain all events
 - Proof images stored as Supabase Storage paths, not full URLs
-- Email verification required before a user can log data
+- Supabase Auth configuration requires email verification before issuing the session used to log data; app middleware provides the corresponding UX redirect
 - No secrets on the frontend — Supabase anon key only, service role key never exposed
 - GDPR: keep production data in EU-based infrastructure
 
@@ -91,6 +91,6 @@ Initially the app will be used by a small, invitation-only group of runners. The
 | Role | Access |
 |---|---|
 | `admin` | Full access: users, roles, events, all participations |
-| `event_manager` | Can create and edit own events, cannot manage users or roles |
+| `event_manager` | Can maintain all events, cannot manage users or roles |
 
 Role assignment is admin-only. Adding new roles in future = one INSERT into `app_roles`, no migration needed.

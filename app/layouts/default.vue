@@ -14,7 +14,7 @@ watch(
   },
 );
 
-const { data: canManage } = useCanManageEvents();
+const { data: canManage } = useHasRole("admin");
 const { data: ownMessagesCount } = useOwnContactMessagesCount();
 const { data: unreadOwnRepliesCount } = useUnreadOwnContactRepliesCount();
 const adminUnreadEnabled = computed(() => !!canManage.value);

@@ -3,7 +3,7 @@ const { t } = useI18n();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const { profile } = useProfile();
-const { data: canManage } = useCanManageEvents();
+const { data: canManage } = useHasRole("admin");
 const { data: ownMessagesCount } = useOwnContactMessagesCount();
 const { data: unreadOwnRepliesCount } = useUnreadOwnContactRepliesCount();
 const adminUnreadEnabled = computed(() => !!canManage.value);

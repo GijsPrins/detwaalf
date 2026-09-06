@@ -11,6 +11,13 @@ export default defineNuxtConfig({
       "notificaties@mail.twaalfprovincies.run",
     contactNotificationTo:
       process.env.CONTACT_NOTIFICATION_TO || "info@twaalfprovincies.run",
+    public: {
+      siteUrl:
+        process.env.NUXT_PUBLIC_SITE_URL ||
+        (process.env.NODE_ENV === "production"
+          ? "https://twaalfprovincies.run"
+          : "http://localhost:3000"),
+    },
   },
   css: ["~/assets/css/main.css"],
   app: {

@@ -235,7 +235,9 @@ export async function saveParticipation(
     .update(updatePayload)
     .eq("event_id", participation.event_id)
     .eq("user_id", userId)
-    .select("id, event_id, event_distance_id, status");
+    .select(
+      "id, user_id, event_id, event_distance_id, status, finish_time_seconds, timing_url, notes, created_at, updated_at",
+    );
 
   if (updateError) throw updateError;
   if ((updatedRows?.length ?? 0) > 0) {

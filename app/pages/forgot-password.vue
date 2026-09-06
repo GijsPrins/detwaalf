@@ -5,6 +5,7 @@ const { t } = useI18n();
 useHead(() => ({ title: t("page.forgotPassword") }));
 
 const supabase = useSupabaseClient();
+const runtimeConfig = useRuntimeConfig();
 
 const email = ref("");
 const loading = ref(false);
@@ -19,7 +20,10 @@ async function requestPasswordReset() {
   successMessage.value = null;
 
   const { error } = await supabase.auth.resetPasswordForEmail(email.value, {
-    redirectTo: `${window.location.origin}/update-password`,
+    redirectTo: new URL(
+      "/update-password",
+      runtimeConfig.public.siteUrl,
+    ).toString(),
   });
 
   if (error) {

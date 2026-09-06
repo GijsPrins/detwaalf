@@ -8,17 +8,7 @@ const GRAY = "#e5e7eb";
 
 const slugs = map.locations.map((l) => l.id);
 
-// Seed with ~4 random provinces already colored so the map isn't bare on load
 const initialColors = Object.fromEntries(slugs.map((slug) => [slug, GRAY]));
-const seedCount = 4;
-const seedIndices = [...slugs]
-  .sort(() => Math.random() - 0.5)
-  .slice(0, seedCount);
-for (const slug of seedIndices) {
-  initialColors[slug] =
-    DISTANCE_COLORS[MEDALS[Math.floor(Math.random() * MEDALS.length)]];
-}
-
 const provinceColors = reactive<Record<string, string>>(initialColors);
 
 let timer: ReturnType<typeof setTimeout> | null = null;
@@ -55,7 +45,14 @@ function tick() {
   }
 }
 
-onMounted(() => scheduleNext());
+onMounted(() => {
+  const seedIndices = [...slugs].sort(() => Math.random() - 0.5).slice(0, 4);
+  for (const slug of seedIndices) {
+    provinceColors[slug] =
+      DISTANCE_COLORS[MEDALS[Math.floor(Math.random() * MEDALS.length)]];
+  }
+  scheduleNext();
+});
 onUnmounted(() => {
   if (timer) clearTimeout(timer);
 });

@@ -51,7 +51,12 @@ function normalizeUrl(value: string | null | undefined): string | null {
   if (!value?.trim()) return null;
 
   try {
-    const url = new URL(value);
+    const trimmedValue = value.trim();
+    const url = new URL(
+      /^[a-z][a-z\d+.-]*:\/\//i.test(trimmedValue)
+        ? trimmedValue
+        : `https://${trimmedValue}`,
+    );
     url.hash = "";
     url.search = "";
     return `${url.hostname}${url.pathname}`.replace(/\/+$/, "");

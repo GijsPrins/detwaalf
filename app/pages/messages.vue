@@ -7,7 +7,7 @@ const {
   isPending,
   isError,
 } = useOwnContactMessages();
-const { mutate: markViewed } = useMarkOwnContactMessagesViewed();
+const { mutateAsync: markViewed } = useMarkOwnContactMessagesViewed();
 const { mutate: archiveMessage, isPending: isArchiving } =
   useArchiveOwnContactMessage();
 const capturedUnreadMessageIds = ref(new Set<string>());
@@ -17,7 +17,7 @@ const hasNewReplies = computed(() => capturedUnreadMessageIds.value.size > 0);
 
 watch(
   () => messages.value,
-  (value) => {
+  async (value) => {
     if (value?.length && !hasCapturedUnreadState.value) {
       capturedUnreadMessageIds.value = new Set(
         value
@@ -25,7 +25,14 @@ watch(
           .map((message) => message.id),
       );
       hasCapturedUnreadState.value = true;
-      markViewed();
+      if (capturedUnreadMessageIds.value.size > 0) {
+        try {
+          await markViewed();
+          capturedUnreadMessageIds.value = new Set();
+        } catch {
+          // Keep the unread state visible so a failed update is not hidden.
+        }
+      }
     }
   },
   { immediate: true },

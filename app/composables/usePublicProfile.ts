@@ -49,7 +49,7 @@ export function usePublicProfile(slugOrId: MaybeRef<string>) {
     () =>
       profileQuery.data.value !== null &&
       !profileQuery.data.value?.is_public &&
-      user.value?.id !== profileQuery.data.value?.id,
+      user.value?.sub !== profileQuery.data.value?.id,
   )
 
   return {

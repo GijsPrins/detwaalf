@@ -6,6 +6,7 @@ useHead(() => ({ title: t("page.updatePassword") }));
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
+const passwordRecovery = useState("password-recovery", () => false);
 
 const password = ref("");
 const passwordConfirm = ref("");
@@ -21,6 +22,7 @@ const canSubmit = computed(
     password.value.length >= 6 &&
     passwordConfirm.value.length >= 6 &&
     passwordsMatch.value &&
+    passwordRecovery.value &&
     !loading.value,
 );
 
@@ -29,7 +31,7 @@ async function updatePassword() {
   errorMessage.value = null;
   successMessage.value = null;
 
-  if (!user.value) {
+  if (!user.value || !passwordRecovery.value) {
     errorMessage.value = t("auth.updatePassword.errors.noSession");
     loading.value = false;
     return;
@@ -42,9 +44,11 @@ async function updatePassword() {
   if (error) {
     errorMessage.value = t("auth.updatePassword.errors.generic");
   } else {
+    passwordRecovery.value = false;
     successMessage.value = t("auth.updatePassword.success");
     password.value = "";
     passwordConfirm.value = "";
+    await supabase.auth.signOut();
   }
 
   loading.value = false;
@@ -60,6 +64,13 @@ async function updatePassword() {
       {{ t("auth.updatePassword.subtitle") }}
     </p>
 
+    <p
+      v-if="!passwordRecovery && !successMessage"
+      class="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700"
+    >
+      {{ t("auth.updatePassword.errors.noSession") }}
+    </p>
+
     <div
       v-if="successMessage"
       class="mb-6 p-4 bg-green-50 text-green-700 rounded-lg text-sm"
@@ -67,7 +78,11 @@ async function updatePassword() {
       {{ successMessage }}
     </div>
 
-    <form class="flex flex-col gap-4" @submit.prevent="updatePassword">
+    <form
+      v-if="passwordRecovery"
+      class="flex flex-col gap-4"
+      @submit.prevent="updatePassword"
+    >
       <div class="flex flex-col gap-1.5">
         <label for="password" class="text-sm font-medium text-gray-700">
           {{ t("auth.updatePassword.password") }}

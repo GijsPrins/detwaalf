@@ -1,4 +1,9 @@
 import type { ContactMessageType } from "~/queries/contactMessages";
+import {
+  fetchContactMessageRateLimitCounts,
+  isContactMessageRateLimited,
+  isContactMessageRateLimitError,
+} from "~/utils/contactMessageRateLimit";
 
 type ContactMessagePayload = {
   type?: unknown;
@@ -14,6 +19,10 @@ type AuthUserResponse = {
 type ContactMessageInsertResponse = Array<{
   id?: unknown;
 }>;
+
+function isContactMessagePayload(value: unknown): value is ContactMessagePayload {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 function isContactMessageType(value: unknown): value is ContactMessageType {
   return (
@@ -139,7 +148,14 @@ export default defineEventHandler(async (event) => {
 
   const { url, key } = getSupabaseConfig(event);
   const user = await fetchSupabaseUser(url, key, token);
-  const body = (await readBody(event)) as ContactMessagePayload;
+  const rawBody = await readBody<unknown>(event).catch(() => null);
+  if (!isContactMessagePayload(rawBody)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Invalid contact message",
+    });
+  }
+  const body = rawBody;
   const message = String(body.message ?? "").trim();
   const email = normalizeEmail(String(user.email ?? body.email ?? ""));
 
@@ -157,27 +173,60 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const contactMessage = await insertContactMessage(url, key, token, {
+  const rateLimitCounts = await fetchContactMessageRateLimitCounts({
+    url,
+    key,
+    token,
     userId: user.id,
-    email,
-    type: body.type,
-    message,
   });
+  if (isContactMessageRateLimited(rateLimitCounts)) {
+    throw createError({
+      statusCode: 429,
+      statusMessage: "Too many contact messages",
+    });
+  }
+
+  let contactMessage: { id: string };
+  try {
+    contactMessage = await insertContactMessage(url, key, token, {
+      userId: user.id,
+      email,
+      type: body.type,
+      message,
+    });
+  } catch (error) {
+    if (isContactMessageRateLimitError(error)) {
+      throw createError({
+        statusCode: 429,
+        statusMessage: "Too many contact messages",
+      });
+    }
+    throw error;
+  }
 
   try {
-    const adminUrl = new URL("/admin/messages", getRequestURL(event).origin);
+    const runtimeConfig = useRuntimeConfig(event);
+    const adminUrl = new URL(
+      "/admin/messages",
+      runtimeConfig.public.siteUrl,
+    );
 
-    await sendContactMessageNotification({
+    void sendContactMessageNotification({
       id: contactMessage.id,
       email,
       type: body.type,
       message,
       adminUrl: adminUrl.toString(),
+    }).catch((notificationError) => {
+      console.error("Failed to send contact message notification", {
+        contactMessageId: contactMessage.id,
+        error: notificationError,
+      });
     });
-  } catch (notificationError) {
-    console.error("Failed to send contact message notification", {
+  } catch (notificationSetupError) {
+    console.error("Failed to schedule contact message notification", {
       contactMessageId: contactMessage.id,
-      error: notificationError,
+      error: notificationSetupError,
     });
   }
 

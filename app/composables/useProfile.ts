@@ -11,7 +11,7 @@ export function useProfile() {
   const supabase = useSupabaseClient<Database>()
   const user = useSupabaseUser()
   const queryClient = useQueryClient()
-  const profileQueryKey = computed(() => getSelfProfileQueryKey(user.value?.id))
+  const profileQueryKey = computed(() => getSelfProfileQueryKey(user.value?.sub))
 
   const query = useQuery({
     queryKey: profileQueryKey,

@@ -74,6 +74,24 @@ describe("findPotentialDuplicateEvents", () => {
     });
   });
 
+  it("matches the same event url when the protocol is omitted", () => {
+    const matches = findPotentialDuplicateEvents(
+      {
+        name: "Heel andere naam",
+        eventDate: "2026-04-12",
+        provinceId: 12,
+        eventUrl: "www.nnmarathonrotterdam.nl",
+      },
+      events,
+    );
+
+    expect(matches[0]).toMatchObject({
+      event: { id: "rotterdam" },
+      reason: "url",
+      score: 1,
+    });
+  });
+
   it("waits for date and province before matching", () => {
     expect(
       findPotentialDuplicateEvents(
