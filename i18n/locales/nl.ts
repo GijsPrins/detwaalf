@@ -21,7 +21,7 @@ export default {
       title: "Twaalf Provincies",
       tagline: "Loop een evenement in alle 12 provincies",
       description:
-        "Volg je voortgang, verdien medailles en ontdek hardloopevenementen door heel Nederland.",
+        "Plan je volgende loop, volg je voortgang en ontdek hardlopend Nederland, provincie voor provincie.",
       cta: "Inloggen",
       onboarding: "Hoe werkt het?",
     },
@@ -29,12 +29,12 @@ export default {
       provinces: {
         title: "12 provincies",
         description:
-          "Eén hardloopevenement per provincie. Van Groningen tot Zeeland.",
+          "Ontdek hardlopend Nederland, van Groningen tot Zeeland.",
       },
       medals: {
-        title: "Verdien medailles",
+        title: "Drie medailleroutes",
         description:
-          "Brons (10 km), zilver (halve marathon) of goud (marathon) — per provincie.",
+          "Volg apart je 10 km-, halve marathon- en marathonroute door alle provincies.",
       },
       progress: {
         title: "Volg je voortgang",
@@ -104,18 +104,18 @@ export default {
   onboarding: {
     title: "Hoe het werkt",
     subtitle:
-      "De uitdaging: loop één evenement in alle 12 provincies van Nederland.",
+      "Loop een 10 km, halve marathon of marathon in alle 12 provincies en ontdek onderweg hardlopend Nederland.",
     step1: {
       title: "1. Zoek een evenement",
-      desc: "Vind een hardloopevenement. Elk evenement in Nederland telt, zolang het een officiële wedstrijd is.",
+      desc: "Vind een officiële hardloopwedstrijd op een plek waar je anders misschien nooit zou komen.",
     },
     step2: {
       title: "2. Loop een afstand",
-      desc: "De afstand die je loopt bepaalt je medaille voor die provincie:",
+      desc: "De afstand die je loopt bepaalt voor welke medailleroute deze provincie meetelt:",
     },
     step3: {
-      title: "3. Voltooi en verzamel",
-      desc: "Upload je finishtijd of bewijs en zie je medaillekaart volstromen.",
+      title: "3. Voltooi en houd bij",
+      desc: "Sla je resultaat op en zie je provinciekaart stap voor stap inkleuren.",
     },
     medals: {
       bronze: "Brons",
@@ -125,12 +125,17 @@ export default {
       gold: "Goud",
       goldDesc: "Marathon (42,2 km of meer)",
     },
-    cta: "Ga de uitdaging aan",
+    attribution: {
+      title: "Over de medaille",
+      body: "De 12 Provincies Medaille is een initiatief van ProRun. Twaalf Provincies is een onafhankelijk, gratis hulpmiddel om evenementen te ontdekken en je planning en voortgang bij te houden. Meld voltooide wedstrijden ook aan bij ProRun om officieel voor de medaille mee te tellen.",
+      link: "Bekijk de officiële 12 Provincies-pagina bij ProRun",
+    },
+    cta: "Begin met ontdekken",
     ctaLoggedIn: "Vind je eerste evenement",
     back: "Terug naar home",
   },
   dashboard: {
-    subtitle: "Voortgang per medailletrack",
+    subtitle: "Voortgang per medailleroute",
     loading: "Je dashboard wordt geladen...",
     provincesLabel: "Provincies",
     filters: {
@@ -151,7 +156,7 @@ export default {
     selectProvinceHint: "Klik op een provincie voor details",
     firstRun: {
       eyebrow: "Account aangemaakt",
-      title: "Je bent klaar voor de 12 Provincies challenge",
+      title: "Je bent klaar om de 12 provincies te ontdekken",
       description:
         "Mooi, je bent binnen. De volgende stap is je eerste deelname toevoegen, zodat dit dashboard je persoonlijke provinciekaart wordt.",
       nextStep: "Volgende stap",
@@ -181,7 +186,7 @@ export default {
         distance: {
           title: "Kies je afstand",
           description:
-            "Je afstand bepaalt voor welke medailletrack de provincie meetelt.",
+            "Je afstand bepaalt voor welke medailleroute de provincie meetelt.",
         },
         complete: {
           title: "Voltooi je eerste provincie",
@@ -221,9 +226,19 @@ export default {
       cancellationReasonPlaceholder: "Waarom is het evenement afgelast?",
     },
     celebration: {
-      title: "Gefeliciteerd!",
-      message: "Je hebt de {medal}-medaille verdiend voor {province}!",
-      close: "Sluiten",
+      title: "Provincie voltooid!",
+      message: "{province} telt nu mee voor je {medal}-route.",
+      progress: "{count} van 12 provincies voltooid",
+      prorunBody:
+        "ProRun beheert de officiële 12 Provincies Medaille. Registreer je finish daar ook om officieel mee te tellen.",
+      prorunCta: "Registreer bij ProRun",
+      close: "Later",
+      completeEyebrow: "12 van 12 provincies",
+      completeTitle: "Je {medal}-route is compleet!",
+      completeBody:
+        "Je hebt hardlopend Nederland provincie voor provincie ontdekt. Meld ook deze laatste finish bij ProRun en bekijk daar hoe je de officiële medaille ontvangt.",
+      completeCta: "Naar ProRun voor je officiële medaille",
+      completeClose: "Bekijk mijn provinciekaart",
     },
     statuses: {
       interested: "Geïnteresseerd",
@@ -328,9 +343,9 @@ export default {
     deleteConfirmNo: "Annuleren",
     backToEvent: "Terug naar evenement",
     notFound: "Evenement niet gevonden.",
-    challengeTitle: "Voor je challenge",
+    challengeTitle: "Voor je provinciekaart",
     challengeHint:
-      "Per afstand zie je direct voor welke medailletrack deze telt.",
+      "Per afstand zie je direct voor welke medailleroute deze telt.",
     location: "Locatie",
     registrationOpens: "Inschrijving opent",
     registrationDeadline: "Inschrijfdeadline",
@@ -387,10 +402,10 @@ export default {
         readyDescription:
           "Na de wedstrijd kun je hier je resultaat invullen.",
         readyDescriptionWithMedal:
-          "Na de wedstrijd kun je hier je resultaat invullen. Je afstand telt mee voor {medal}.",
-        medalTitle: "{medal} voor {province}",
+          "Na de wedstrijd kun je hier je resultaat invullen. Je afstand telt mee voor de {medal}-route.",
+        medalTitle: "{medal}-route · {province}",
         medalDescription:
-          "Deze provincie telt nu mee voor je {medal}-medaille.",
+          "Deze provincie telt nu mee voor je {medal}-route.",
         distanceTitle: "Afstand",
         countsFor: "Telt voor {medal}",
         planningTitle: "Planning",
@@ -400,6 +415,9 @@ export default {
         dnfHint: "Gestart, maar niet gefinisht.",
         cancelledHint: "Evenement afgelast, eventueel met korte notitie.",
         savedResultTitle: "Opgeslagen resultaat",
+        prorunHint:
+          "ProRun beheert de officiële 12 Provincies Medaille. Registreer je finish daar ook om officieel mee te tellen.",
+        prorunRegister: "Registreer dit resultaat bij ProRun",
         editResult: "Wijzigen",
         manageTitle: "Deelname beheren",
       },
@@ -411,7 +429,7 @@ export default {
     addDistance: "Afstand toevoegen",
     removeDistance: "Verwijderen",
     distanceHelp:
-      "Kies de afstand; we tonen automatisch voor welke medailletrack die telt.",
+      "Kies de afstand; we tonen automatisch voor welke medailleroute die telt.",
     fields: {
       name: "Naam evenement",
       date: "Datum",
@@ -640,7 +658,7 @@ export default {
     subtitle: "Hoe we omgaan met je gegevens binnen Twaalf Provincies.",
     updated: "Laatst bijgewerkt: 26 april 2026",
     intro:
-      "We verzamelen alleen gegevens die nodig zijn om je voortgang in de challenge bij te houden en om je account te beheren.",
+      "We verzamelen alleen gegevens die nodig zijn om je provincievoortgang bij te houden en om je account te beheren.",
     sections: {
       collected: {
         title: "Welke gegevens we verzamelen",
