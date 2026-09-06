@@ -61,5 +61,22 @@ supabase db push --dry-run
 See `docs/environments.md` for the full environment and deployment flow.
 
 ## Notes
+### Browser security headers
+
+`nuxt.config.ts` sets host-only HSTS for one year and disables unused camera,
+microphone, geolocation, payment and USB browser APIs. File uploads are unaffected.
+The enforced CSP restricts base URLs and form submissions to this origin and
+disallows plugins and embedding the app in frames.
+
+Resource restrictions are initially delivered as `Content-Security-Policy-Report-Only`.
+They do not block resources yet. Inspect browser console violations on staging
+while testing login, password recovery, event creation/location lookup, participation
+results and profile pages. Reports are not collected by a server endpoint.
+Nuxt inline bootstrap scripts may be reported: add nonce/hash support before enforcing
+`script-src`; do not silence those warnings with `unsafe-inline` for scripts.
+The initial policy allows Supabase project domains, Google Fonts and Nominatim.
+Before enforcement, narrow Supabase origins to the configured environment and verify
+any additional image sources. Development HMR can produce report-only warnings.
+
 - Uses Supabase
 - Uses pnpm instead of npm

@@ -83,8 +83,24 @@ export default defineNuxtConfig({
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",
         "Referrer-Policy": "strict-origin-when-cross-origin",
-        // Start with 5-minute max-age; increase to 1 year once verified stable in prod
-        "Strict-Transport-Security": "max-age=300; includeSubDomains",
+        // Host-only: other subdomains may belong to mail or external providers.
+        "Strict-Transport-Security": "max-age=31536000",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        "Content-Security-Policy": "base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'",
+        // Observe resource restrictions before enforcing them on authenticated flows.
+        "Content-Security-Policy-Report-Only": [
+          "default-src 'self'",
+          "script-src 'self'",
+          "script-src-attr 'none'",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          "font-src 'self' https://fonts.gstatic.com",
+          "img-src 'self' data: blob: https://*.supabase.co",
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org",
+          "frame-src 'none'",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+        ].join('; '),
       },
     },
   },
