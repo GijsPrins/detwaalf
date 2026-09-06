@@ -68,15 +68,27 @@ microphone, geolocation, payment and USB browser APIs. File uploads are unaffect
 The enforced CSP restricts base URLs and form submissions to this origin and
 disallows plugins and embedding the app in frames.
 
-Resource restrictions are initially delivered as `Content-Security-Policy-Report-Only`.
-They do not block resources yet. Inspect browser console violations on staging
-while testing login, password recovery, event creation/location lookup, participation
-results and profile pages. Reports are not collected by a server endpoint.
-Nuxt inline bootstrap scripts may be reported: add nonce/hash support before enforcing
-`script-src`; do not silence those warnings with `unsafe-inline` for scripts.
-The initial policy allows Supabase project domains, Google Fonts and Nominatim.
-Before enforcement, narrow Supabase origins to the configured environment and verify
-any additional image sources. Development HMR can produce report-only warnings.
+Built SSR pages enforce the full CSP through `app/plugins/csp.server.ts`.
+Each response gets a cryptographically random 256-bit nonce, attached only to scripts
+registered through Nuxt's head renderer, including its inline configuration script.
+`script-src` uses that nonce and `strict-dynamic`; arbitrary inline scripts, inline
+event handlers and parser-inserted scripts without a nonce are blocked, even from
+the same origin. Do not add nonces by scanning raw HTML or allow `unsafe-inline`
+for scripts. Inline styles remain allowed for Vue style bindings.
+
+SSR HTML is `private, no-store` so caches cannot reuse response nonces. Do not enable
+HTML prerendering, route caching or CDN HTML caching without redesigning the CSP;
+static assets retain their normal caching behavior. The base route-rule policy
+remains for non-SSR responses. Vite development uses only that base policy.
+
+Connections/images allow only the configured Supabase origin, with Google Fonts
+and Nominatim allowed for their respective resources. Report-Only has been removed;
+violations now block resources and appear in the browser console. No reporting
+endpoint collects them. Test the production build, not the Vite dev server, with
+`test/e2e/csp.spec.ts`, and verify authenticated flows on staging before promotion.
+Install both test browsers with `pnpm exec playwright install chromium firefox`.
+The `firefox-security` project runs the CSP and password-reset access tests;
+Chromium runs the full suite. No new environment variable or migration is needed.
 
 - Uses Supabase
 - Uses pnpm instead of npm
