@@ -14,6 +14,7 @@ import {
 import { getDateOnlyString, getLocalDateString } from "~/utils/localDate";
 import { getEventRegistrationCta } from "~/utils/eventRegistrationCta";
 import { formatFinishTime } from "~/utils/finishTime";
+import { safeHttpUrl } from "~/utils/httpUrl";
 import {
   getCompletedProvincesByCategory,
   getProvinceMilestone,
@@ -59,6 +60,7 @@ const celebration = ref<{
   completedCount: number;
 } | null>(null);
 const today = getLocalDateString();
+const timingResultUrl = computed(() => safeHttpUrl(participation.value?.timing_url));
 
 const completedProvinces = computed(() =>
   getCompletedProvincesByCategory(
@@ -1118,8 +1120,8 @@ const registrationStatus = computed(() => {
                     {{ t("eventDetail.participation.timingUrl") }}
                   </p>
                   <a
-                    v-if="participation?.timing_url"
-                    :href="participation.timing_url"
+                    v-if="timingResultUrl"
+                    :href="timingResultUrl"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="mt-1 block text-sm font-medium text-orange-600 hover:text-orange-700"

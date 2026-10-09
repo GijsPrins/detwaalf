@@ -45,6 +45,15 @@ function makeParticipation(
 }
 
 describe("mapEvent", () => {
+  it("never exposes stored executable URLs to event views", () => {
+    const vm = mapEvent(makeEventRow({
+      event_url: "javascript:alert(1)",
+      registration_url: "data:text/html,<script>alert(1)</script>",
+    }), undefined);
+    expect(vm.eventUrl).toBeNull();
+    expect(vm.registrationUrl).toBeNull();
+  });
+
   it("maps all scalar fields correctly", () => {
     const vm = mapEvent(makeEventRow(), undefined);
     expect(vm.id).toBe("evt-1");

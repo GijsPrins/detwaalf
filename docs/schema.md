@@ -103,6 +103,11 @@ erDiagram
 
 ## Notes
 
+- Event website, registration and result URLs accept only absolute HTTP/HTTPS links without credentials, whitespace, control characters or backslashes. The `is_safe_http_url` constraints apply to direct Data API writes as well as the event RPCs. Empty optional values remain supported. Existing invalid values must be reviewed before applying the constraints; the migration does not silently delete data.
+- Profile reads expose public profiles and the current user's own profile. Participation table reads require authentication and remain subject to ownership/admin policies. Public profile results continue through the narrowly scoped `get_public_profile_participations()` RPC.
+- `has_role(text)` uses a fixed empty search path and fully qualified table names. Only authenticated callers may invoke it; direct role-roster reads are revoked. Slug generation and cancellation-signal RPCs also require authentication. These rules are reasserted explicitly because old direct grants survive a revoke from `PUBLIC` alone.
+- `private.set_contact_message_email()` is an insert trigger, not a Data API endpoint. It checks that the authenticated user owns the new contact message and derives the sender's current email from `auth.users`, regardless of any client-supplied email. The existing rate-limit and immutable-content trigger still applies. Trusted maintenance inserts must supply an authenticated user context as well.
+
 - `medal_thresholds` / `get_medal(distance_km)` is legacy schema and is not used by the current event-distance flow
 - `profile_roles` is a join table with a composite primary key `(profile_id, role)`
 - `event_participations` has a unique constraint on `(event_id, user_id)` — one record per user per event

@@ -82,13 +82,44 @@ static assets retain their normal caching behavior. The base route-rule policy
 remains for non-SSR responses. Vite development uses only that base policy.
 
 Connections/images allow only the configured Supabase origin, with Google Fonts
-and Nominatim allowed for their respective resources. Report-Only has been removed;
+allowed for font resources. Report-Only has been removed;
 violations now block resources and appear in the browser console. No reporting
 endpoint collects them. Test the production build, not the Vite dev server, with
 `test/e2e/csp.spec.ts`, and verify authenticated flows on staging before promotion.
 Install both test browsers with `pnpm exec playwright install chromium firefox`.
-The `firefox-security` project runs the CSP and password-reset access tests;
-Chromium runs the full suite. No new environment variable or migration is needed.
+The `firefox-security` project runs the CSP, password-reset access and unsafe-link
+tests; Chromium runs the full suite. CSP itself needs no new environment variable
+or migration.
 
 - Uses Supabase
 - Uses pnpm instead of npm
+
+### Security validation
+
+`pnpm test:db` runs the security migration in an isolated in-memory PostgreSQL
+instance (PGlite) against a representative baseline with synthetic users. It
+checks anonymous access, ownership, retained admin access, RPC permissions,
+URL constraints and the contact sender trigger. It does not contact Supabase or
+replace acceptance tests against the full staging schema. CI runs it with the
+unit tests.
+
+Pull requests targeting either `staging` or `master` run the unit, database and
+E2E checks. E2E secrets must identify a dedicated test account and test database;
+local `.env` placeholders are not usable test credentials.
+
+Event forms accept HTTP/HTTPS links only; existing unsafe URLs are hidden by the
+view mapper. The province is selected explicitly: location fields no longer
+send requests to an external geocoding service. Responses omit `X-Powered-By`.
+
+Apply `20261009111345_security_review_hardening.sql` to staging first, verify the
+affected flows, then apply it to production as a separate deliberate release
+step before deploying the app. The migration also records the manually applied
+profile/participation read-leak fix. Public profiles and completed public-profile
+results must remain readable; private profiles and participation notes must not.
+
+The dependency lockfile includes security updates and temporary scoped overrides
+for `simple-git` and its argument parser under Nuxt devtools. Remove the overrides
+when upstream dependencies require the patched versions. The remaining audit
+findings in `node-forge` (development-server certificate generation) and `braces`
+(build-time glob matching) have no published patches at the time of this update.
+Keep devtools disabled in production and do not expose the development server.

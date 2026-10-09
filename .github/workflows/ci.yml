@@ -4,7 +4,7 @@ on:
   push:
     branches: [master]
   pull_request:
-    branches: [master]
+    branches: [master, staging]
 
 jobs:
   unit-tests:
@@ -26,6 +26,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm test
+      - run: pnpm test:db
 
   e2e-tests:
     name: E2E tests

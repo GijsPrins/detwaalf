@@ -449,7 +449,6 @@ export default {
       optional: "(optioneel)",
     },
     hint: "Na het opslaan kun je zelf kiezen of je dit evenement toevoegt aan je deelnames.",
-    provinceAutoFilled: "Provincie automatisch ingevuld op basis van locatie.",
     submit: "Opslaan",
     submitAnyway: "Toch als nieuw evenement opslaan",
     cancel: "Annuleren",
@@ -464,6 +463,7 @@ export default {
     errors: {
       generic: "Er is iets misgegaan. Probeer het opnieuw.",
       duplicateDistances: "Elke afstand mag maar één keer voorkomen.",
+      invalidUrl: "Gebruik een geldige link met https:// of http://, zonder gebruikersnaam of wachtwoord.",
     },
   },
   auth: {
