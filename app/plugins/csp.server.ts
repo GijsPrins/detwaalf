@@ -27,7 +27,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     `img-src 'self' data: blob: ${supabaseUrl.origin}`,
-    `connect-src 'self' ${supabaseUrl.origin} ${supabaseWebSocket.origin} https://nominatim.openstreetmap.org`,
+    `connect-src 'self' ${supabaseUrl.origin} ${supabaseWebSocket.origin}`,
     "frame-src 'none'",
     "frame-ancestors 'none'",
     "object-src 'none'",

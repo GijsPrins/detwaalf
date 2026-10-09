@@ -24,7 +24,7 @@ export default defineConfig({
     {
       name: "firefox-security",
       use: { ...devices["Desktop Firefox"] },
-      testMatch: /(?:csp|auth-security)\.spec\.ts/,
+      testMatch: /(?:csp|auth-security|url-security)\.spec\.ts/,
       dependencies: ["setup"],
     },
   ],

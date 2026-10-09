@@ -32,6 +32,7 @@ test("SSR nonces rotate and match the scripts on each response", async ({ page }
     const response = await page.goto(path);
     expect(response).not.toBeNull();
     const headers = response!.headers();
+    expect(headers["x-powered-by"]).toBeUndefined();
     const nonce = headers["content-security-policy"]?.match(/'nonce-([^']+)'/)?.[1];
     expect(nonce).toBeTruthy();
     expect(nonce).not.toBe(previousNonce);

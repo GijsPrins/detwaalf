@@ -6,6 +6,7 @@ import {
 } from "~/utils/eventDistances";
 import { findPotentialDuplicateEvents } from "~/utils/eventDuplicates";
 import { formatEventDate } from "~/mappers/events";
+import { isOptionalHttpUrl } from "~/utils/httpUrl";
 
 definePageMeta({ layout: "default" });
 
@@ -29,8 +30,6 @@ const form = reactive({
   registrationDeadline: "",
 });
 
-const provinceAutoFilled = ref(false);
-const nominatimLoading = ref(false);
 const normalizedDistances = computed(() =>
   normalizeEventDistanceInputs(form.distances),
 );
@@ -51,6 +50,9 @@ const duplicateMatches = computed(() =>
 );
 const likelyDuplicate = computed(() => duplicateMatches.value[0] ?? null);
 const hasPotentialDuplicate = computed(() => duplicateMatches.value.length > 0);
+const hasInvalidUrl = computed(() =>
+  !isOptionalHttpUrl(form.eventUrl) || !isOptionalHttpUrl(form.registrationUrl),
+);
 
 const canSubmit = computed(
   () =>
@@ -58,45 +60,10 @@ const canSubmit = computed(
     form.eventDate &&
     normalizedDistances.value.length > 0 &&
     !hasDuplicateDistances.value &&
+    !hasInvalidUrl.value &&
     form.provinceId !== null &&
     !isPending.value,
 );
-
-async function lookupProvince() {
-  if (!form.location.trim() || !provinces.value?.length) return;
-
-  nominatimLoading.value = true;
-  provinceAutoFilled.value = false;
-
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(form.location)}&countrycodes=nl&format=json&addressdetails=1&limit=1&accept-language=nl`,
-      {
-        headers: {
-          "User-Agent": "TwaalfProvincies/1.0 (twaalfprovincies.run)",
-        },
-      },
-    );
-    const results: { address?: { state?: string } }[] = await res.json();
-    const stateName = results[0]?.address?.state;
-    if (!stateName) return;
-
-    const match = provinces.value.find(
-      (p) =>
-        p.name.toLowerCase() === stateName.toLowerCase() ||
-        (p.name === "Friesland" && stateName === "Fryslân"),
-    );
-
-    if (match) {
-      form.provinceId = match.id;
-      provinceAutoFilled.value = true;
-    }
-  } catch {
-    // Silent fail — user can select manually
-  } finally {
-    nominatimLoading.value = false;
-  }
-}
 
 function submit() {
   if (!canSubmit.value) return;
@@ -163,7 +130,6 @@ function submit() {
           type="text"
           :placeholder="t('eventForm.fields.locationPlaceholder')"
           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-          @blur="lookupProvince"
         />
       </div>
 
@@ -177,7 +143,6 @@ function submit() {
           v-model="form.provinceId"
           required
           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 bg-white"
-          :disabled="nominatimLoading"
         >
           <option :value="null" disabled>
             {{ t("eventForm.fields.provincePlaceholder") }}
@@ -190,9 +155,6 @@ function submit() {
             {{ province.name }}
           </option>
         </select>
-        <p v-if="provinceAutoFilled" class="text-xs text-orange-600">
-          {{ t("eventForm.provinceAutoFilled") }}
-        </p>
       </div>
 
       <div
@@ -345,6 +307,10 @@ function submit() {
       <!-- Hint + error -->
       <p class="text-xs text-orange-600">
         {{ t("eventForm.hint") }}
+      </p>
+
+      <p v-if="hasInvalidUrl" class="text-sm text-red-600" role="alert">
+        {{ t("eventForm.errors.invalidUrl") }}
       </p>
 
       <p v-if="isError" class="text-sm text-red-600">
