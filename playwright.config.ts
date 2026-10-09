@@ -21,5 +21,11 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
       dependencies: ["setup"],
     },
+    {
+      name: "firefox-security",
+      use: { ...devices["Desktop Firefox"] },
+      testMatch: /(?:csp|auth-security)\.spec\.ts/,
+      dependencies: ["setup"],
+    },
   ],
 });

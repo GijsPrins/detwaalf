@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { DISTANCE_COLORS } from "~/constants/distances";
 import type { DistanceCategory } from "~/constants/distances";
+import { PROVINCE_COUNT } from "~/constants/provinces";
+import { PRORUN_TWELVE_PROVINCES_URL } from "~/constants/prorun";
 
 const props = defineProps<{
   medal: DistanceCategory;
   province: string;
+  completedCount: number;
 }>();
-
-defineEmits<{ close: [] }>();
 
 const { t } = useI18n();
 
@@ -22,9 +23,25 @@ const CONFETTI_COLORS: Record<DistanceCategory, string[]> = {
 
 const medalColor = computed(() => DISTANCE_COLORS[props.medal]);
 const medalLabel = computed(() => t(`dashboard.medals.${props.medal}`));
+const isRouteComplete = computed(
+  () => props.completedCount >= PROVINCE_COUNT,
+);
+const emit = defineEmits<{ close: [] }>();
+let previousBodyOverflow = "";
 
-onMounted(() => startConfetti());
+function closeOnEscape(event: KeyboardEvent) {
+  if (event.key === "Escape") emit("close");
+}
+
+onMounted(() => {
+  previousBodyOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+  window.addEventListener("keydown", closeOnEscape);
+  startConfetti();
+});
 onUnmounted(() => {
+  document.body.style.overflow = previousBodyOverflow;
+  window.removeEventListener("keydown", closeOnEscape);
   if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
 });
 
@@ -38,7 +55,7 @@ function startConfetti() {
   c.height = window.innerHeight;
 
   const colors = CONFETTI_COLORS[props.medal];
-  const pieces = Array.from({ length: 90 }, () => ({
+  const pieces = Array.from({ length: isRouteComplete.value ? 180 : 90 }, () => ({
     x: Math.random() * c.width,
     y: Math.random() * c.height - c.height,
     w: 8 + Math.random() * 8,
@@ -85,17 +102,66 @@ function startConfetti() {
 
 <template>
   <Teleport to="body">
-    <canvas ref="canvas" class="fixed inset-0 w-full h-full pointer-events-none z-40" />
+    <canvas ref="canvas" class="pointer-events-none fixed inset-0 z-[60] h-full w-full" />
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center p-4"
-      @click.self="$emit('close')"
+      v-if="isRouteComplete"
+      class="fixed inset-0 z-50 overflow-y-auto bg-white"
+      role="dialog"
+      aria-modal="true"
     >
-      <div class="bg-white rounded-2xl p-8 text-center max-w-xs w-full shadow-lg">
+      <div class="flex min-h-full items-center justify-center px-6 py-12 text-center">
+        <main class="w-full max-w-xl">
+          <p class="text-sm font-semibold uppercase text-orange-700">
+            {{ t("dashboard.celebration.completeEyebrow") }}
+          </p>
+          <div
+            class="mx-auto mt-8 flex h-36 w-36 items-center justify-center rounded-full border-8 text-3xl font-black shadow-xl"
+            :style="{ borderColor: medalColor, color: medalColor }"
+          >
+            12/12
+          </div>
+          <h1 class="mt-8 text-4xl font-black text-gray-950 sm:text-5xl">
+            {{
+              t("dashboard.celebration.completeTitle", {
+                medal: medalLabel,
+              })
+            }}
+          </h1>
+          <p class="mx-auto mt-5 max-w-lg text-base leading-7 text-gray-600 sm:text-lg">
+            {{ t("dashboard.celebration.completeBody") }}
+          </p>
+          <div class="mx-auto mt-8 flex max-w-sm flex-col gap-3">
+            <a
+              :href="PRORUN_TWELVE_PROVINCES_URL"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center rounded-lg bg-orange-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-700"
+            >
+              {{ t("dashboard.celebration.completeCta") }} &rarr;
+            </a>
+            <button
+              class="rounded-lg px-5 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+              @click="emit('close')"
+            >
+              {{ t("dashboard.celebration.completeClose") }}
+            </button>
+          </div>
+        </main>
+      </div>
+    </div>
+    <div
+      v-else
+      class="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/40 p-4"
+      role="dialog"
+      aria-modal="true"
+      @click.self="emit('close')"
+    >
+      <div class="w-full max-w-sm rounded-lg bg-white p-7 text-center shadow-xl">
         <div
           class="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-4"
           :style="{ background: medalColor }"
         >
-          1
+          {{ completedCount }}
         </div>
         <h2 class="text-xl font-bold text-gray-900 mb-2">
           {{ t("dashboard.celebration.title") }}
@@ -108,12 +174,32 @@ function startConfetti() {
             })
           }}
         </p>
-        <button
-          class="mt-6 w-full py-2.5 rounded-lg text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white transition-colors"
-          @click="$emit('close')"
-        >
-          {{ t("dashboard.celebration.close") }}
-        </button>
+        <p class="mt-2 text-xs font-semibold uppercase text-gray-400">
+          {{
+            t("dashboard.celebration.progress", {
+              count: completedCount,
+            })
+          }}
+        </p>
+        <p class="mt-5 border-t border-gray-100 pt-5 text-sm leading-6 text-gray-600">
+          {{ t("dashboard.celebration.prorunBody") }}
+        </p>
+        <div class="mt-5 flex flex-col gap-2">
+          <a
+            :href="PRORUN_TWELVE_PROVINCES_URL"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex w-full items-center justify-center rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-700"
+          >
+            {{ t("dashboard.celebration.prorunCta") }} &rarr;
+          </a>
+          <button
+            class="w-full rounded-lg px-4 py-2.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900"
+            @click="emit('close')"
+          >
+            {{ t("dashboard.celebration.close") }}
+          </button>
+        </div>
       </div>
     </div>
   </Teleport>

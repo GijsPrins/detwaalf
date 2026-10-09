@@ -2,7 +2,11 @@
 import type { Enums } from "~/types/database.types";
 import { formatEventDate } from "~/mappers/events";
 import { PARTICIPATION_STATUS_BADGE_CLASS } from "~/constants/participation";
-import { DISTANCE_BADGE_CLASS } from "~/constants/distances";
+import {
+  DISTANCE_BADGE_CLASS,
+  type DistanceCategory,
+} from "~/constants/distances";
+import { PRORUN_TWELVE_PROVINCES_URL } from "~/constants/prorun";
 import {
   getDistanceCategoryLabel,
   getEventDistanceLabel,
@@ -10,6 +14,10 @@ import {
 import { getDateOnlyString, getLocalDateString } from "~/utils/localDate";
 import { getEventRegistrationCta } from "~/utils/eventRegistrationCta";
 import { formatFinishTime } from "~/utils/finishTime";
+import {
+  getCompletedProvincesByCategory,
+  getProvinceMilestone,
+} from "~/utils/provinceProgress";
 import type {
   CompleteModalEvent,
   CompleteModalResult,
@@ -32,6 +40,8 @@ const showCreatedHint = computed(
 const user = useSupabaseUser();
 const { data: event, isPending, isError } = useEvent(eventId);
 const { data: participation } = useEventParticipation(eventId);
+const { data: allEvents } = useEventList();
+const { data: participations } = useParticipations();
 const canEdit = useCanEditEvent(event);
 const { mutate: setStatus, isPending: isSettingStatus } =
   useSetParticipation(eventId);
@@ -43,7 +53,19 @@ const { mutate: deleteEvent, isPending: isDeleting } = useDeleteEvent(eventId);
 const confirmingDelete = ref(false);
 const modalEvent = ref<CompleteModalEvent | null>(null);
 const modalInitialOutcome = ref<CompleteModalResult["status"] | null>(null);
+const celebration = ref<{
+  medal: DistanceCategory;
+  province: string;
+  completedCount: number;
+} | null>(null);
 const today = getLocalDateString();
+
+const completedProvinces = computed(() =>
+  getCompletedProvincesByCategory(
+    allEvents.value ?? [],
+    participations.value ?? [],
+  ),
+);
 
 useHead(() => ({ title: event.value?.name ?? t("events.title") }));
 
@@ -473,6 +495,17 @@ async function handleCompleteConfirm(result: CompleteModalResult) {
   optimisticParticipationStatus.value = result.status;
   const eventDistanceId = modalEvent.value.eventDistanceId;
   optimisticParticipationDistanceId.value = eventDistanceId;
+  const distanceCategory = event.value?.distances.find(
+    (distance) => distance.id === eventDistanceId,
+  )?.distanceCategory;
+  const milestone =
+    result.status === "completed" && event.value && distanceCategory
+      ? getProvinceMilestone(
+          completedProvinces.value,
+          distanceCategory,
+          event.value.provinceId,
+        )
+      : null;
 
   try {
     await completeParticipation({
@@ -487,6 +520,13 @@ async function handleCompleteConfirm(result: CompleteModalResult) {
     modalInitialOutcome.value = null;
     optimisticParticipationStatus.value = undefined;
     optimisticParticipationDistanceId.value = undefined;
+    if (milestone?.isNewProvince && event.value && distanceCategory) {
+      celebration.value = {
+        medal: distanceCategory,
+        province: event.value.provinceName,
+        completedCount: milestone.completedCount,
+      };
+    }
   } catch {
     optimisticParticipationStatus.value = previousStatus;
     optimisticParticipationDistanceId.value = previousDistanceId;
@@ -1106,6 +1146,22 @@ const registrationStatus = computed(() => {
                   </p>
                 </div>
               </div>
+              <div
+                v-if="currentParticipationStatus === 'completed'"
+                class="mt-4 border-t border-gray-100 pt-4"
+              >
+                <p class="text-sm leading-6 text-gray-600">
+                  {{ t("eventDetail.participation.card.prorunHint") }}
+                </p>
+                <a
+                  :href="PRORUN_TWELVE_PROVINCES_URL"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mt-2 inline-flex text-sm font-semibold text-orange-700 transition-colors hover:text-orange-800"
+                >
+                  {{ t("eventDetail.participation.card.prorunRegister") }} &rarr;
+                </a>
+              </div>
             </div>
 
             <div
@@ -1159,6 +1215,14 @@ const registrationStatus = computed(() => {
           modalEvent = null;
           modalInitialOutcome = null;
         "
+      />
+
+      <ParticipationMedalCelebration
+        v-if="celebration"
+        :medal="celebration.medal"
+        :province="celebration.province"
+        :completed-count="celebration.completedCount"
+        @close="celebration = null"
       />
     </template>
   </div>
