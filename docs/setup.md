@@ -96,6 +96,9 @@ or migration.
 
 ### Security validation
 
+Use the pinned pnpm 10.15.1 version from `package.json`; CI uses the same version
+so lockfile and override behavior remain consistent across environments.
+
 `pnpm test:db` runs the security migration in an isolated in-memory PostgreSQL
 instance (PGlite) against a representative baseline with synthetic users. It
 checks anonymous access, ownership, retained admin access, RPC permissions,

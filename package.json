@@ -2,6 +2,7 @@
   "name": "twaalfprovincies",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@10.15.1",
   "pnpm": {
     "overrides": {
       "@nuxt/devtools>simple-git": "4.0.1",
