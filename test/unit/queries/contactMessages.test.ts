@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "~/types/database.types";
 import {
   archiveContactMessage,
   archiveOwnContactMessage,
@@ -33,14 +35,18 @@ describe("contactMessages queries", () => {
     const rows = [{ id: "1", contact_message_replies: [] }];
     const order = vi.fn().mockResolvedValue({ data: rows, error: null });
     const is = vi.fn(() => ({ order }));
-    const select = vi.fn(() => ({ is }));
+    const eq = vi.fn(() => ({ is }));
+    const select = vi.fn(() => ({ is, eq }));
     const from = vi.fn(() => ({ select }));
     const supabase = { from } as never;
 
-    await expect(fetchOwnContactMessages(supabase)).resolves.toEqual(rows);
+    await expect(fetchOwnContactMessages(supabase, "user-1")).resolves.toEqual(
+      rows,
+    );
     expect(from).toHaveBeenCalledWith("contact_messages");
     expect(select).toHaveBeenCalledWith("*, contact_message_replies(*)");
     expect(is).toHaveBeenCalledWith("user_archived_at", null);
+    expect(eq).toHaveBeenCalledWith("user_id", "user-1");
     expect(order).toHaveBeenCalledWith("created_at", { ascending: false });
   });
 
@@ -81,14 +87,16 @@ describe("contactMessages queries", () => {
 
   it("fetchOwnContactMessagesCount returns exact count", async () => {
     const is = vi.fn().mockResolvedValue({ count: 2, error: null });
-    const select = vi.fn(() => ({ is }));
+    const eq = vi.fn(() => ({ is }));
+    const select = vi.fn(() => ({ is, eq }));
     const from = vi.fn(() => ({ select }));
     const supabase = { from } as never;
 
-    await expect(fetchOwnContactMessagesCount(supabase)).resolves.toBe(2);
+    await expect(fetchOwnContactMessagesCount(supabase, "user-1")).resolves.toBe(2);
     expect(from).toHaveBeenCalledWith("contact_messages");
     expect(select).toHaveBeenCalledWith("id", { count: "exact", head: true });
     expect(is).toHaveBeenCalledWith("user_archived_at", null);
+    expect(eq).toHaveBeenCalledWith("user_id", "user-1");
   });
 
   it("fetchUnreadOwnContactRepliesCount counts replies newer than last_viewed_at", async () => {
@@ -113,11 +121,61 @@ describe("contactMessages queries", () => {
     ];
     const order = vi.fn().mockResolvedValue({ data: rows, error: null });
     const is = vi.fn(() => ({ order }));
-    const select = vi.fn(() => ({ is }));
+    const eq = vi.fn(() => ({ is }));
+    const select = vi.fn(() => ({ is, eq }));
     const from = vi.fn(() => ({ select }));
     const supabase = { from } as never;
 
-    await expect(fetchUnreadOwnContactRepliesCount(supabase)).resolves.toBe(2);
+    await expect(
+      fetchUnreadOwnContactRepliesCount(supabase, "user-1"),
+    ).resolves.toBe(2);
+    expect(eq).toHaveBeenCalledWith("user_id", "user-1");
+  });
+
+  it.each([
+    { viewedAt: "2026-10-24T12:00:00Z", archivedAt: null, expected: 0 },
+    { viewedAt: null, archivedAt: "2026-10-24T12:00:00Z", expected: 0 },
+    { viewedAt: null, archivedAt: null, expected: 1 },
+  ])("counts only the current user's visible unread replies: %j", async ({ viewedAt, archivedAt, expected }) => {
+    // An admin can receive both users' rows from RLS. Exercise the real query
+    // client against a local transport that applies its outgoing filters.
+    const rows = [
+      {
+        user_id: "admin-1",
+        created_at: "2026-10-24T10:00:00Z",
+        last_viewed_at: viewedAt,
+        user_archived_at: archivedAt,
+        contact_message_replies: [{ created_at: "2026-10-24T11:00:00Z" }],
+      },
+      {
+        user_id: "other-user",
+        created_at: "2026-10-24T10:00:00Z",
+        last_viewed_at: null,
+        user_archived_at: null,
+        contact_message_replies: [{ created_at: "2026-10-24T11:00:00Z" }],
+      },
+    ];
+    const supabase = createClient<Database>("https://test.supabase.co", "test", {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: async (input) => {
+          const params = new URL(String(input)).searchParams;
+          const visible = rows.filter(
+            (row) =>
+              (!params.has("user_id") ||
+                params.get("user_id") === `eq.${row.user_id}`) &&
+              (!params.has("user_archived_at") || row.user_archived_at === null),
+          );
+          return new Response(JSON.stringify(visible), {
+            headers: { "Content-Type": "application/json" },
+          });
+        },
+      },
+    });
+
+    await expect(
+      fetchUnreadOwnContactRepliesCount(supabase, "admin-1"),
+    ).resolves.toBe(expected);
   });
 
   it("insertContactMessageReply maps payload fields correctly", async () => {
@@ -157,13 +215,15 @@ describe("contactMessages queries", () => {
   });
 
   it("markOwnContactMessagesViewed updates last_viewed_at for visible rows", async () => {
-    const neq = vi.fn().mockResolvedValue({ error: null });
-    const is = vi.fn(() => ({ neq }));
-    const update = vi.fn(() => ({ is }));
+    const is = vi.fn().mockResolvedValue({ error: null });
+    const eq = vi.fn(() => ({ is }));
+    const update = vi.fn(() => ({ eq }));
     const from = vi.fn(() => ({ update }));
     const supabase = { from } as never;
 
-    await expect(markOwnContactMessagesViewed(supabase)).resolves.toBeUndefined();
+    await expect(
+      markOwnContactMessagesViewed(supabase, "user-1"),
+    ).resolves.toBeUndefined();
 
     expect(update).toHaveBeenCalledOnce();
     const updatePayload = update.mock.calls[0]?.[0] as {
@@ -171,10 +231,7 @@ describe("contactMessages queries", () => {
     };
     expect(typeof updatePayload.last_viewed_at).toBe("string");
     expect(is).toHaveBeenCalledWith("user_archived_at", null);
-    expect(neq).toHaveBeenCalledWith(
-      "id",
-      "00000000-0000-0000-0000-000000000000",
-    );
+    expect(eq).toHaveBeenCalledWith("user_id", "user-1");
   });
 
   it("archiveOwnContactMessage sets user_archived_at", async () => {

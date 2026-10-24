@@ -36,7 +36,7 @@ export function useOwnContactMessages() {
         data: { user: authUser },
       } = await supabase.auth.getUser();
       if (!authUser) return [];
-      return fetchOwnContactMessages(supabase);
+      return fetchOwnContactMessages(supabase, authUser.id);
     },
   });
 }
@@ -56,7 +56,7 @@ export function useOwnContactMessagesCount() {
         data: { user: authUser },
       } = await supabase.auth.getUser();
       if (!authUser) return 0;
-      return fetchOwnContactMessagesCount(supabase);
+      return fetchOwnContactMessagesCount(supabase, authUser.id);
     },
   });
 }
@@ -76,7 +76,7 @@ export function useUnreadOwnContactRepliesCount() {
         data: { user: authUser },
       } = await supabase.auth.getUser();
       if (!authUser) return 0;
-      return fetchUnreadOwnContactRepliesCount(supabase);
+      return fetchUnreadOwnContactRepliesCount(supabase, authUser.id);
     },
   });
 }
@@ -166,7 +166,14 @@ export function useMarkOwnContactMessagesViewed() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => markOwnContactMessagesViewed(supabase),
+    mutationFn: async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+      if (error || !user) throw error ?? new Error("Not authenticated");
+      return markOwnContactMessagesViewed(supabase, user.id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contactMessages", "own"] });
       queryClient.invalidateQueries({
