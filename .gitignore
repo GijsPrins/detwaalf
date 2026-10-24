@@ -33,3 +33,4 @@ supabase/.temp/
 test/e2e/.auth/*.json
 playwright-report/
 test-results/
+coverage/
