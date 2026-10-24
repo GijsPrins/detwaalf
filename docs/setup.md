@@ -1,8 +1,8 @@
 # Setup
 
 ## Requirements
-- Node.js 22
-- pnpm
+- Node.js 22.22.3+ (22.x) or 24.15.0+ (24.x); Nuxt also supports Node.js 26+
+- pnpm 10.15.1, pinned in `package.json` and used by CI
 - VS Code
 
 ## Install
@@ -10,6 +10,31 @@
 ```bash
 pnpm install
 ```
+
+Use `pnpm install --frozen-lockfile` to reproduce the reviewed dependency tree.
+The build-script allowlist in `pnpm-workspace.yaml` permits only Parcel's watcher,
+esbuild and vue-demi to run dependency build scripts.
+
+### Dependency updates (16 October 2026)
+
+All app and test dependencies present on `staging` have been updated to their
+latest stable releases, including Nuxt 4.6, Pinia 4 and its Nuxt module 1,
+Vitest 5 with matching coverage provider, dotenv 18 and happy-dom 21.
+The Supabase Nuxt module and directly imported Supabase JS client are pinned to
+2.1.0 and 2.118.0 respectively. PGlite is pinned to 0.5.10 so the database tests
+from the separate security hardening PR will also use the updated dependency.
+That PR's migrations and tests remain separate from this dependency update.
+
+PRs targeting `staging` or `master` run unit tests and production-build E2E tests.
+Before promotion, test login/session restoration, participation changes, event
+management and contact messages on staging, including browser CSP behavior.
+
+The dependency audit still reports two high-severity advisories without published
+patches: [node-forge signature verification](https://github.com/advisories/GHSA-86w9-cpqp-85rv)
+and [braces stack exhaustion](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
+They enter through Nuxt/Nitro development-server and build tooling. This does not
+establish production exploitability. Keep devtools disabled in production and
+development servers private; recheck the audit when upstream fixes are released.
 
 ## Development
 
