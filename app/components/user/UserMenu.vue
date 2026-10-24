@@ -35,7 +35,8 @@ const hasUnreadAdminMessages = computed(
 );
 const showMessagesItem = computed(() => hasOwnMessages.value || canManage.value);
 const hasUnreadMessages = computed(
-  () => hasUnreadOwnReplies.value || hasUnreadAdminMessages.value,
+  () =>
+    canManage.value ? hasUnreadAdminMessages.value : hasUnreadOwnReplies.value,
 );
 const messagesRoute = computed(() =>
   canManage.value ? "/admin/messages" : "/messages",

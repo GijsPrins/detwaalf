@@ -26,10 +26,12 @@ export async function fetchContactMessages(
 
 export async function fetchOwnContactMessages(
   supabase: Client,
+  userId: string,
 ): Promise<ContactMessageWithReplies[]> {
   const { data, error } = await supabase
     .from("contact_messages")
     .select("*, contact_message_replies(*)")
+    .eq("user_id", userId)
     .is("user_archived_at", null)
     .order("created_at", { ascending: false });
 
@@ -39,10 +41,12 @@ export async function fetchOwnContactMessages(
 
 export async function fetchOwnContactMessagesCount(
   supabase: Client,
+  userId: string,
 ): Promise<number> {
   const { count, error } = await supabase
     .from("contact_messages")
     .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
     .is("user_archived_at", null);
 
   if (error) throw error;
@@ -51,8 +55,9 @@ export async function fetchOwnContactMessagesCount(
 
 export async function fetchUnreadOwnContactRepliesCount(
   supabase: Client,
+  userId: string,
 ): Promise<number> {
-  const messages = await fetchOwnContactMessages(supabase);
+  const messages = await fetchOwnContactMessages(supabase, userId);
 
   return messages.reduce((count, message) => {
     const viewedAt = message.last_viewed_at
@@ -121,12 +126,13 @@ export async function insertContactMessageReply(
 
 export async function markOwnContactMessagesViewed(
   supabase: Client,
+  userId: string,
 ): Promise<void> {
   const { error } = await supabase
     .from("contact_messages")
     .update({ last_viewed_at: new Date().toISOString() })
-    .is("user_archived_at", null)
-    .neq("id", "00000000-0000-0000-0000-000000000000");
+    .eq("user_id", userId)
+    .is("user_archived_at", null);
 
   if (error) throw error;
 }
