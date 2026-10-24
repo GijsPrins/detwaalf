@@ -552,9 +552,9 @@ describe("composables", () => {
     (archiveAdmin.onSuccess as () => void)();
 
     expect(fetchContactMessages).toHaveBeenCalledWith(supabase);
-    expect(fetchOwnContactMessages).toHaveBeenCalledWith(supabase);
-    expect(fetchOwnContactMessagesCount).toHaveBeenCalledWith(supabase);
-    expect(fetchUnreadOwnContactRepliesCount).toHaveBeenCalledWith(supabase);
+    expect(fetchOwnContactMessages).toHaveBeenCalledWith(supabase, "user-1");
+    expect(fetchOwnContactMessagesCount).toHaveBeenCalledWith(supabase, "user-1");
+    expect(fetchUnreadOwnContactRepliesCount).toHaveBeenCalledWith(supabase, "user-1");
     expect(fetchUnreadContactMessagesCount).toHaveBeenCalledWith(supabase);
     expect(globalThis.$fetch).toHaveBeenCalledWith("/api/contact-messages", {
       method: "POST",
@@ -572,7 +572,7 @@ describe("composables", () => {
       authorId: "user-1",
       body: "antwoord",
     });
-    expect(markOwnContactMessagesViewed).toHaveBeenCalledWith(supabase);
+    expect(markOwnContactMessagesViewed).toHaveBeenCalledWith(supabase, "user-1");
     expect(markMessageRead).toHaveBeenCalledWith(supabase, "msg-1");
     expect(archiveOwnContactMessage).toHaveBeenCalledWith(supabase, "msg-1");
     expect(archiveContactMessage).toHaveBeenCalledWith(supabase, "msg-1");
