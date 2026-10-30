@@ -179,7 +179,8 @@ describe("contactMessages queries", () => {
   });
 
   it("insertContactMessageReply maps payload fields correctly", async () => {
-    const insert = vi.fn().mockResolvedValue({ error: null });
+    const single = vi.fn().mockResolvedValue({ data: { id: "reply-1" }, error: null });
+    const insert = vi.fn(() => ({ select: () => ({ single }) }));
     const from = vi.fn(() => ({ insert }));
     const supabase = { from } as never;
 
@@ -189,7 +190,7 @@ describe("contactMessages queries", () => {
         authorId: "admin-1",
         body: "Reply",
       }),
-    ).resolves.toBeUndefined();
+    ).resolves.toEqual({ id: "reply-1" });
 
     expect(from).toHaveBeenCalledWith("contact_message_replies");
     expect(insert).toHaveBeenCalledWith({

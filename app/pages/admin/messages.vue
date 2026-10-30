@@ -19,6 +19,16 @@ const { mutate: archiveMessage, isPending: isArchiving } =
   useArchiveContactMessage();
 const replyDrafts = ref<Record<string, string>>({});
 const repliedMessageId = ref<string | null>(null);
+const replyNotification = ref<"sent" | "failed" | "skipped" | null>(null);
+const replyFeedback = computed(() => {
+  if (replyNotification.value === "failed") {
+    return t("admin.messages.replyEmailFailed");
+  }
+  if (replyNotification.value === "skipped") {
+    return t("admin.messages.replyEmailSkipped");
+  }
+  return t("admin.messages.replySent");
+});
 
 const unreadCount = computed(
   () => (messages.value ?? []).filter((m) => !m.read_at).length,
@@ -47,9 +57,15 @@ async function submitReply(messageId: string) {
   const body = replyDrafts.value[messageId]?.trim();
   if (!body) return;
 
-  await replyToMessage({ contactMessageId: messageId, body });
-  replyDrafts.value[messageId] = "";
-  repliedMessageId.value = messageId;
+  repliedMessageId.value = null;
+  try {
+    const result = await replyToMessage({ contactMessageId: messageId, body });
+    replyDrafts.value[messageId] = "";
+    replyNotification.value = result.notification;
+    repliedMessageId.value = messageId;
+  } catch {
+    return;
+  }
 }
 </script>
 
@@ -168,9 +184,9 @@ async function submitReply(messageId: string) {
               </p>
               <p
                 v-else-if="repliedMessageId === msg.id"
-                class="text-xs text-green-700"
+                class="text-xs text-gray-700"
               >
-                {{ t("admin.messages.replySent") }}
+                {{ replyFeedback }}
               </p>
               <span v-else />
               <button
