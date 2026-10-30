@@ -1,10 +1,4 @@
-import type {
-  Database,
-  Json,
-  Tables,
-  TablesInsert,
-  TablesUpdate,
-} from "~/types/database.types";
+import type { Database, Json, Tables, TablesInsert } from "~/types/database.types";
 import type { EventDistanceInput } from "~/types/events";
 
 // Derive the client type from the Nuxt composable so we don't need
