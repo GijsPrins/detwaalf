@@ -114,14 +114,19 @@ export async function insertContactMessageReply(
     authorId: string;
     body: string;
   },
-): Promise<void> {
-  const { error } = await supabase.from("contact_message_replies").insert({
-    contact_message_id: payload.contactMessageId,
-    author_id: payload.authorId,
-    body: payload.body,
-  });
+): Promise<Pick<ContactMessageReplyRow, "id">> {
+  const { data, error } = await supabase
+    .from("contact_message_replies")
+    .insert({
+      contact_message_id: payload.contactMessageId,
+      author_id: payload.authorId,
+      body: payload.body,
+    })
+    .select("id")
+    .single();
 
   if (error) throw error;
+  return data;
 }
 
 export async function markOwnContactMessagesViewed(
