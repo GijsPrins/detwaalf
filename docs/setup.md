@@ -71,7 +71,9 @@ CONTACT_NOTIFICATION_TO=info@twaalfprovincies.run
 
 Admin replies from the message inbox also send the reply text and a link to
 `/messages` through Brevo, using the same sender and API key. Apply the
-`contact_reply_recipient` migration before deploying this feature. The server
+`contact_reply_recipient` and `pin_role_lookup_search_path` migrations before
+deploying this feature. The role lookup uses an explicit schema and an empty
+search path so it also works inside the secured recipient function. The server
 checks the admin role and the database resolves the original sender's current,
 verified Auth email; the stored contact email is not trusted as a destination.
 Deleted accounts and accounts without a verified email receive no email.

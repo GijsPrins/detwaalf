@@ -25,6 +25,8 @@ jobs:
 
       - run: pnpm test
 
+      - run: node --test test/database/*.test.mjs
+
   e2e-tests:
     name: E2E tests
     runs-on: ubuntu-latest
