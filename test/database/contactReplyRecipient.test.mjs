@@ -20,15 +20,22 @@ before(async () => {
       select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
     $$;
     grant usage on schema auth to authenticated;
-    create function public.has_role(role_name text) returns boolean language sql stable as $$
-      select role_name = 'admin' and auth.uid() = '${admin}'::uuid
+    create table public.profile_roles (profile_id uuid, role text);
+    create function public.has_role(role_name text) returns boolean
+    language sql stable security definer as $$
+      select exists (
+        select 1 from profile_roles
+        where profile_id = auth.uid() and role = role_name
+      )
     $$;
   `);
   await db.exec(await readFile(new URL('../../supabase/migrations/20261030092657_contact_reply_recipient.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../../supabase/migrations/20261030100533_pin_role_lookup_search_path.sql', import.meta.url), 'utf8'));
 });
 
 beforeEach(async () => {
   await db.exec('begin');
+  await db.query("insert into public.profile_roles values ($1, 'admin')", [admin]);
   await db.query("insert into auth.users values ($1, 'current@example.test', now())", [sender]);
   await db.query("insert into public.contact_messages values ($1, $2, 'spoofed@example.test')", [message, sender]);
 });
@@ -79,4 +86,20 @@ test('unverified email addresses are skipped', async () => {
 test('unknown messages fail instead of returning an arbitrary recipient', async () => {
   await actAs(admin);
   await assert.rejects(db.query('select public.get_contact_reply_recipient($1)', [sender]), /Contact message not found/);
+});
+test('role lookup works when its caller has an empty search_path', async () => {
+  await actAs(admin);
+  await db.exec("set local search_path = ''");
+  assert.deepEqual((await db.query("select public.has_role('admin') as allowed")).rows, [{ allowed: true }]);
+  assert.deepEqual((await db.query('select public.get_contact_reply_recipient($1) as email', [message])).rows, [{ email: 'current@example.test' }]);
+});
+
+test('caller-controlled search_path cannot supply fake admin role assignments', async () => {
+  await db.exec('create schema attacker; create table attacker.profile_roles (profile_id uuid, role text)');
+  await db.query("insert into attacker.profile_roles values ($1, 'admin')", [sender]);
+  await db.exec('grant usage on schema attacker to authenticated');
+  await actAs(sender);
+  await db.exec('set local search_path = attacker');
+  assert.deepEqual((await db.query("select public.has_role('admin') as allowed")).rows, [{ allowed: false }]);
+  await assert.rejects(db.query('select public.get_contact_reply_recipient($1)', [message]), /Not authorized/);
 });
