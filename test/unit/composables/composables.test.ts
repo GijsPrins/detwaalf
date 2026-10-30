@@ -567,10 +567,11 @@ describe("composables", () => {
         message: "hello",
       },
     });
-    expect(insertContactMessageReply).toHaveBeenCalledWith(supabase, {
-      contactMessageId: "msg-1",
-      authorId: "user-1",
-      body: "antwoord",
+    expect(globalThis.$fetch).toHaveBeenCalledWith("/api/contact-message-replies", {
+      method: "POST",
+      credentials: "include",
+      headers: { Authorization: "Bearer session-token-1" },
+      body: { contactMessageId: "msg-1", body: "antwoord" },
     });
     expect(markOwnContactMessagesViewed).toHaveBeenCalledWith(supabase, "user-1");
     expect(markMessageRead).toHaveBeenCalledWith(supabase, "msg-1");
