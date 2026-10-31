@@ -608,10 +608,20 @@ export default {
       title: "Events toevoegen",
       subtitle:
         "Voeg snel meerdere events toe. Plak websites, haal gegevens op en controleer elke regel voor het opslaan.",
-      pasteTitle: "Websites plakken",
+      pasteTitle: "Websites of events plakken",
       pasteDescription:
-        "Eén website per regel. Elke website wordt een nieuwe regel hieronder.",
-      pastePlaceholder: "https://www.voorbeeldloop.nl",
+        "Eén website of event per regel. Elke regel wordt een nieuwe regel hieronder.",
+      pasteFormat: "Complete regels, bijvoorbeeld uit een AI-chat of spreadsheet:",
+      pasteColumns: "website; naam; datum; plaats; provincie; afstanden; inschrijflink",
+      pastePlaceholder:
+        "https://www.voorbeeldloop.nl\nhttps://www.voorbeeldloop.nl; Voorbeeldloop; 2027-04-11; Utrecht; Utrecht; 10 km, halve marathon; https://www.voorbeeldloop.nl/inschrijven",
+      copyAiPrompt: "Kopieer AI-prompt",
+      aiPromptCopied: "Prompt gekopieerd",
+      aiPromptProvince: "AI-prompt voor",
+      aiPromptProvincePlaceholder: "Kies een provincie",
+      aiPromptNoKnown: "(nog geen)",
+      aiPrompt:
+        "Zoek komende hardloopevenementen in de provincie {province} met minstens één van deze afstanden: 10 km, kwart marathon, 15 km, 10 Engelse mijl, halve marathon, 30 km of marathon. Geef maximaal {max} events, de grootste en bekendste eerst.\n\nDeze events hebben we al, sla ze over:\n{known}\n\nGeef per event precies één regel, zonder kopregel en zonder uitleg, in dit formaat:\n\nwebsite; naam; datum; plaats; provincie; afstanden; inschrijflink\n\n- datum als JJJJ-MM-DD\n- afstanden gescheiden door komma's, alleen uit de lijst hierboven\n- gebruik de officiële website van het event, geen kaartjessite\n- laat een veld leeg als je het niet zeker weet, verzin niets",
       addUrls: "Regels maken",
       addRow: "Lege regel",
       summary: "{rows} regels · {ready} klaar om op te slaan · {saved} opgeslagen",

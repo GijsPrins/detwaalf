@@ -4,11 +4,13 @@ import {
   createBulkEventRow,
   isBulkEventRowReady,
   normalizeEventUrl,
-  parseEventUrlList,
+  parseBulkEventText,
   toEventWriteInput,
   type BulkEventRow,
 } from "~/utils/bulkEventRows";
+import { AI_PROMPT_MAX_EVENTS, listKnownEventsForPrompt } from "~/utils/eventAiPrompt";
 import { findPotentialDuplicateEvents } from "~/utils/eventDuplicates";
+import { getLocalDateString } from "~/utils/localDate";
 
 // Nominatim allows one request per second; organiser sites deserve the same.
 const BATCH_DELAY_MS = 1000;
@@ -24,8 +26,10 @@ const { mutateAsync: addEvent } = useBulkAddEvent();
 const { lookupProvinceId, findPlaceForEventName } = useProvinceLookup();
 
 const rows = ref<BulkEventRow[]>([createBulkEventRow()]);
-const urlListText = ref("");
+const pastedText = ref("");
 const isRunningBatch = ref(false);
+const promptCopied = ref(false);
+const promptProvinceId = ref<number | null>(null);
 
 const provinceOptions = computed(() => provinces.value ?? []);
 const duplicateByRowKey = computed(() => {
@@ -94,15 +98,45 @@ function addEmptyRow() {
   rows.value = [...rows.value, createBulkEventRow()];
 }
 
-function addUrlRows() {
+function buildAiPrompt(provinceId: number) {
+  const province = provinceOptions.value.find((item) => item.id === provinceId);
+  const known = listKnownEventsForPrompt(events.value ?? [], provinceId, getLocalDateString());
+  return t("admin.events.aiPrompt", {
+    province: province?.name ?? "",
+    max: AI_PROMPT_MAX_EVENTS,
+    known: known.length > 0 ? known.join("\n") : t("admin.events.aiPromptNoKnown"),
+  });
+}
+
+async function copyAiPrompt() {
+  if (promptProvinceId.value === null) return;
+  await navigator.clipboard.writeText(buildAiPrompt(promptProvinceId.value));
+  promptCopied.value = true;
+  setTimeout(() => {
+    promptCopied.value = false;
+  }, 2000);
+}
+
+function addPastedRows() {
   const knownUrls = new Set(rows.value.map((row) => normalizeEventUrl(row.eventUrl)));
-  const newRows = parseEventUrlList(urlListText.value)
-    .filter((url) => !knownUrls.has(url))
-    .map((url) => createBulkEventRow(url));
+  const newRows = parseBulkEventText(pastedText.value, provinceOptions.value).filter(
+    (row) => !row.eventUrl || !knownUrls.has(row.eventUrl),
+  );
 
   rows.value = [...rows.value.filter((row) => !isPristine(row)), ...newRows];
   if (rows.value.length === 0) addEmptyRow();
-  urlListText.value = "";
+  pastedText.value = "";
+
+  // Complete lines without a province still get the place and province lookup.
+  const keysToLookUp = newRows
+    .filter((row) => row.provinceId === null && (row.location || row.name))
+    .map((row) => row.key);
+  if (keysToLookUp.length > 0) void runForEachRow(keysToLookUp, lookupRowPlace);
+}
+
+async function lookupRowPlace(key: number) {
+  await lookupProvinceForRow(key);
+  await lookupPlaceForRow(key);
 }
 
 function removeRow(key: number) {
@@ -218,27 +252,58 @@ function saveAllReadyRows() {
       <AdminTabs active="events" />
 
       <div class="bg-white rounded-xl border border-gray-100 p-5 mb-4">
-        <label for="url-list" class="text-sm font-semibold text-gray-900">
+        <label for="paste-list" class="text-sm font-semibold text-gray-900">
           {{ t("admin.events.pasteTitle") }}
         </label>
-        <p class="text-sm text-gray-500 leading-relaxed mt-1 mb-3">
+        <p class="text-sm text-gray-500 leading-relaxed mt-1">
           {{ t("admin.events.pasteDescription") }}
         </p>
+        <p class="text-xs text-gray-500 mt-1 mb-3">
+          {{ t("admin.events.pasteFormat") }}
+          <code class="font-mono text-gray-700">{{ t("admin.events.pasteColumns") }}</code>
+        </p>
         <textarea
-          id="url-list"
-          v-model="urlListText"
+          id="paste-list"
+          v-model="pastedText"
           rows="4"
           :placeholder="t('admin.events.pastePlaceholder')"
           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
         />
-        <button
-          type="button"
-          :disabled="!urlListText.trim()"
-          class="mt-3 inline-flex items-center rounded-lg bg-orange-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          @click="addUrlRows"
-        >
-          {{ t("admin.events.addUrls") }}
-        </button>
+        <div class="mt-3 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            :disabled="!pastedText.trim() || isRunningBatch"
+            class="inline-flex items-center rounded-lg bg-orange-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="addPastedRows"
+          >
+            {{ t("admin.events.addUrls") }}
+          </button>
+        </div>
+        <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-100 pt-4">
+          <label for="prompt-province" class="text-sm text-gray-500">
+            {{ t("admin.events.aiPromptProvince") }}
+          </label>
+          <select
+            id="prompt-province"
+            v-model="promptProvinceId"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+          >
+            <option :value="null" disabled>
+              {{ t("admin.events.aiPromptProvincePlaceholder") }}
+            </option>
+            <option v-for="province in provinceOptions" :key="province.id" :value="province.id">
+              {{ province.name }}
+            </option>
+          </select>
+          <button
+            type="button"
+            :disabled="promptProvinceId === null"
+            class="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="copyAiPrompt"
+          >
+            {{ promptCopied ? t("admin.events.aiPromptCopied") : t("admin.events.copyAiPrompt") }}
+          </button>
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
