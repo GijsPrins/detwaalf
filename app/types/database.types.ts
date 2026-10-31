@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       app_roles: {
@@ -56,21 +31,21 @@ export type Database = {
       }
       contact_message_replies: {
         Row: {
-          author_id: string
+          author_id: string | null
           body: string
           contact_message_id: string
           created_at: string
           id: string
         }
         Insert: {
-          author_id: string
+          author_id?: string | null
           body: string
           contact_message_id: string
           created_at?: string
           id?: string
         }
         Update: {
-          author_id?: string
+          author_id?: string | null
           body?: string
           contact_message_id?: string
           created_at?: string
@@ -97,7 +72,7 @@ export type Database = {
           read_at: string | null
           type: string
           user_archived_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           admin_archived_at?: string | null
@@ -109,7 +84,7 @@ export type Database = {
           read_at?: string | null
           type: string
           user_archived_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           admin_archived_at?: string | null
@@ -121,7 +96,7 @@ export type Database = {
           read_at?: string | null
           type?: string
           user_archived_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -143,7 +118,7 @@ export type Database = {
           distance_meters: number
           event_id: string
           id?: string
-          medal_category?: never
+          medal_category?: Database["public"]["Enums"]["distance_category"]
           sort_order?: number
         }
         Update: {
@@ -153,7 +128,7 @@ export type Database = {
           distance_meters?: number
           event_id?: string
           id?: string
-          medal_category?: never
+          medal_category?: Database["public"]["Enums"]["distance_category"]
           sort_order?: number
         }
         Relationships: [
@@ -251,7 +226,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          created_by: string
+          created_by?: string
           event_date: string
           event_url?: string | null
           id?: string
@@ -424,19 +399,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_event_with_distances: {
+        Args: {
+          p_distances: Json
+          p_event_date: string
+          p_event_url: string
+          p_location: string
+          p_name: string
+          p_province_id: number
+          p_registration_deadline: string
+          p_registration_opens: string
+          p_registration_url: string
+        }
+        Returns: string
+      }
       event_distance_meters: {
         Args: { p_distance: Database["public"]["Enums"]["event_distance"] }
         Returns: number
       }
       generate_profile_slug: { Args: { p_locale: string }; Returns: string }
-      get_medal: { Args: { p_distance_km: number }; Returns: string }
       get_event_cancellation_signals: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           cancelled_count: number
           event_id: string
         }[]
       }
+      get_medal: { Args: { p_distance_km: number }; Returns: string }
       get_public_profile_participations: {
         Args: { target_user_id: string }
         Returns: {
@@ -450,6 +439,21 @@ export type Database = {
       medal_category_for_distance_meters: {
         Args: { p_distance_meters: number }
         Returns: Database["public"]["Enums"]["distance_category"]
+      }
+      update_event_with_distances: {
+        Args: {
+          p_distances: Json
+          p_event_date: string
+          p_event_url: string
+          p_id: string
+          p_location: string
+          p_name: string
+          p_province_id: number
+          p_registration_deadline: string
+          p_registration_opens: string
+          p_registration_url: string
+        }
+        Returns: string
       }
     }
     Enums: {
@@ -484,12 +488,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -513,11 +517,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -538,11 +542,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -563,11 +567,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -580,11 +584,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -594,9 +598,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       distance_category: ["10k", "half", "marathon"],
@@ -620,4 +621,3 @@ export const Constants = {
     },
   },
 } as const
-<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
