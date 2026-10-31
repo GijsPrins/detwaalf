@@ -7,6 +7,7 @@ import {
   type EventPageHints,
 } from "~/utils/eventPageHints";
 import { getDistanceCategoryForEventDistance } from "~/utils/eventDistances";
+import { isSafeHttpUrl } from "~/utils/httpUrl";
 import { findProvinceByStateName, type ProvinceOption } from "~/utils/provinceLookup";
 
 export type BulkEventRowStatus = "draft" | "fetching" | "saving" | "saved" | "error";
@@ -54,7 +55,8 @@ export function normalizeEventUrl(value: string): string | null {
   const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
   try {
     const url = new URL(withScheme);
-    return url.hostname.includes(".") ? url.toString() : null;
+    const normalized = url.toString();
+    return url.hostname.includes(".") && isSafeHttpUrl(normalized) ? normalized : null;
   } catch {
     return null;
   }

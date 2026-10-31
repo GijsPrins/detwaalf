@@ -7,6 +7,7 @@ import type {
 import type { EventDistanceInput } from "~/types/events";
 import { EVENT_DISTANCE_ORDER } from "~/constants/distances";
 import { formatDateOnly } from "~/utils/localDate";
+import { safeHttpUrl } from "~/utils/httpUrl";
 
 export interface EventDistanceViewModel extends EventDistanceInput {
   id: string;
@@ -58,8 +59,8 @@ export function mapEvent(
       ),
     eventDate: event.event_date,
     location: event.location,
-    eventUrl: event.event_url,
-    registrationUrl: event.registration_url,
+    eventUrl: safeHttpUrl(event.event_url),
+    registrationUrl: safeHttpUrl(event.registration_url),
     registrationOpens: event.registration_opens,
     registrationDeadline: event.registration_deadline,
     createdBy: event.created_by,

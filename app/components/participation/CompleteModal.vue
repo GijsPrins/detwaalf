@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatFinishTime, parseFinishTime } from "~/utils/finishTime";
+import { normalizeHttpUrlInput } from "~/utils/httpUrl";
 
 export interface CompleteModalEvent {
   eventId: string;
@@ -72,7 +73,11 @@ const notesPlaceholder = computed(() =>
     : t("dashboard.completeModal.notesPlaceholder"),
 );
 
-const canConfirm = computed(() => outcome.value !== null);
+const normalizedTimingUrl = computed(() => normalizeHttpUrlInput(timingUrl.value));
+const hasInvalidTimingUrl = computed(
+  () => outcome.value === "completed" && normalizedTimingUrl.value === null,
+);
+const canConfirm = computed(() => outcome.value !== null && !hasInvalidTimingUrl.value);
 
 function handleConfirm() {
   if (!canConfirm.value) return;
@@ -90,7 +95,7 @@ function handleConfirm() {
   emit("confirm", {
     status: outcome.value!,
     finishTimeSeconds,
-    timingUrl: timingUrl.value.trim() || null,
+    timingUrl: normalizedTimingUrl.value || null,
     notes: notes.value.trim() || null,
   });
 }
@@ -179,6 +184,9 @@ function handleConfirm() {
               :placeholder="t('dashboard.completeModal.timingUrlPlaceholder')"
               class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 transition-colors"
             />
+            <p v-if="hasInvalidTimingUrl" class="text-xs text-red-500 mt-1" role="alert">
+              {{ t("eventForm.errors.invalidUrl") }}
+            </p>
           </div>
         </template>
 

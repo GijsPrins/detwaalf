@@ -87,6 +87,18 @@ describe("mapEvent", () => {
     mapEvent(row, undefined);
     expect(row.event_distances[0]!.distance).toBe(originalFirst);
   });
+
+  it("keeps http(s) links and hides unsafe stored links", () => {
+    const vm = mapEvent(
+      makeEventRow({
+        event_url: "https://www.voorbeeldloop.nl/",
+        registration_url: "javascript:alert(1)",
+      }),
+      undefined,
+    );
+    expect(vm.eventUrl).toBe("https://www.voorbeeldloop.nl/");
+    expect(vm.registrationUrl).toBeNull();
+  });
 });
 
 describe("mapEvents", () => {

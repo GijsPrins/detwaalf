@@ -4,6 +4,7 @@ import {
   hasDuplicateEventDistances,
   normalizeEventDistanceInputs,
 } from "~/utils/eventDistances";
+import { normalizeHttpUrlInput } from "~/utils/httpUrl";
 import { findPotentialDuplicateEvents } from "~/utils/eventDuplicates";
 import { formatEventDate } from "~/mappers/events";
 
@@ -52,12 +53,19 @@ const duplicateMatches = computed(() =>
 const likelyDuplicate = computed(() => duplicateMatches.value[0] ?? null);
 const hasPotentialDuplicate = computed(() => duplicateMatches.value.length > 0);
 
+const eventUrl = computed(() => normalizeHttpUrlInput(form.eventUrl));
+const registrationUrl = computed(() => normalizeHttpUrlInput(form.registrationUrl));
+const hasInvalidUrl = computed(
+  () => eventUrl.value === null || registrationUrl.value === null,
+);
+
 const canSubmit = computed(
   () =>
     form.name.trim() &&
     form.eventDate &&
     normalizedDistances.value.length > 0 &&
     !hasDuplicateDistances.value &&
+    !hasInvalidUrl.value &&
     form.provinceId !== null &&
     !isPending.value,
 );
@@ -80,8 +88,8 @@ function submit() {
     distances: normalizedDistances.value,
     province_id: form.provinceId!,
     location: form.location.trim() || null,
-    event_url: form.eventUrl.trim() || null,
-    registration_url: form.registrationUrl.trim() || null,
+    event_url: eventUrl.value || null,
+    registration_url: registrationUrl.value || null,
     registration_opens: form.registrationOpens || null,
     registration_deadline: form.registrationDeadline || null,
   });
@@ -319,6 +327,10 @@ function submit() {
       <!-- Hint + error -->
       <p class="text-xs text-orange-600">
         {{ t("eventForm.hint") }}
+      </p>
+
+      <p v-if="hasInvalidUrl" class="text-sm text-red-600" role="alert">
+        {{ t("eventForm.errors.invalidUrl") }}
       </p>
 
       <p v-if="isError" class="text-sm text-red-600">
