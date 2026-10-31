@@ -14,6 +14,7 @@ describe("distance constants", () => {
   it("defines expected event distance order", () => {
     expect(EVENT_DISTANCE_ORDER).toEqual([
       "10k",
+      "quarter_marathon",
       "15k",
       "10_miles",
       "half_marathon",

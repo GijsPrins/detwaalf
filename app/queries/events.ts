@@ -37,7 +37,7 @@ type EventDistanceRpcInput = {
   distance: EventDistanceInput["distance"];
 };
 
-type EventWriteInput = Pick<
+export type EventWriteInput = Pick<
   TablesInsert<"events">,
   | "name"
   | "event_date"

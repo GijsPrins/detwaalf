@@ -9,6 +9,7 @@ type Translate = (key: string, params?: Record<string, unknown>) => string;
 
 const EVENT_DISTANCE_TO_CATEGORY: Record<EventDistance, DistanceCategory> = {
   "10k": "10k",
+  quarter_marathon: "10k",
   "15k": "10k",
   "10_miles": "10k",
   half_marathon: "half",

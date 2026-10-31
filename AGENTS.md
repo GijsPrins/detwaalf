@@ -129,13 +129,13 @@ Currently `app/queries/` and `app/mappers/` each contain a single `events.ts` fi
 
 The app uses two separate enums that must not be confused:
 
-- `event_distance`: the actual distance an event offers: `10k | 15k | 10_miles | half_marathon | 30k | marathon`
+- `event_distance`: the actual distance an event offers: `10k | quarter_marathon | 15k | 10_miles | half_marathon | 30k | marathon`
 - `distance_category`: the medal bracket derived from an event distance: `10k | half | marathon`
 
 Mapping defined in `app/utils/eventDistances.ts`:
 
 ```text
-10k / 15k / 10_miles  ->  10k      (bronze)
+10k / quarter_marathon / 15k / 10_miles  ->  10k      (bronze)
 half_marathon / 30k   ->  half     (silver)
 marathon              ->  marathon (gold)
 ```

@@ -460,6 +460,7 @@ export type Database = {
       distance_category: "10k" | "half" | "marathon"
       event_distance:
         | "10k"
+        | "quarter_marathon"
         | "15k"
         | "10_miles"
         | "half_marathon"
@@ -602,6 +603,7 @@ export const Constants = {
       distance_category: ["10k", "half", "marathon"],
       event_distance: [
         "10k",
+        "quarter_marathon",
         "15k",
         "10_miles",
         "half_marathon",

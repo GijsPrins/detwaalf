@@ -72,7 +72,7 @@ async function logout() {
           </NuxtLink>
           <NuxtLink
             v-if="canManage"
-            to="/admin/slugs"
+            to="/admin/events"
             class="text-sm text-gray-500 hover:text-gray-900 transition-colors"
           >
             {{ t("nav.admin") }}
@@ -188,7 +188,7 @@ async function logout() {
           </NuxtLink>
           <NuxtLink
             v-if="canManage"
-            to="/admin/slugs"
+            to="/admin/events"
             class="flex items-center py-3 text-sm text-gray-700 hover:text-gray-900 border-b border-gray-50 transition-colors"
           >
             {{ t("nav.admin") }}

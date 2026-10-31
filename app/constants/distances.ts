@@ -8,6 +8,7 @@ export const DISTANCE_ORDER: DistanceCategory[] = ["10k", "half", "marathon"];
 
 export const EVENT_DISTANCE_ORDER: EventDistance[] = [
   "10k",
+  "quarter_marathon",
   "15k",
   "10_miles",
   "half_marathon",
