@@ -8,7 +8,9 @@ import {
   toEventWriteInput,
   type BulkEventRow,
 } from "~/utils/bulkEventRows";
+import { AI_PROMPT_MAX_EVENTS, listKnownEventsForPrompt } from "~/utils/eventAiPrompt";
 import { findPotentialDuplicateEvents } from "~/utils/eventDuplicates";
+import { getLocalDateString } from "~/utils/localDate";
 
 // Nominatim allows one request per second; organiser sites deserve the same.
 const BATCH_DELAY_MS = 1000;
@@ -27,6 +29,7 @@ const rows = ref<BulkEventRow[]>([createBulkEventRow()]);
 const pastedText = ref("");
 const isRunningBatch = ref(false);
 const promptCopied = ref(false);
+const promptProvinceId = ref<number | null>(null);
 
 const provinceOptions = computed(() => provinces.value ?? []);
 const duplicateByRowKey = computed(() => {
@@ -95,8 +98,19 @@ function addEmptyRow() {
   rows.value = [...rows.value, createBulkEventRow()];
 }
 
+function buildAiPrompt(provinceId: number) {
+  const province = provinceOptions.value.find((item) => item.id === provinceId);
+  const known = listKnownEventsForPrompt(events.value ?? [], provinceId, getLocalDateString());
+  return t("admin.events.aiPrompt", {
+    province: province?.name ?? "",
+    max: AI_PROMPT_MAX_EVENTS,
+    known: known.length > 0 ? known.join("\n") : t("admin.events.aiPromptNoKnown"),
+  });
+}
+
 async function copyAiPrompt() {
-  await navigator.clipboard.writeText(t("admin.events.aiPrompt"));
+  if (promptProvinceId.value === null) return;
+  await navigator.clipboard.writeText(buildAiPrompt(promptProvinceId.value));
   promptCopied.value = true;
   setTimeout(() => {
     promptCopied.value = false;
@@ -264,9 +278,27 @@ function saveAllReadyRows() {
           >
             {{ t("admin.events.addUrls") }}
           </button>
+        </div>
+        <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-100 pt-4">
+          <label for="prompt-province" class="text-sm text-gray-500">
+            {{ t("admin.events.aiPromptProvince") }}
+          </label>
+          <select
+            id="prompt-province"
+            v-model="promptProvinceId"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+          >
+            <option :value="null" disabled>
+              {{ t("admin.events.aiPromptProvincePlaceholder") }}
+            </option>
+            <option v-for="province in provinceOptions" :key="province.id" :value="province.id">
+              {{ province.name }}
+            </option>
+          </select>
           <button
             type="button"
-            class="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
+            :disabled="promptProvinceId === null"
+            class="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             @click="copyAiPrompt"
           >
             {{ promptCopied ? t("admin.events.aiPromptCopied") : t("admin.events.copyAiPrompt") }}
