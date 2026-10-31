@@ -306,6 +306,11 @@ function collectTimeElementDates(html: string): string[] {
     .filter((date): date is string => date !== null);
 }
 
+// One typed date: "2027-04-11", "11-04-2027" or "11 april 2027".
+export function readEventDate(value: string): string | null {
+  return readIsoDate(value) ?? collectTextDates(value.toLowerCase())[0] ?? null;
+}
+
 // Most-mentioned upcoming dates first; the event date is usually repeated
 // more often than registration deadlines.
 export function rankUpcomingDates(

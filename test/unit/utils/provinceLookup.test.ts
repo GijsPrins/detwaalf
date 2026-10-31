@@ -18,8 +18,13 @@ describe("findProvinceByStateName", () => {
     expect(findProvinceByStateName("Fryslân", provinces)?.id).toBe(1);
   });
 
-  it("returns null for unknown states", () => {
+  it("ignores spaces versus hyphens", () => {
+    expect(findProvinceByStateName(" Noord Holland ", provinces)?.id).toBe(2);
+  });
+
+  it("returns null for unknown or empty states", () => {
     expect(findProvinceByStateName("Vlaanderen", provinces)).toBeNull();
+    expect(findProvinceByStateName("", provinces)).toBeNull();
   });
 });
 

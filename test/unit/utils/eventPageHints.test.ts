@@ -7,6 +7,7 @@ import {
   extractEventPageHints,
   findRegistrationUrl,
   rankUpcomingDates,
+  readEventDate,
 } from "~/utils/eventPageHints";
 
 const TODAY = "2026-10-31";
@@ -106,6 +107,22 @@ describe("detectOtherDistancesKm", () => {
     expect(detectOtherDistancesKm("4 km, 10,55 km, 12 km, 16 km, 10 km en 21,1 km")).toEqual([
       4, 12, 16,
     ]);
+  });
+});
+
+describe("readEventDate", () => {
+  it.each([
+    ["2027-04-11", "2027-04-11"],
+    ["11-04-2027", "2027-04-11"],
+    ["11/4/2027", "2027-04-11"],
+    ["11 April 2027", "2027-04-11"],
+  ])("reads %s", (value, expected) => {
+    expect(readEventDate(value)).toBe(expected);
+  });
+
+  it("returns null for text without a valid date", () => {
+    expect(readEventDate("binnenkort")).toBeNull();
+    expect(readEventDate("31-02-2027")).toBeNull();
   });
 });
 
