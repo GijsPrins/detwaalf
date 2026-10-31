@@ -617,8 +617,11 @@ export default {
         "https://www.voorbeeldloop.nl\nhttps://www.voorbeeldloop.nl; Voorbeeldloop; 2027-04-11; Utrecht; Utrecht; 10 km, halve marathon; https://www.voorbeeldloop.nl/inschrijven",
       copyAiPrompt: "Kopieer AI-prompt",
       aiPromptCopied: "Prompt gekopieerd",
+      aiPromptProvince: "AI-prompt voor",
+      aiPromptProvincePlaceholder: "Kies een provincie",
+      aiPromptNoKnown: "(nog geen)",
       aiPrompt:
-        "Zoek hardloopevenementen in Nederland in [provincie of regio] voor [jaar]. Geef per event precies één regel, zonder kopregel en zonder uitleg, in dit formaat:\n\nwebsite; naam; datum; plaats; provincie; afstanden; inschrijflink\n\n- datum als JJJJ-MM-DD\n- afstanden gescheiden door komma's, alleen uit: 10 km, kwart marathon, 15 km, 10 Engelse mijl, halve marathon, 30 km, marathon\n- gebruik de officiële website van het event, geen kaartjessite\n- laat een veld leeg als je het niet zeker weet, verzin niets",
+        "Zoek komende hardloopevenementen in de provincie {province} met minstens één van deze afstanden: 10 km, kwart marathon, 15 km, 10 Engelse mijl, halve marathon, 30 km of marathon. Geef maximaal {max} events, de grootste en bekendste eerst.\n\nDeze events hebben we al, sla ze over:\n{known}\n\nGeef per event precies één regel, zonder kopregel en zonder uitleg, in dit formaat:\n\nwebsite; naam; datum; plaats; provincie; afstanden; inschrijflink\n\n- datum als JJJJ-MM-DD\n- afstanden gescheiden door komma's, alleen uit de lijst hierboven\n- gebruik de officiële website van het event, geen kaartjessite\n- laat een veld leeg als je het niet zeker weet, verzin niets",
       addUrls: "Regels maken",
       addRow: "Lege regel",
       summary: "{rows} regels · {ready} klaar om op te slaan · {saved} opgeslagen",
