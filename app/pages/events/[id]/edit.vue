@@ -30,7 +30,7 @@ const form = reactive({
   registrationDeadline: "",
 });
 
-const nominatimLoading = ref(false);
+const { isLookingUp: nominatimLoading, lookupProvinceId } = useProvinceLookup();
 const provinceAutoFilled = ref(false);
 const normalizedDistances = computed(() =>
   normalizeEventDistanceInputs(form.distances),
@@ -76,38 +76,12 @@ const canSubmit = computed(
 );
 
 async function lookupProvince() {
-  if (!form.location.trim() || !provinces.value?.length) return;
-
-  nominatimLoading.value = true;
   provinceAutoFilled.value = false;
 
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(form.location)}&countrycodes=nl&format=json&addressdetails=1&limit=1&accept-language=nl`,
-      {
-        headers: {
-          "User-Agent": "TwaalfProvincies/1.0 (twaalfprovincies.run)",
-        },
-      },
-    );
-    const results: { address?: { state?: string } }[] = await res.json();
-    const stateName = results[0]?.address?.state;
-    if (!stateName) return;
-
-    const match = provinces.value.find(
-      (p) =>
-        p.name.toLowerCase() === stateName.toLowerCase() ||
-        (p.name === "Friesland" && stateName === "Fryslân"),
-    );
-
-    if (match) {
-      form.provinceId = match.id;
-      provinceAutoFilled.value = true;
-    }
-  } catch {
-    // Silent fail — user can select manually
-  } finally {
-    nominatimLoading.value = false;
+  const provinceId = await lookupProvinceId(form.location, provinces.value ?? []);
+  if (provinceId !== null) {
+    form.provinceId = provinceId;
+    provinceAutoFilled.value = true;
   }
 }
 
