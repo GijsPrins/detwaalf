@@ -9,7 +9,6 @@ import {
   fetchOwnContactMessagesCount,
   fetchUnreadOwnContactRepliesCount,
   fetchUnreadContactMessagesCount,
-  insertContactMessageReply,
   markOwnContactMessagesViewed,
   markMessageRead,
   type ContactMessageType,
@@ -137,18 +136,22 @@ export function useReplyToContactMessage() {
   return useMutation({
     mutationFn: async (payload: { contactMessageId: string; body: string }) => {
       const {
-        data: { user },
+        data: { session },
         error,
-      } = await supabase.auth.getUser();
+      } = await supabase.auth.getSession();
 
-      if (error || !user) {
+      if (error || !session) {
         throw error ?? new Error("Not authenticated");
       }
 
-      return insertContactMessageReply(supabase, {
-        contactMessageId: payload.contactMessageId,
-        authorId: user.id,
-        body: payload.body,
+      return $fetch<{
+        id: string;
+        notification: "sent" | "failed" | "skipped";
+      }>("/api/contact-message-replies", {
+        method: "POST",
+        credentials: "include",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: payload,
       });
     },
     onSuccess: () => {

@@ -1,3 +1,8 @@
+import {
+  getBearerToken,
+  getSupabaseConfig,
+  fetchSupabaseUser,
+} from "../utils/contactMessageAuth";
 import type { ContactMessageType } from "~/queries/contactMessages";
 import {
   fetchContactMessageRateLimitCounts,

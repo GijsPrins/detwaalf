@@ -46,6 +46,13 @@ export default defineNuxtConfig({
       include: ["@svg-maps/netherlands"],
     },
   },
+  router: {
+    options: {
+      // Route guards compare paths literally; a case-insensitive router would
+      // let /Admin or /Events/New reach a page without its middleware.
+      sensitive: true,
+    },
+  },
   modules: ["@nuxtjs/supabase", "@nuxtjs/i18n", "@pinia/nuxt"],
   supabase: {
     types: "~/types/database.types.ts",
