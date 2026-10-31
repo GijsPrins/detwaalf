@@ -1,8 +1,13 @@
 import { EVENT_DISTANCE_ORDER } from "~/constants/distances";
 import type { EventWriteInput } from "~/queries/events";
 import type { EventDistance } from "~/types/events";
-import type { EventPageHints } from "~/utils/eventPageHints";
+import {
+  detectEventDistances,
+  readEventDate,
+  type EventPageHints,
+} from "~/utils/eventPageHints";
 import { getDistanceCategoryForEventDistance } from "~/utils/eventDistances";
+import { findProvinceByStateName, type ProvinceOption } from "~/utils/provinceLookup";
 
 export type BulkEventRowStatus = "draft" | "fetching" | "saving" | "saved" | "error";
 
@@ -61,6 +66,63 @@ export function parseEventUrlList(text: string): string[] {
     .map(normalizeEventUrl)
     .filter((url): url is string => url !== null);
   return [...new Set(urls)];
+}
+
+// One complete event per line, typed or produced by an AI chat:
+// "website; naam; datum; plaats; provincie; afstanden; inschrijflink".
+// Tabs work too, for rows copied from a spreadsheet. Empty fields stay empty.
+export function parseBulkEventLine(
+  line: string,
+  provinces: ProvinceOption[],
+): BulkEventRow | null {
+  const separator = line.includes("\t") ? "\t" : ";";
+  const [
+    eventUrl = "",
+    name = "",
+    date = "",
+    location = "",
+    province = "",
+    distances = "",
+    registrationUrl = "",
+  ] = line.split(separator).map((field) => field.trim());
+
+  // Skip a header line such as "website; naam; datum".
+  if (/^(?:website|url)$/i.test(eventUrl)) return null;
+  const normalizedUrl = normalizeEventUrl(eventUrl);
+  if (!normalizedUrl && !name) return null;
+
+  return {
+    ...createBulkEventRow(normalizedUrl ?? ""),
+    name,
+    eventDate: readEventDate(date) ?? "",
+    location,
+    provinceId: findProvinceByStateName(province, provinces)?.id ?? null,
+    // Also accepts our own keys such as "half_marathon".
+    distances: detectEventDistances(distances.replace(/_/g, " ")),
+    registrationUrl: normalizeEventUrl(registrationUrl) ?? "",
+  };
+}
+
+// Lines with ";" or a tab are complete events; other lines are website lists.
+export function parseBulkEventText(
+  text: string,
+  provinces: ProvinceOption[],
+): BulkEventRow[] {
+  const rows = text.split(/\r?\n/).flatMap((line) => {
+    if (/[\t;]/.test(line)) {
+      const row = parseBulkEventLine(line, provinces);
+      return row ? [row] : [];
+    }
+    return parseEventUrlList(line).map((url) => createBulkEventRow(url));
+  });
+
+  const seenUrls = new Set<string>();
+  return rows.filter((row) => {
+    if (!row.eventUrl) return true;
+    if (seenUrls.has(row.eventUrl)) return false;
+    seenUrls.add(row.eventUrl);
+    return true;
+  });
 }
 
 export function toggleEventDistance(

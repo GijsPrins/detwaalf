@@ -4,6 +4,8 @@ import {
   createBulkEventRow,
   isBulkEventRowReady,
   normalizeEventUrl,
+  parseBulkEventLine,
+  parseBulkEventText,
   parseEventUrlList,
   toEventWriteInput,
   toggleEventDistance,
@@ -37,6 +39,83 @@ describe("parseEventUrlList", () => {
     expect(
       parseEventUrlList("venloop.nl\nhttps://www.damloop.nl, venloop.nl; nope"),
     ).toEqual(["https://venloop.nl/", "https://www.damloop.nl/"]);
+  });
+});
+
+const provinces = [
+  { id: 4, name: "Friesland" },
+  { id: 8, name: "Noord-Brabant" },
+  { id: 11, name: "Zuid-Holland" },
+];
+
+describe("parseBulkEventLine", () => {
+  it("reads every column of a complete line", () => {
+    expect(
+      parseBulkEventLine(
+        "nnmarathonrotterdam.nl; NN Marathon Rotterdam; 2027-04-11; Rotterdam; Zuid-Holland; marathon, kwart marathon; https://www.nnmarathonrotterdam.nl/inschrijven",
+        provinces,
+      ),
+    ).toMatchObject({
+      eventUrl: "https://nnmarathonrotterdam.nl/",
+      name: "NN Marathon Rotterdam",
+      eventDate: "2027-04-11",
+      location: "Rotterdam",
+      provinceId: 11,
+      distances: ["quarter_marathon", "marathon"],
+      registrationUrl: "https://www.nnmarathonrotterdam.nl/inschrijven",
+      status: "draft",
+    });
+  });
+
+  it("accepts tabs, Dutch dates, loose province names and distance keys", () => {
+    expect(
+      parseBulkEventLine(
+        "\tSingelloop\t11 april 2027\tBreda\tnoord brabant\t10_miles, half_marathon",
+        provinces,
+      ),
+    ).toMatchObject({
+      eventUrl: "",
+      name: "Singelloop",
+      eventDate: "2027-04-11",
+      provinceId: 8,
+      distances: ["10_miles", "half_marathon"],
+      registrationUrl: "",
+    });
+  });
+
+  it("leaves unknown fields empty instead of guessing", () => {
+    expect(
+      parseBulkEventLine("venloop.nl; Venloop; binnenkort;;Limburgs;", provinces),
+    ).toMatchObject({
+      eventDate: "",
+      location: "",
+      provinceId: null,
+      distances: [],
+    });
+  });
+
+  it("skips header lines and lines without a website or name", () => {
+    expect(parseBulkEventLine("website; naam; datum", provinces)).toBeNull();
+    expect(parseBulkEventLine(";; 2027-04-11", provinces)).toBeNull();
+  });
+});
+
+describe("parseBulkEventText", () => {
+  it("mixes website lines with complete lines and drops repeated websites", () => {
+    const rows = parseBulkEventText(
+      [
+        "venloop.nl https://www.damloop.nl",
+        "",
+        "venloop.nl; Venloop; 2027-03-28",
+        "https://www.dwingeloop.nl; Dwingeloop; 2027-06-01",
+      ].join("\r\n"),
+      provinces,
+    );
+    expect(rows.map((row) => [row.eventUrl, row.name])).toEqual([
+      ["https://venloop.nl/", ""],
+      ["https://www.damloop.nl/", ""],
+      ["https://www.dwingeloop.nl/", "Dwingeloop"],
+    ]);
   });
 });
 

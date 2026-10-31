@@ -1,4 +1,4 @@
-interface ProvinceOption {
+export interface ProvinceOption {
   id: number;
   name: string;
 }
@@ -58,16 +58,22 @@ export function extractPlaceCandidates(eventName: string): string[] {
   return [...new Set(candidates)].slice(0, MAX_PLACE_CANDIDATES);
 }
 
+// "Noord Brabant" and "noord-brabant" both match "Noord-Brabant".
+function normalizeProvinceName(name: string): string {
+  return name.trim().toLowerCase().replace(/[\s-]+/g, "-");
+}
+
 // Nominatim reports Dutch provinces as "state"; Friesland comes back as Fryslân.
 export function findProvinceByStateName<T extends ProvinceOption>(
   stateName: string,
   provinces: T[],
 ): T | null {
-  const normalizedState = stateName.trim().toLowerCase();
+  const normalizedState = normalizeProvinceName(stateName);
+  if (!normalizedState) return null;
   return (
     provinces.find(
       (province) =>
-        province.name.toLowerCase() === normalizedState ||
+        normalizeProvinceName(province.name) === normalizedState ||
         (province.name === "Friesland" && normalizedState === "fryslân"),
     ) ?? null
   );
