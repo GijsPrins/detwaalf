@@ -1,5 +1,12 @@
 import { extractEventPageHints } from "~/utils/eventPageHints";
 import { getLocalDateString } from "~/utils/localDate";
+import {
+  getBearerToken,
+  getSupabaseConfig,
+  fetchSupabaseUser,
+} from "../../utils/contactMessageAuth";
+import { fetchEventPageHtml } from "../../utils/eventPageFetch";
+import { requireSupabaseRole } from "../../utils/supabaseRole";
 
 type EventHintsPayload = {
   url?: unknown;

@@ -152,7 +152,7 @@ Use stable array keys and invalidate by prefix where practical.
 - Public route exceptions are listed both in Nuxt Supabase redirect config and in the email verification middleware.
 - Admin/event-manager UI checks use `useCanManageEvents()`, which calls the `has_role` Supabase RPC.
 - Frontend role checks are for UX only; enforce authorization in RLS policies or DB functions.
-- Server routes read the caller's bearer token with the helpers in `server/utils/supabaseRequest.ts` and call Supabase with that token, so RLS and `has_role` still decide.
+- Server routes read the caller's bearer token with the helpers in `server/utils/contactMessageAuth.ts` and call Supabase with that token, so RLS and `has_role` still decide. `server/utils/supabaseRole.ts` adds a role check for admin-only routes.
 
 ## Bulk Event Intake
 
