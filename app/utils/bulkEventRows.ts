@@ -9,6 +9,7 @@ export type BulkEventRowStatus = "draft" | "fetching" | "saving" | "saved" | "er
 export interface BulkEventRow {
   key: number;
   eventUrl: string;
+  registrationUrl: string;
   name: string;
   eventDate: string;
   location: string;
@@ -27,6 +28,7 @@ export function createBulkEventRow(eventUrl = ""): BulkEventRow {
   return {
     key: nextRowKey++,
     eventUrl,
+    registrationUrl: "",
     name: "",
     eventDate: "",
     location: "",
@@ -91,6 +93,7 @@ export function applyEventPageHints(
     name: row.name || hints.name || "",
     eventDate: row.eventDate || hints.dates[0] || "",
     location: row.location || hints.location || "",
+    registrationUrl: row.registrationUrl || hints.registrationUrl || "",
     distances: row.distances.length > 0 ? row.distances : hints.distances,
     dateOptions: hints.dates,
     otherDistancesKm: hints.otherDistancesKm,
@@ -108,7 +111,7 @@ export function toEventWriteInput(row: BulkEventRow): EventWriteInput {
     province_id: row.provinceId,
     location: row.location.trim() || null,
     event_url: normalizeEventUrl(row.eventUrl),
-    registration_url: null,
+    registration_url: normalizeEventUrl(row.registrationUrl),
     registration_opens: null,
     registration_deadline: null,
     distances: row.distances.map((distance) => ({

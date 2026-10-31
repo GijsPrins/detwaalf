@@ -257,6 +257,7 @@ export default {
   },
   eventDistance: {
     "10k": "10 km",
+    quarter_marathon: "Kwart marathon",
     "15k": "15 km",
     "10_miles": "10 miles",
     half_marathon: "Halve marathon",
@@ -631,6 +632,8 @@ export default {
       fields: {
         eventUrl: "Website",
         eventUrlPlaceholder: "Website van het event",
+        registrationUrl: "Inschrijflink",
+        registrationUrlPlaceholder: "Link naar de inschrijving",
         name: "Naam",
         date: "Datum",
         location: "Plaats",

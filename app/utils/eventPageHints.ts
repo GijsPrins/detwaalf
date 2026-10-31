@@ -9,6 +9,7 @@ export interface EventPageHints {
   distances: EventDistance[];
   otherDistancesKm: number[];
   location: string | null;
+  registrationUrl: string | null;
 }
 
 interface StructuredEvent {
@@ -26,6 +27,11 @@ const KM_UNIT = "\\s*(?:km|kilometer|kilometers)\\b";
 
 const DISTANCE_PATTERNS: Record<EventDistance, RegExp[]> = {
   "10k": [new RegExp(`${NUMBER_START}10(?:[,.]0+)?(?:${KM_UNIT}|\\s*k\\b)`)],
+  quarter_marathon: [
+    /\bkwart[\s-]*marathon\b/,
+    /\bquarter[\s-]*marathon\b/,
+    new RegExp(`${NUMBER_START}10[,.]55\\d*${KM_UNIT}`),
+  ],
   "15k": [new RegExp(`${NUMBER_START}15(?:[,.]0+)?(?:${KM_UNIT}|\\s*k\\b)`)],
   "10_miles": [
     new RegExp(`${NUMBER_START}10\\s*(?:engelse\\s+)?(?:mijl|miles?)\\b`),
@@ -47,7 +53,28 @@ const DISTANCE_PATTERNS: Record<EventDistance, RegExp[]> = {
 };
 
 // Lengths that already map to one of our event distances.
-const KNOWN_DISTANCE_KM = [10, 15, 16.1, 21, 21.1, 21.0975, 30, 42, 42.2, 42.195];
+const KNOWN_DISTANCE_KM = [
+  10, 10.55, 15, 16.1, 21, 21.1, 21.0975, 30, 42, 42.2, 42.195,
+];
+
+const REGISTRATION_LABEL =
+  /\b(?:inschrijven|inschrijving|schrijf\s+(?:je|jij|nu)\s+in|aanmelden|meld\s+je\s+aan|registreren|register|sign\s*up|enter\s+now|tickets?|doe\s+mee)\b/i;
+const REGISTRATION_PATH = /inschrijv|aanmeld|regist|tickets?|entry/i;
+const NOT_REGISTRATION = /nieuwsbrief|newsletter|vrijwillig|volunteer|login|inloggen/i;
+// Platforms Dutch races commonly use for entries.
+const REGISTRATION_HOSTS = [
+  "mijninschrijving.nl",
+  "inschrijven.nl",
+  "sportinschrijvingen.nl",
+  "atleta.cc",
+  "njuko.net",
+  "ahotu.com",
+  "worldsmarathons.com",
+  "eventbrite.",
+  "ticketmaster.",
+  "raceresult.com",
+  "inschrijving.",
+];
 
 const MONTHS: Record<string, number> = {
   januari: 1,
@@ -310,11 +337,14 @@ export function rankUpcomingDates(
 
 export function detectEventDistances(text: string): EventDistance[] {
   const lower = text.toLowerCase();
-  // Strip half-marathon phrases first so they do not also count as a marathon.
-  const withoutHalf = lower.replace(/\b(?:halve|half)[\s-]*marathon\b/g, " ");
+  // Strip half and quarter marathon phrases so they do not also count as a marathon.
+  const withoutPartial = lower.replace(
+    /\b(?:halve|half|kwart|quarter)[\s-]*marathon\b/g,
+    " ",
+  );
 
   return EVENT_DISTANCE_ORDER.filter((distance) => {
-    const haystack = distance === "marathon" ? withoutHalf : lower;
+    const haystack = distance === "marathon" ? withoutPartial : lower;
     return DISTANCE_PATTERNS[distance].some((pattern) => pattern.test(haystack));
   });
 }
@@ -332,7 +362,55 @@ export function detectOtherDistancesKm(text: string): number[] {
   return [...found].sort((a, b) => a - b);
 }
 
-export function extractEventPageHints(html: string, today: string): EventPageHints {
+function scoreRegistrationLink(url: URL, label: string, pageUrl: URL): number {
+  if (NOT_REGISTRATION.test(label) || NOT_REGISTRATION.test(url.pathname)) return 0;
+
+  let score = 0;
+  if (REGISTRATION_LABEL.test(label)) score += 2;
+  if (REGISTRATION_HOSTS.some((host) => url.hostname.includes(host))) score += 2;
+  if (REGISTRATION_PATH.test(url.pathname)) score += 1;
+  // A link back to the page itself is never the registration link.
+  if (url.href.replace(/#.*$/, "") === pageUrl.href.replace(/#.*$/, "")) return 0;
+  return score;
+}
+
+export function findRegistrationUrl(html: string, pageUrl: string): string | null {
+  let base: URL;
+  try {
+    base = new URL(pageUrl);
+  } catch {
+    return null;
+  }
+
+  let best: { url: string; score: number } | null = null;
+  for (const anchor of html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)) {
+    const attributes = anchor[1] ?? "";
+    const href = attributes.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
+    if (!href || /^(?:#|mailto:|tel:|javascript:)/i.test(href.trim())) continue;
+
+    let url: URL;
+    try {
+      url = new URL(decodeHtmlEntities(href.trim()), base);
+    } catch {
+      continue;
+    }
+    if (url.protocol !== "https:" && url.protocol !== "http:") continue;
+
+    const title = attributes.match(/\b(?:title|aria-label)\s*=\s*["']([^"']+)["']/i)?.[1] ?? "";
+    const label = `${toVisibleText(anchor[2] ?? "")} ${decodeHtmlEntities(title)}`;
+    const score = scoreRegistrationLink(url, label, base);
+    if (score >= 2 && (!best || score > best.score)) {
+      best = { url: url.toString(), score };
+    }
+  }
+  return best?.url ?? null;
+}
+
+export function extractEventPageHints(
+  html: string,
+  today: string,
+  pageUrl: string,
+): EventPageHints {
   const structured = readStructuredEvent(html);
   const text = toVisibleText(html);
 
@@ -346,5 +424,6 @@ export function extractEventPageHints(html: string, today: string): EventPageHin
     distances: detectEventDistances(text),
     otherDistancesKm: detectOtherDistancesKm(text),
     location: structured?.location ?? null,
+    registrationUrl: findRegistrationUrl(html, pageUrl),
   };
 }

@@ -22,6 +22,7 @@ const emit = defineEmits<{
   save: [];
   remove: [];
   lookupProvince: [];
+  lookupPlace: [];
 }>();
 
 const { t } = useI18n();
@@ -56,7 +57,10 @@ function update(patch: Partial<BulkEventRow>) {
   emit("update:row", { ...props.row, ...patch });
 }
 
-function onInput(field: "eventUrl" | "name" | "eventDate" | "location", event: Event) {
+function onInput(
+  field: "eventUrl" | "registrationUrl" | "name" | "eventDate" | "location",
+  event: Event,
+) {
   update({ [field]: (event.target as HTMLInputElement).value });
 }
 
@@ -117,6 +121,7 @@ function distanceClass(distance: EventDistance) {
           :disabled="isLocked"
           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50"
           @input="onInput('name', $event)"
+          @blur="emit('lookupPlace')"
         />
       </div>
 
@@ -183,6 +188,21 @@ function distanceClass(distance: EventDistance) {
           </option>
         </select>
       </div>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label :for="`${id}-registration`" class="text-xs text-gray-500">
+        {{ t("admin.events.fields.registrationUrl") }}
+      </label>
+      <input
+        :id="`${id}-registration`"
+        :value="row.registrationUrl"
+        type="url"
+        :disabled="isLocked"
+        :placeholder="t('admin.events.fields.registrationUrlPlaceholder')"
+        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:bg-gray-50"
+        @input="onInput('registrationUrl', $event)"
+      />
     </div>
 
     <div class="flex flex-wrap items-center gap-2">

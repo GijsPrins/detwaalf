@@ -5,10 +5,12 @@ import {
   detectEventDistances,
   detectOtherDistancesKm,
   extractEventPageHints,
+  findRegistrationUrl,
   rankUpcomingDates,
 } from "~/utils/eventPageHints";
 
 const TODAY = "2026-10-31";
+const PAGE_URL = "https://www.voorbeeldloop.nl/";
 
 describe("detectEventDistances", () => {
   it("finds distances written in kilometers", () => {
@@ -57,14 +59,51 @@ describe("detectEventDistances", () => {
     ]);
   });
 
+  it("finds a quarter marathon by name or length", () => {
+    expect(detectEventDistances("De kwart marathon")).toEqual(["quarter_marathon"]);
+    expect(detectEventDistances("Afstand 10,55 km")).toEqual(["quarter_marathon"]);
+  });
+
   it("finds a marathon by its length", () => {
     expect(detectEventDistances("Loop de 42,195 km")).toEqual(["marathon"]);
   });
 });
 
+describe("findRegistrationUrl", () => {
+  it("picks the link labelled as registration", () => {
+    const html = `
+      <a href="/over-ons">Over ons</a>
+      <a href="/inschrijven">Schrijf je in</a>`;
+    expect(findRegistrationUrl(html, PAGE_URL)).toBe(
+      "https://www.voorbeeldloop.nl/inschrijven",
+    );
+  });
+
+  it("prefers a known registration platform", () => {
+    const html = `
+      <a href="/info">Inschrijven</a>
+      <a href="https://www.mijninschrijving.nl/event/123" title="Inschrijven">Doe mee</a>`;
+    expect(findRegistrationUrl(html, PAGE_URL)).toBe(
+      "https://www.mijninschrijving.nl/event/123",
+    );
+  });
+
+  it("skips newsletter sign-ups", () => {
+    const html = `<a href="/aanmelden-nieuwsbrief">Aanmelden</a>`;
+    expect(findRegistrationUrl(html, PAGE_URL)).toBeNull();
+  });
+
+  it("ignores mail links and links back to the page", () => {
+    const html = `
+      <a href="mailto:info@voorbeeldloop.nl">Inschrijven</a>
+      <a href="https://www.voorbeeldloop.nl/#inschrijven">Inschrijven</a>`;
+    expect(findRegistrationUrl(html, PAGE_URL)).toBeNull();
+  });
+});
+
 describe("detectOtherDistancesKm", () => {
   it("lists distances that do not map to an event distance", () => {
-    expect(detectOtherDistancesKm("4 km, 12 km, 16 km, 10 km en 21,1 km")).toEqual([
+    expect(detectOtherDistancesKm("4 km, 10,55 km, 12 km, 16 km, 10 km en 21,1 km")).toEqual([
       4, 12, 16,
     ]);
   });
@@ -128,12 +167,13 @@ describe("extractEventPageHints", () => {
         </script>
       </head><body><p>Kies 10 km of de halve marathon. Inschrijven tot 1 maart 2027.</p></body></html>`;
 
-    expect(extractEventPageHints(html, TODAY)).toEqual({
+    expect(extractEventPageHints(html, TODAY, PAGE_URL)).toEqual({
       name: "Voorbeeldloop 2027",
       dates: ["2027-03-14", "2027-03-01"],
       distances: ["10k", "half_marathon"],
       otherDistancesKm: [],
       location: "Den Haag",
+      registrationUrl: null,
     });
   });
 
@@ -146,22 +186,23 @@ describe("extractEventPageHints", () => {
         <p>Afstanden: 5 km en 10 km. Datum: 04-04-2027.</p>
       </body></html>`;
 
-    expect(extractEventPageHints(html, TODAY)).toEqual({
+    expect(extractEventPageHints(html, TODAY, PAGE_URL)).toEqual({
       name: "Singelloop & Co",
       dates: ["2027-04-04"],
       distances: ["10k"],
       otherDistancesKm: [5],
       location: null,
+      registrationUrl: null,
     });
   });
 
   it("uses the site name when the page title is generic", () => {
     const html = `<title>Startpagina</title><meta property="og:site_name" content="4 Mijl van Groningen">`;
-    expect(extractEventPageHints(html, TODAY).name).toBe("4 Mijl van Groningen");
+    expect(extractEventPageHints(html, TODAY, PAGE_URL).name).toBe("4 Mijl van Groningen");
   });
 
   it("ignores malformed structured data", () => {
     const html = `<title>Loop</title><script type="application/ld+json">{oops</script>`;
-    expect(extractEventPageHints(html, TODAY).name).toBe("Loop");
+    expect(extractEventPageHints(html, TODAY, PAGE_URL).name).toBe("Loop");
   });
 });

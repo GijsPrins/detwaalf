@@ -41,6 +41,6 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const html = await fetchEventPageHtml(pageUrl);
-  return extractEventPageHints(html, getLocalDateString());
+  const { html, finalUrl } = await fetchEventPageHtml(pageUrl);
+  return extractEventPageHints(html, getLocalDateString(), finalUrl);
 });
