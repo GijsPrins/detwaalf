@@ -60,20 +60,7 @@ async function submitReply(messageId: string) {
     </div>
 
     <template v-else>
-      <div class="flex items-center gap-2 mb-4">
-        <NuxtLink
-          to="/admin/messages"
-          class="px-3 py-1 rounded-full text-xs font-medium transition-colors bg-orange-100 text-orange-700"
-        >
-          {{ t("admin.tabs.messages") }}
-        </NuxtLink>
-        <NuxtLink
-          to="/admin/slugs"
-          class="px-3 py-1 rounded-full text-xs font-medium transition-colors text-gray-500 hover:text-gray-900"
-        >
-          {{ t("admin.tabs.slugs") }}
-        </NuxtLink>
-      </div>
+      <AdminTabs active="messages" />
 
       <div class="flex items-baseline justify-between mb-6">
         <div>

@@ -97,7 +97,7 @@ docs/
 | Events | `pages/events/*`, `components/event/*` | Event catalog, detail view, event creation/editing, and participation status controls. |
 | Participation | `components/participation/*`, `useSetParticipation`, `useCompleteParticipation` | Tracks interested/signed up/completed/DNS/DNF and finish metadata. |
 | Profiles | `pages/profile/index.vue`, `pages/profile/[slug].vue` | Private profile settings plus public progress profile by slug. |
-| Admin | `pages/admin/messages.vue`, `pages/admin/slugs.vue` | Role-gated admin UI for contact messages and slug word management. |
+| Admin | `pages/admin/messages.vue`, `pages/admin/slugs.vue`, `pages/admin/events.vue` | Role-gated admin UI for contact messages, slug word management, and bulk event intake. |
 
 ## Data Layer Conventions
 
@@ -152,6 +152,13 @@ Use stable array keys and invalidate by prefix where practical.
 - Public route exceptions are listed both in Nuxt Supabase redirect config and in the email verification middleware.
 - Admin/event-manager UI checks use `useCanManageEvents()`, which calls the `has_role` Supabase RPC.
 - Frontend role checks are for UX only; enforce authorization in RLS policies or DB functions.
+- Server routes read the caller's bearer token with the helpers in `server/utils/supabaseRequest.ts` and call Supabase with that token, so RLS and `has_role` still decide.
+
+## Bulk Event Intake
+
+`/admin/events` lets admins add many events at once. Each row holds a website, name, date, place, province and offered distances; rows save one by one through the same `create_event_with_distances` RPC as the normal form, and rows that look like existing events are skipped by "save all".
+
+"Ophalen" calls `POST /api/admin/event-hints`, which is admin-only. It fetches the organiser page through `server/utils/eventPageFetch.ts` and returns suggestions from `app/utils/eventPageHints.ts` (schema.org event data first, then page title, dates and distances found in the text). Hints only fill empty fields. The fetch only allows http(s) on default ports, blocks private, loopback and link-local addresses on every redirect hop (`app/utils/networkAddress.ts`), times out after 8 seconds and reads at most 2 MB. It does not protect against DNS answers that change between the check and the connect, which is acceptable because only admins can call it.
 
 When a composable needs the current authenticated user for a write, call `supabase.auth.getUser()` inside the `queryFn` or `mutationFn`. Use `useSupabaseUser()` for reactive UI and cache keys.
 
