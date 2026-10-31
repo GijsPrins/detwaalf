@@ -21,7 +21,7 @@ const { data: provinces } = useProvinces();
 const { data: events } = useEventList();
 const { mutateAsync: fetchHints } = useEventPageHints();
 const { mutateAsync: addEvent } = useBulkAddEvent();
-const { lookupProvinceId } = useProvinceLookup();
+const { lookupProvinceId, findPlaceForEventName } = useProvinceLookup();
 
 const rows = ref<BulkEventRow[]>([createBulkEventRow()]);
 const urlListText = ref("");
@@ -126,6 +126,20 @@ async function lookupProvinceForRow(key: number) {
   }
 }
 
+async function lookupPlaceForRow(key: number) {
+  const row = findRow(key);
+  if (!row || row.location.trim() || !row.name.trim()) return;
+
+  const place = await findPlaceForEventName(row.name, provinceOptions.value);
+  const latest = findRow(key);
+  // Only fill what the admin has not typed while the lookup was running.
+  if (!place || !latest || latest.location.trim()) return;
+  patchRow(key, {
+    location: place.location,
+    provinceId: latest.provinceId ?? place.provinceId,
+  });
+}
+
 async function fetchRowHints(key: number) {
   const row = findRow(key);
   const url = row ? normalizeEventUrl(row.eventUrl) : null;
@@ -145,6 +159,7 @@ async function fetchRowHints(key: number) {
       errorKey: hints.distances.length === 0 ? "admin.events.errors.noDistances" : null,
     });
     await lookupProvinceForRow(key);
+    await lookupPlaceForRow(key);
   } catch {
     patchRow(key, { status: "error", errorKey: "admin.events.errors.fetchFailed" });
   }
@@ -276,6 +291,7 @@ function saveAllReadyRows() {
           @save="saveRow(row.key)"
           @remove="removeRow(row.key)"
           @lookup-province="lookupProvinceForRow(row.key)"
+          @lookup-place="lookupPlaceForRow(row.key)"
         />
       </div>
 

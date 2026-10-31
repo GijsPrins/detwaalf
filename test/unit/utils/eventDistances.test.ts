@@ -9,6 +9,7 @@ import {
 describe("getDistanceCategoryForEventDistance", () => {
   it.each([
     ["10k", "10k"],
+    ["quarter_marathon", "10k"],
     ["15k", "10k"],
     ["10_miles", "10k"],
     ["half_marathon", "half"],

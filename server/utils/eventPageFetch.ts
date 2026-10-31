@@ -70,7 +70,11 @@ async function readLimitedText(response: Response): Promise<string> {
   return new TextDecoder("utf-8").decode(bytes);
 }
 
-export async function fetchEventPageHtml(rawUrl: string): Promise<string> {
+// Returns the page and the URL it ended up at, so relative links resolve
+// against the page that was actually read.
+export async function fetchEventPageHtml(
+  rawUrl: string,
+): Promise<{ html: string; finalUrl: string }> {
   let currentUrl = rawUrl;
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
@@ -105,7 +109,7 @@ export async function fetchEventPageHtml(rawUrl: string): Promise<string> {
       throw createError({ statusCode: 422, statusMessage: "Page is not HTML" });
     }
 
-    return readLimitedText(response);
+    return { html: await readLimitedText(response), finalUrl: url.toString() };
   }
 
   throw createError({ statusCode: 502, statusMessage: "Too many redirects" });

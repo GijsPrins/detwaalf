@@ -67,6 +67,7 @@ describe("applyEventPageHints", () => {
     distances: ["half_marathon" as const],
     otherDistancesKm: [5],
     location: "Rotterdam",
+    registrationUrl: "https://www.mijninschrijving.nl/event/1",
   };
 
   it("fills empty fields", () => {
@@ -75,6 +76,7 @@ describe("applyEventPageHints", () => {
       name: "Gevonden naam",
       eventDate: "2027-04-11",
       location: "Rotterdam",
+      registrationUrl: "https://www.mijninschrijving.nl/event/1",
       distances: ["half_marathon"],
       dateOptions: ["2027-04-11", "2027-03-01"],
       otherDistancesKm: [5],
@@ -94,13 +96,19 @@ describe("applyEventPageHints", () => {
 
 describe("toEventWriteInput", () => {
   it("maps a row to the event write input", () => {
-    expect(toEventWriteInput({ ...readyRow(), location: " " })).toEqual({
+    expect(
+      toEventWriteInput({
+        ...readyRow(),
+        location: " ",
+        registrationUrl: "mijninschrijving.nl/event/1",
+      }),
+    ).toEqual({
       name: "Voorbeeldloop",
       event_date: "2027-03-14",
       province_id: 11,
       location: null,
       event_url: "https://www.voorbeeldloop.nl/",
-      registration_url: null,
+      registration_url: "https://mijninschrijving.nl/event/1",
       registration_opens: null,
       registration_deadline: null,
       distances: [{ distance: "10k", distanceCategory: "10k" }],

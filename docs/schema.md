@@ -110,7 +110,7 @@ erDiagram
 - `finish_time_seconds` is an integer (seconds) — format to `h:mm:ss` in the frontend
 - `status` enum values: `interested`, `signed_up`, `completed`, `dns`, `dnf`, `cancelled`
 - `distance_category` enum values: `10k`, `half`, `marathon`
-- `event_distance` enum values: `10k`, `15k`, `10_miles`, `half_marathon`, `30k`, `marathon`
+- `event_distance` enum values: `10k`, `quarter_marathon`, `15k`, `10_miles`, `half_marathon`, `30k`, `marathon`
 - `event_distances.distance_meters` stores the exact length in meters; the event-write RPCs and `enforce_event_distance_category` trigger derive it from `event_distance`
 - `event_distances.distance_category` is retained for existing reads and constrained to match the generated `medal_category`
 - `get_event_cancellation_signals()` returns cancellation counts only for events the authenticated user already has an `interested` or `signed_up` participation for; it does not expose other users' notes
