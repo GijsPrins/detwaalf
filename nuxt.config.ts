@@ -4,6 +4,9 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2026-04-02",
   devtools: { enabled: process.env.NODE_ENV !== "production" },
+  build: {
+    transpile: ["vue-router"],
+  },
   runtimeConfig: {
     brevoApiKey: process.env.BREVO_API_KEY || "",
     contactNotificationFrom:

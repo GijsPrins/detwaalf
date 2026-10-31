@@ -1,11 +1,17 @@
 # Setup
 
 ## Requirements
-- Node.js 22.22.3+ (22.x) or 24.15.0+ (24.x); Nuxt also supports Node.js 26+
+- Node.js 26 LTS, version 26.13.0 or newer within the 26.x release line
 - pnpm 10.15.1, pinned in `package.json` and used by CI
 - VS Code
 
 ## Install
+
+Use the latest Node.js 26 release for local development. `.nvmrc` selects the
+26.x line, and both CI jobs read that file so tests and production builds use
+the same major version. With a compatible version manager, run `nvm install`
+and `nvm use` from the repository root. On nvm-windows, pass the version
+explicitly: `nvm install 26` and `nvm use 26`.
 
 ```bash
 pnpm install
@@ -14,6 +20,10 @@ pnpm install
 Use `pnpm install --frozen-lockfile` to reproduce the reviewed dependency tree.
 The build-script allowlist in `pnpm-workspace.yaml` permits only Parcel's watcher,
 esbuild and vue-demi to run dependency build scripts.
+
+Vue Router is explicitly transpiled by the Nuxt build so the generated server
+does not depend on an untraced devtools import. This also keeps production
+output built on Windows runnable without the source dependency tree.
 
 ### Dependency updates (16 October 2026)
 

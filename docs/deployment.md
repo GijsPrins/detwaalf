@@ -6,7 +6,7 @@ Private operational runbooks, provider settings, domains, DNS records, account r
 
 ## Public Runtime Requirements
 
-- Node.js 22
+- Node.js 26 LTS (26.13.0 or newer within 26.x), matching `engines.node` in `package.json`
 - pnpm
 - Nuxt production build via `pnpm build`
 - Runtime command points at the generated Nuxt server output
