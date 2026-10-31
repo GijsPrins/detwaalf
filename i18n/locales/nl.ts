@@ -466,6 +466,7 @@ export default {
     errors: {
       generic: "Er is iets misgegaan. Probeer het opnieuw.",
       duplicateDistances: "Elke afstand mag maar één keer voorkomen.",
+      invalidUrl: "Gebruik een geldige link met https:// of http://, zonder gebruikersnaam of wachtwoord.",
     },
   },
   auth: {
